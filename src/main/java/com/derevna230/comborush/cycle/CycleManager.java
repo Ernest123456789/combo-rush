@@ -1,6 +1,7 @@
 package com.derevna230.comborush.cycle;
 
 import com.derevna230.comborush.director.DirectorManager;
+import com.derevna230.comborush.hud.HudSync;
 import com.derevna230.comborush.score.ScoreEngine;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.boss.BossBar;
@@ -51,6 +52,7 @@ public class CycleManager {
         ScoreEngine.reset();
         announce(server, "§a§lСОБЫТИЕ НАЧАЛОСЬ! §fНабирайте очки 5 минут!");
         DirectorManager.start(server);
+        HudSync.closeShop(server);
         updateBar(server);
     }
 

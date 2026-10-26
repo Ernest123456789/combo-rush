@@ -203,6 +203,7 @@ public final class HudModel {
                 case "state"    -> readState(o);
                 case "pop"      -> readPop(o);
                 case "result"   -> readResult(o);
+                case "shop_open", "shop", "shop_close" -> ShopScreen.onPacket(p.kind(), o);
                 default -> { }
             }
         } catch (Exception ignored) { /* битый пакет не должен ронять клиент */ }
@@ -395,7 +396,7 @@ public final class HudModel {
     }
 
     /** Принимает и SoundEvent, и RegistryEntry<SoundEvent> — в разных версиях констант SoundEvents тип отличается */
-    private static void play(Object raw, float pitch, float vol) {
+    public static void play(Object raw, float pitch, float vol) {
         if (!sound) return;
         SoundEvent ev = raw instanceof SoundEvent se ? se
             : (raw instanceof RegistryEntry<?> re && re.value() instanceof SoundEvent se2 ? se2 : null);

@@ -1,6 +1,7 @@
 package com.derevna230.comborush.score;
 
 import com.derevna230.comborush.anti.PlacedBlocks;
+import com.derevna230.comborush.anti.SpawnerTracker;
 import com.derevna230.comborush.cycle.CycleManager;
 import com.derevna230.comborush.cycle.CyclePhase;
 import com.derevna230.comborush.director.DirectorManager;
@@ -21,6 +22,8 @@ import net.minecraft.util.TypedActionResult;
 
 public class ScoreListeners {
     private static final double SHOOT_MIN_DISTANCE_SQ = 10 * 10;
+    /** Доля очков за моба из спавнера */
+    private static final double SPAWNER_MULT = 0.25;
 
     public static void register() {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, be) -> {
@@ -51,7 +54,11 @@ public class ScoreListeners {
                 DirectorManager.onHunterKilled(entity.getServer(),
                     source.getAttacker() instanceof ServerPlayerEntity k ? k : null);
             if (source.getAttacker() instanceof ServerPlayerEntity sp && entity instanceof HostileEntity) {
-                ScoreEngine.award(sp, ScoreSource.KILL, Registries.ENTITY_TYPE.getId(entity.getType()).toString());
+                String type = Registries.ENTITY_TYPE.getId(entity.getType()).toString();
+                if (SpawnerTracker.isSpawnerMob(entity))
+                    ScoreEngine.award(sp, ScoreSource.KILL, "spawner:" + type, SPAWNER_MULT, "Спавнер");
+                else
+                    ScoreEngine.award(sp, ScoreSource.KILL, type);
             }
         });
 
@@ -62,7 +69,11 @@ public class ScoreListeners {
             if (!(source.getSource() instanceof PersistentProjectileEntity)) return;
             if (!(entity instanceof HostileEntity)) return;
             if (sp.squaredDistanceTo(entity) < SHOOT_MIN_DISTANCE_SQ) return;
-            ScoreEngine.award(sp, ScoreSource.SHOOT, Registries.ENTITY_TYPE.getId(entity.getType()).toString());
+            String type = Registries.ENTITY_TYPE.getId(entity.getType()).toString();
+            if (SpawnerTracker.isSpawnerMob(entity))
+                ScoreEngine.award(sp, ScoreSource.SHOOT, "spawner:" + type, SPAWNER_MULT, "Спавнер");
+            else
+                ScoreEngine.award(sp, ScoreSource.SHOOT, type);
         });
 
         // босс «Голод»: во время события нельзя есть, пока не набрано достаточно очков

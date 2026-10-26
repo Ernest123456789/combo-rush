@@ -1,18 +1,19 @@
 package com.derevna230.comborush.shop;
 
-import com.derevna230.comborush.booster.BoosterApplier;
 import com.derevna230.comborush.booster.BoosterDef;
 import com.derevna230.comborush.booster.BoosterRegistry;
 import com.derevna230.comborush.booster.Rarity;
 import com.derevna230.comborush.consumable.ConsumableDef;
-import com.derevna230.comborush.consumable.ConsumableLogic;
 import com.derevna230.comborush.consumable.ConsumableRegistry;
 import com.derevna230.comborush.cycle.CycleManager;
 import com.derevna230.comborush.cycle.CyclePhase;
 import com.derevna230.comborush.data.OwnedBooster;
 import com.derevna230.comborush.data.PlayerProfile;
+import com.derevna230.comborush.hud.HudSync;
 import com.derevna230.comborush.promo.PromoManager;
 import com.derevna230.comborush.score.BoosterEffects;
+import com.derevna230.comborush.shop.ShopService.Res;
+import com.derevna230.comborush.shop.ShopService.State;
 import com.derevna230.comborush.species.SpeciesRegistry;
 import eu.pb4.sgui.api.ClickType;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
@@ -25,38 +26,33 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
+/**
+ * Магазин-сундук (sgui) для игроков без клиентского мода.
+ * С клиентским модом вместо него открывается экран в стиле Balatro (см. ShopNet и клиентский ShopScreen).
+ */
 public class ShopGui {
-    private static final Map<UUID, State> STATES = new HashMap<>();
-    private static class State {
-        int forEvent = -1, rerolls = 0;
-        List<String> offers = new ArrayList<>();      // усилители
-        List<String> cOffers = new ArrayList<>();     // расходники
-        int pending = -1;                             // выбранный расходник, ждёт цель
-    }
-
     private static final int[] OFFER_SLOTS = {11, 13, 15};
     private static final int[] C_OFFER_SLOTS = {20, 24};
     private static final int REROLL_SLOT = 22, INFO_SLOT = 31, EXTRA_SLOT = 33;
     private static final int OWNED_START = 36;
     private static final int[] C_OWNED_SLOTS = {47, 51};
-    private static final double PRICE_GROWTH = 1.25;
 
     private final ServerPlayerEntity player;
     private final SimpleGui gui;
 
     /** Вызывается после сброса: витрина генерируется заново */
-    public static void invalidate(UUID id) { STATES.remove(id); }
+    public static void invalidate(UUID id) { ShopService.invalidate(id); }
 
     public static void open(ServerPlayerEntity player) {
         if (CycleManager.phase() != CyclePhase.NORMAL) {
             player.sendMessage(Text.literal("§cМагазин закрыт во время события."), false);
             return;
         }
+        if (HudSync.has(player)) { ShopNet.open(player); return; }     // красивый экран для клиентского мода
         new ShopGui(player).gui.open();
     }
 
@@ -64,70 +60,20 @@ public class ShopGui {
         this.player = player;
         this.gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
         gui.setTitle(Text.literal("Магазин Режиссёра"));
-
-        State st = state();
-        st.pending = -1;
-        int ev = PlayerProfile.of(player).eventsDone();
-        if (st.forEvent != ev) { st.forEvent = ev; st.rerolls = 0; rollOffers(st); }
+        state().pending = -1;
         render();
     }
 
-    private State state() { return STATES.computeIfAbsent(player.getUuid(), k -> new State()); }
-    private BoosterEffects fx() { return BoosterEffects.of(player, PlayerProfile.of(player)); }
+    private State state() { return ShopService.state(player); }
 
-    // ---------------- цены ----------------
-    private double priceMult(PlayerProfile p, BoosterEffects fx) {
-        return SpeciesRegistry.get(p.species()).shop_price_mult * (1 - Math.min(0.5, fx.shopDiscount));
-    }
-    private int price(PlayerProfile p, BoosterDef d, BoosterEffects fx) {
-        double v = d.price * Math.pow(PRICE_GROWTH, p.purchasesOf(d.id)) * priceMult(p, fx);
-        return Math.max(1, (int) Math.ceil(v));
-    }
-    private int cPrice(PlayerProfile p, ConsumableDef d, BoosterEffects fx) {
-        return Math.max(1, (int) Math.ceil(d.price * priceMult(p, fx)));
-    }
-    private int rerollCost(State st, BoosterEffects fx) { return Math.max(1, 5 + 2 * st.rerolls - fx.rerollDiscount); }
-    private int sellValue(OwnedBooster o, BoosterEffects fx) {
-        return (int) Math.round(o.paid() * Math.min(1.0, 0.5 + fx.sellBonus)) + 4 * o.level();
-    }
-
-    // ---------------- витрина (редкость задаёт шанс выпадения) ----------------
-    private static <T> List<String> pickWeighted(List<T> pool, int n, ToIntFunction<T> weight, Function<T, String> id) {
-        List<T> p = new ArrayList<>(pool);
-        List<String> out = new ArrayList<>();
-        while (out.size() < n && !p.isEmpty()) {
-            int total = p.stream().mapToInt(weight).sum();
-            int roll = ThreadLocalRandom.current().nextInt(Math.max(1, total));
-            for (int i = 0; i < p.size(); i++) {
-                roll -= weight.applyAsInt(p.get(i));
-                if (roll < 0 || i == p.size() - 1) { out.add(id.apply(p.get(i))); p.remove(i); break; }
-            }
-        }
-        return out;
-    }
-
-    private void rollOffers(State st) {
-        PlayerProfile p = PlayerProfile.of(player);
-        List<BoosterDef> pool = new ArrayList<>();
-        for (BoosterDef d : BoosterRegistry.all()) {
-            if (d.min_level > p.level() || d.unlock_resets > p.resets() || p.find(d.id) != null) continue;
-            if (!d.promo.isEmpty() && !PromoManager.isActive(d.promo)) continue;
-            pool.add(d);
-        }
-        st.offers = pickWeighted(pool, 3, d -> Rarity.weight(d.rarity), d -> d.id);
-        st.cOffers = pickWeighted(new ArrayList<>(ConsumableRegistry.all()), 2, d -> Rarity.weight(d.rarity), d -> d.id);
-    }
-
-    // ---------------- отрисовка ----------------
     private void render() {
         PlayerProfile p = PlayerProfile.of(player);
-        BoosterEffects fx = fx();
+        BoosterEffects fx = ShopService.fx(player);
         State st = state();
 
         for (int i = 0; i < 54; i++)
             gui.setSlot(i, new GuiElementBuilder(Items.BLACK_STAINED_GLASS_PANE).setName(Text.literal(" ")));
 
-        // --- предложения: усилители ---
         for (int i = 0; i < OFFER_SLOTS.length; i++) {
             if (i >= st.offers.size()) continue;
             BoosterDef d = BoosterRegistry.get(st.offers.get(i));
@@ -136,7 +82,7 @@ public class ShopGui {
             List<Text> lore = new ArrayList<>();
             lore.add(Text.literal(Rarity.color(d.rarity) + Rarity.label(d.rarity)));
             lore.add(Text.literal("§7" + d.description));
-            lore.add(Text.literal("§eЦена: " + price(p, d, fx) + " монет"));
+            lore.add(Text.literal("§eЦена: " + ShopService.price(p, d, fx) + " монет"));
             lore.add(Text.literal("§aЛКМ §7— купить"));
             if (d.canBeNegative()) {
                 lore.add(Text.literal("§cПКМ §7— «негативный»: +1 слот, без игровой части"));
@@ -148,7 +94,6 @@ public class ShopGui {
                 .setCallback((slot, type, action) -> buy(idx, type)));
         }
 
-        // --- предложения: расходники ---
         for (int i = 0; i < C_OFFER_SLOTS.length; i++) {
             if (i >= st.cOffers.size()) continue;
             ConsumableDef d = ConsumableRegistry.get(st.cOffers.get(i));
@@ -157,19 +102,19 @@ public class ShopGui {
             List<Text> lore = new ArrayList<>();
             lore.add(Text.literal("§8Расходник · " + Rarity.color(d.rarity) + Rarity.label(d.rarity)));
             lore.add(Text.literal("§7" + d.description));
-            lore.add(Text.literal("§eЦена: " + cPrice(p, d, fx) + " монет"));
+            lore.add(Text.literal("§eЦена: " + ShopService.cPrice(p, d, fx) + " монет"));
             lore.add(Text.literal("§aЛКМ §7— купить (слотов расходников: "
                 + p.consumables().size() + "/" + PlayerProfile.CONSUMABLE_SLOTS + ")"));
             gui.setSlot(C_OFFER_SLOTS[i], new GuiElementBuilder(icon(d.icon))
                 .setName(Text.literal(Rarity.color(d.rarity) + d.name)).setLore(lore)
-                .setCallback((slot, type, action) -> buyConsumable(idx)));
+                .setCallback((slot, type, action) -> done(ShopService.buyConsumable(player, idx))));
         }
 
         gui.setSlot(REROLL_SLOT, new GuiElementBuilder(Items.ENDER_EYE)
             .setName(Text.literal("§bПерекрутить витрину"))
-            .setLore(List.of(Text.literal("§eЦена: " + rerollCost(st, fx) + " монет"),
+            .setLore(List.of(Text.literal("§eЦена: " + ShopService.rerollCost(st, fx) + " монет"),
                              Text.literal("§7Обновляет и усилители, и расходники")))
-            .setCallback((slot, type, action) -> reroll()));
+            .setCallback((slot, type, action) -> done(ShopService.reroll(player))));
 
         gui.setSlot(INFO_SLOT, new GuiElementBuilder(Items.GOLD_INGOT)
             .setName(Text.literal("§6Монеты: " + p.coins()))
@@ -182,14 +127,12 @@ public class ShopGui {
                 Text.literal(PromoManager.activeNames().isEmpty() ? "§8Акций нет"
                     : "§d★ " + String.join(", ", PromoManager.activeNames())))));
 
-        int slotCost = 200 * (1 << p.extraSlots());
         gui.setSlot(EXTRA_SLOT, new GuiElementBuilder(Items.CHEST)
             .setName(Text.literal("§dКупить доп. слот"))
-            .setLore(List.of(Text.literal("§eЦена: " + slotCost + " монет"),
+            .setLore(List.of(Text.literal("§eЦена: " + ShopService.slotCost(p) + " монет"),
                              Text.literal("§7Куплено: " + p.extraSlots() + "/4")))
-            .setCallback((slot, type, action) -> buyExtraSlot()));
+            .setCallback((slot, type, action) -> done(ShopService.buyExtraSlot(player))));
 
-        // --- свои усилители ---
         ConsumableDef pending = st.pending >= 0 && st.pending < p.consumables().size()
             ? ConsumableRegistry.get(p.consumables().get(st.pending)) : null;
         for (int i = 0; i < 9; i++) {
@@ -209,14 +152,14 @@ public class ShopGui {
                         + " §8(" + OwnedBooster.editionDesc(o.edition()) + ")"));
                 if (o.negative()) lore.add(Text.literal("§cНегативный: потеряна часть «" + o.dropped() + "»"));
                 if (pending != null) lore.add(Text.literal("§e▶ ЛКМ — применить «" + pending.name + "»"));
-                else lore.add(Text.literal("§cПКМ §7— продать за §e" + sellValue(o, fx)));
+                else lore.add(Text.literal("§cПКМ §7— продать за §e" + ShopService.sellValue(o, fx)));
                 gui.setSlot(gs, new GuiElementBuilder(icon(d.icon))
                     .setName(Text.literal((o.negative() ? "§c" : Rarity.color(d.rarity)) + d.name
                         + (o.level() > 0 ? " §7(ур. " + o.level() + ")" : "")))
                     .setLore(lore).glow(pending != null || !o.edition().isEmpty())
                     .setCallback((slot, type, action) -> {
                         if (state().pending >= 0) { if (type.isLeft) useOn(idx); }
-                        else if (type.isRight) sell(idx);
+                        else if (type.isRight) done(ShopService.sell(player, idx));
                     }));
             } else if (i < p.slotCapacity()) {
                 gui.setSlot(gs, new GuiElementBuilder(Items.LIGHT_GRAY_STAINED_GLASS_PANE)
@@ -228,7 +171,6 @@ public class ShopGui {
             }
         }
 
-        // --- свои расходники ---
         for (int i = 0; i < C_OWNED_SLOTS.length; i++) {
             if (i < p.consumables().size()) {
                 final int idx = i;
@@ -240,7 +182,7 @@ public class ShopGui {
                 lore.add(Text.literal("§7" + d.description));
                 lore.add(Text.literal(selected ? "§eВыбери усилитель ниже (ЛКМ). Нажми снова, чтобы отменить."
                     : d.needsTarget() ? "§aЛКМ §7— использовать (потом выбрать усилитель)" : "§aЛКМ §7— использовать"));
-                lore.add(Text.literal("§cПКМ §7— продать за §e" + Math.max(1, d.price / 2)));
+                lore.add(Text.literal("§cПКМ §7— продать за §e" + ShopService.cSellValue(d)));
                 gui.setSlot(C_OWNED_SLOTS[i], new GuiElementBuilder(icon(d.icon))
                     .setName(Text.literal(Rarity.color(d.rarity) + d.name)).setLore(lore).glow(selected)
                     .setCallback((slot, type, action) -> useConsumable(idx, type)));
@@ -251,46 +193,16 @@ public class ShopGui {
         }
     }
 
-    // ---------------- действия ----------------
-    private void buy(int idx, ClickType click) {
-        State st = state();
-        PlayerProfile p = PlayerProfile.of(player);
-        if (idx >= st.offers.size()) return;
-        BoosterDef d = BoosterRegistry.get(st.offers.get(idx));
-        if (d == null) return;
-
-        String dropped = "";
-        if (click.isRight) {
-            if (!d.canBeNegative()) { msg("§cЭтот усилитель нельзя сделать негативным."); return; }
-            dropped = click.shift ? "score" : "game";
-        }
-        boolean negative = !dropped.isEmpty();
-        int price = price(p, d, fx());
-
-        if (p.coins() < price) { msg("§cНе хватает монет."); return; }
-        if (p.boosters().size() >= p.slotCapacity() + (negative ? 1 : 0)) {
-            msg("§cНет свободных слотов. Продай усилитель или купи негативный."); return;
-        }
-
-        player.setAttached(PlayerProfile.TYPE,
-            p.addCoins(-price).addBooster(new OwnedBooster(d.id, dropped, price)));
-        st.offers.remove(idx);
-        BoosterApplier.sync(player);
+    private void done(Res r) {
+        if (!r.ok()) msg("§c" + r.msg());
+        else if (!r.msg().isEmpty()) msg("§a" + r.msg());
         render();
     }
 
-    private void buyConsumable(int idx) {
-        State st = state();
-        PlayerProfile p = PlayerProfile.of(player);
-        if (idx >= st.cOffers.size()) return;
-        ConsumableDef d = ConsumableRegistry.get(st.cOffers.get(idx));
-        if (d == null) return;
-        int price = cPrice(p, d, fx());
-        if (p.consumables().size() >= PlayerProfile.CONSUMABLE_SLOTS) { msg("§cСлоты расходников заняты."); return; }
-        if (p.coins() < price) { msg("§cНе хватает монет."); return; }
-        player.setAttached(PlayerProfile.TYPE, p.addCoins(-price).addConsumable(d.id));
-        st.cOffers.remove(idx);
-        render();
+    private void buy(int idx, ClickType click) {
+        String mode = "";
+        if (click.isRight) mode = click.shift ? "score" : "game";
+        done(ShopService.buy(player, idx, mode));
     }
 
     private void useConsumable(int idx, ClickType click) {
@@ -300,76 +212,22 @@ public class ShopGui {
         ConsumableDef d = ConsumableRegistry.get(p.consumables().get(idx));
         if (d == null) return;
 
-        if (click.isRight) {                         // продажа
-            player.setAttached(PlayerProfile.TYPE, p.removeConsumable(idx).addCoins(Math.max(1, d.price / 2)));
-            st.pending = -1;
-            render();
-            return;
-        }
-        if (d.needsTarget()) {                       // ждём выбор усилителя
+        if (click.isRight) { st.pending = -1; done(ShopService.sellConsumable(player, idx)); return; }
+        if (d.needsTarget()) {
             st.pending = st.pending == idx ? -1 : idx;
             if (p.boosters().isEmpty()) { st.pending = -1; msg("§cУ тебя нет усилителей."); }
             render();
             return;
         }
-        if (d.action.equals("free_reroll")) {        // без цели
-            rollOffers(st);
-            player.setAttached(PlayerProfile.TYPE, p.removeConsumable(idx));
-            msg("§aВитрина обновлена бесплатно.");
-            render();
-            return;
-        }
-        String err = ConsumableLogic.apply(player, d, -1);
-        if (err != null) { msg("§c" + err); return; }
-        player.setAttached(PlayerProfile.TYPE, PlayerProfile.of(player).removeConsumable(idx));
-        msg("§aИспользовано: " + d.name);
-        BoosterApplier.sync(player);
-        render();
+        done(ShopService.useConsumable(player, idx, -1));
     }
 
     private void useOn(int boosterIdx) {
         State st = state();
-        PlayerProfile p = PlayerProfile.of(player);
-        if (st.pending < 0 || st.pending >= p.consumables().size()) { st.pending = -1; render(); return; }
-        ConsumableDef d = ConsumableRegistry.get(p.consumables().get(st.pending));
-        if (d == null) { st.pending = -1; render(); return; }
-
-        String err = ConsumableLogic.apply(player, d, boosterIdx);
-        if (err != null) { msg("§c" + err); return; }
-        player.setAttached(PlayerProfile.TYPE, PlayerProfile.of(player).removeConsumable(st.pending));
-        st.pending = -1;
-        msg("§aИспользовано: " + d.name);
-        BoosterApplier.sync(player);
-        render();
-    }
-
-    private void sell(int idx) {
-        PlayerProfile p = PlayerProfile.of(player);
-        OwnedBooster o = p.boosters().get(idx);
-        int value = sellValue(o, fx());
-        player.setAttached(PlayerProfile.TYPE, p.removeBooster(idx).addCoins(value));
-        BoosterApplier.sync(player);
-        render();
-    }
-
-    private void reroll() {
-        State st = state();
-        PlayerProfile p = PlayerProfile.of(player);
-        int cost = rerollCost(st, fx());
-        if (p.coins() < cost) { msg("§cНе хватает монет."); return; }
-        player.setAttached(PlayerProfile.TYPE, p.addCoins(-cost));
-        st.rerolls++;
-        rollOffers(st);
-        render();
-    }
-
-    private void buyExtraSlot() {
-        PlayerProfile p = PlayerProfile.of(player);
-        int cost = 200 * (1 << p.extraSlots());
-        if (p.extraSlots() >= 4) { msg("§cМаксимум доп. слотов."); return; }
-        if (p.coins() < cost) { msg("§cНе хватает монет."); return; }
-        player.setAttached(PlayerProfile.TYPE, p.addCoins(-cost).addExtraSlot());
-        render();
+        if (st.pending < 0) return;
+        Res r = ShopService.useConsumable(player, st.pending, boosterIdx);
+        if (r.ok()) st.pending = -1;
+        done(r);
     }
 
     private static Item icon(String s) {

@@ -40,9 +40,20 @@ public class ScoreEngine {
 
     /** key: тип моба/блока — отдельный счётчик убывающей отдачи */
     public static void award(ServerPlayerEntity player, ScoreSource src, String key) {
+        award(player, src, key, 1.0, "");
+    }
+
+    /**
+     * extraMult < 1 — урезанная награда (например, моб из спавнера); такие действия не растят статистику.
+     * extraLabel показывается в анимации подсчёта.
+     */
+    public static void award(ServerPlayerEntity player, ScoreSource src, String key, double extraMult, String extraLabel) {
         // статистика действий считается всегда (для масштабируемых усилителей и /cr stats)
-        PlayerProfile prof = PlayerProfile.of(player).countAction(src.statKey);
-        player.setAttached(PlayerProfile.TYPE, prof);
+        PlayerProfile prof = PlayerProfile.of(player);
+        if (extraMult >= 1.0) {
+            prof = prof.countAction(src.statKey);
+            player.setAttached(PlayerProfile.TYPE, prof);
+        }
 
         if (CycleManager.phase() != CyclePhase.EVENT) return;
 
@@ -67,7 +78,7 @@ public class ScoreEngine {
         double debMult = DirectorManager.debuffSourceMult(player, src);
         DebuffDef deb = DirectorManager.debuffFor(player);
         double chips = Math.max(0, src.baseChips + fx.chipsFlat(src)) * fx.chipsMult(src) * speciesMult
-            * dirMult * markMult * debMult * factor;
+            * dirMult * markMult * debMult * extraMult * factor;
         double gained = chips * s.mult();
         s.chips += chips;
         s.score += gained;
@@ -77,7 +88,7 @@ public class ScoreEngine {
 
         // клиентский мод получает анимацию, остальные — строку в action bar
         boolean hud = HudSync.pop(player, src, src.baseChips, factor, speciesMult, sd.name, dirMult, markMult,
-            debMult, deb == null ? "" : deb.name, chips, s.combo, s.mult(), gained, s.total(), window, fx);
+            debMult, deb == null ? "" : deb.name, extraMult, extraLabel, chips, s.combo, s.mult(), gained, s.total(), window, fx);
         if (!hud) {
             player.sendMessage(Text.literal(String.format("+%.0f × %.2f = +%.0f §7| всего %d",
                 chips, s.mult(), gained, s.total())).formatted(Formatting.GOLD), true);

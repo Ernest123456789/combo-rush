@@ -36,6 +36,12 @@ public class HudSync {
 
     public static boolean has(ServerPlayerEntity p) { return ServerPlayNetworking.canSend(p, HudPayload.ID); }
 
+    /** Закрыть клиентский экран магазина у всех (началось событие) */
+    public static void closeShop(MinecraftServer server) {
+        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList())
+            if (has(p)) ServerPlayNetworking.send(p, new HudPayload("shop_close", "{}"));
+    }
+
     public static void forget(UUID id) { LAST_BOOSTERS.remove(id); LAST_STATE.remove(id); }
 
     public static void tick(MinecraftServer server) {
@@ -75,7 +81,7 @@ public class HudSync {
     }
 
     // ---------------- усилители ----------------
-    private static String category(BoosterDef def) {
+    public static String category(BoosterDef def) {
         boolean game = def.hasGame(), score = def.hasScore();
         boolean team = false;
         for (EffectDef e : def.effects)
@@ -221,7 +227,7 @@ public class HudSync {
     /** @return true, если у игрока есть клиентский мод и анимация отправлена (тогда action bar не нужен) */
     public static boolean pop(ServerPlayerEntity p, ScoreSource src, double base, double factor, double speciesMult,
                               String speciesName, double directorMult, double markMult,
-                              double debuffMult, String debuffName, double chips, double comboBase, double mult, double gained, long total,
+                              double debuffMult, String debuffName, double extraMult, String extraLabel, double chips, double comboBase, double mult, double gained, long total,
                               int windowTicks, BoosterEffects fx) {
         if (!has(p)) return false;
 
@@ -240,6 +246,7 @@ public class HudSync {
         if (Math.abs(directorMult - 1) > 1e-9) list.add(new Step(-1, "chipsx", directorMult, DirectorManager.currentName()));
         if (Math.abs(markMult - 1) > 1e-9) list.add(new Step(-1, "chipsx", markMult, "Метка"));
         if (Math.abs(debuffMult - 1) > 1e-9) list.add(new Step(-1, "chipsx", debuffMult, debuffName));
+        if (Math.abs(extraMult - 1) > 1e-9) list.add(new Step(-1, "chipsx", extraMult, extraLabel));
         if (factor < 0.999) list.add(new Step(-1, "chipsx", factor, "Повтор"));
         // порядок как в формуле: плоские фишки → множители фишек → +множитель → ×множитель
         list.sort(Comparator.<Step>comparingInt(st -> order(st.kind())).thenComparingInt(Step::index));

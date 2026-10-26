@@ -5,6 +5,7 @@ import com.derevna230.comborush.booster.BoosterRegistry;
 import com.derevna230.comborush.command.ComboRushCommand;
 import com.derevna230.comborush.cycle.CycleManager;
 import com.derevna230.comborush.anti.PlacedBlocks;
+import com.derevna230.comborush.anti.SpawnerTracker;
 import com.derevna230.comborush.consumable.ConsumableRegistry;
 import com.derevna230.comborush.cosmetic.CosmeticManager;
 import com.derevna230.comborush.cosmetic.CosmeticRegistry;
@@ -19,6 +20,8 @@ import com.derevna230.comborush.species.SpeciesRegistry;
 import net.minecraft.text.Text;
 import com.derevna230.comborush.hud.HudPayload;
 import com.derevna230.comborush.hud.HudSync;
+import com.derevna230.comborush.hud.ShopActionPayload;
+import com.derevna230.comborush.shop.ShopNet;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -36,6 +39,8 @@ public class ComboRush implements ModInitializer {
     @Override
     public void onInitialize() {
         PayloadTypeRegistry.playS2C().register(HudPayload.ID, HudPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ShopActionPayload.ID, ShopActionPayload.CODEC);
+        ShopNet.register();
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new BoosterRegistry());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SpeciesRegistry());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new PromoManager());
@@ -44,6 +49,7 @@ public class ComboRush implements ModInitializer {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ConsumableRegistry());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new DebuffRegistry());
         PlacedBlocks.init();
+        SpawnerTracker.init();
         Leaderboard.init();
         CycleManager.init();
         ScoreListeners.register();
