@@ -274,7 +274,8 @@ public class CaseOpenScreen extends Screen {
         m.pop();
     }
 
-    private void close() { MinecraftClient.getInstance().setScreen(null); }
+    @Override
+    public void close() { MinecraftClient.getInstance().setScreen(null); }
 
     private void disc(DrawContext c, int cx, int cy, int r, int argb) {
         for (int dy = -r; dy <= r; dy += 2) {
