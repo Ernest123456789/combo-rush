@@ -278,7 +278,7 @@
      ]
     },
     {
-     "name": "group",
+     "name": "group_2",
      "pivot": [
       0,
       -8,
@@ -627,7 +627,7 @@
      ]
     },
     {
-     "name": "group",
+     "name": "group_3",
      "pivot": [
       -3,
       -8,
@@ -890,7 +890,7 @@
      ]
     },
     {
-     "name": "group",
+     "name": "group_4",
      "pivot": [
       1.5,
       -7.75,
@@ -899,13 +899,13 @@
      "parent": "group"
     },
     {
-     "name": "group",
+     "name": "group_5",
      "pivot": [
       1.5,
       -8.25,
       6
      ],
-     "parent": "group",
+     "parent": "group_4",
      "cubes": [
       {
        "origin": [
@@ -1246,13 +1246,13 @@
      ]
     },
     {
-     "name": "group",
+     "name": "group_6",
      "pivot": [
       -1.11313,
       -7.75,
       4.234629999999999
      ],
-     "parent": "group",
+     "parent": "group_4",
      "cubes": [
       {
        "origin": [
