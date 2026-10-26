@@ -5,6 +5,7 @@ plugins {
 
 repositories {
 	maven { url "https://maven.nucleoid.xyz" } // sgui
+	maven { url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" } // GeckoLib
 	// Add repositories to retrieve artifacts from in here.
 	// You should only use this when depending on other mods because
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
@@ -23,6 +24,9 @@ dependencies {
 
 	// Серверные GUI для магазина (встраивается в jar)
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+
+	// 3D-модели брони (встраивается в jar)
+	modImplementation include("software.bernie.geckolib:geckolib-fabric-1.21.1:${project.geckolib_version}")
 }
 
 processResources {

@@ -1,5 +1,8 @@
 package com.derevna230.comborush.score;
 
+import com.derevna230.comborush.armor.ArmorSetDef;
+import com.derevna230.comborush.armor.ArmorSetRegistry;
+import com.derevna230.comborush.armor.ArmorSets;
 import com.derevna230.comborush.booster.BoosterDef;
 import com.derevna230.comborush.booster.BoosterRegistry;
 import com.derevna230.comborush.booster.EffectDef;
@@ -83,6 +86,9 @@ public class BoosterEffects {
             }
         }
 
+        // --- броня из кейсов ---
+        applyArmor(fx, player);
+
         // --- акции и правила события ---
         fx.shopDiscount += PromoManager.shopDiscount();
         fx.coinBonus += PromoManager.coinBonus();
@@ -143,7 +149,17 @@ public class BoosterEffects {
             if (add > 0) add *= lf;
             final double addF = add, timesF = times;
 
-            switch (type) {
+            applyType(fx, type, e, addF, timesF, idx, label, lf, asAura);
+        }
+
+        if (!asAura && !o.edition().isEmpty()) applyEdition(fx, bi, o.edition());
+    }
+
+
+    /** Применяет один очковый/экономический эффект с уже посчитанными значениями */
+    private static void applyType(BoosterEffects fx, String type, EffectDef e, double addF, double timesF,
+                                  int idx, String label, double lf, boolean asAura) {
+        switch (type) {
                 case "chips_per_action" -> { sources(e).forEach(s -> fx.flat.merge(s, addF, Double::sum)); fx.triggers.add(new Trigger(idx, "chips", addF, e.source, label)); }
                 case "chips_multiplier" -> { sources(e).forEach(s -> fx.mult.merge(s, timesF, (a, b) -> a * b)); fx.triggers.add(new Trigger(idx, "chipsx", timesF, e.source, label)); }
                 case "mult_add"         -> { fx.multAdd += addF; fx.triggers.add(new Trigger(idx, "mult", addF, "ALL", label)); }
@@ -160,9 +176,23 @@ public class BoosterEffects {
                 case "share_score"      -> { if (!asAura) fx.triggers.add(new Trigger(idx, "share", e.value * lf, "ALL", label)); }
                 default -> { }
             }
-        }
+    }
 
-        if (!asAura && !o.edition().isEmpty()) applyEdition(fx, bi, o.edition());
+    /** Броня из кейсов: эффекты за каждую часть и за полный комплект (подпись в анимации — название комплекта) */
+    private static void applyArmor(BoosterEffects fx, ServerPlayerEntity p) {
+        for (var en : ArmorSets.worn(p).entrySet()) {
+            ArmorSetDef def = ArmorSetRegistry.get(en.getKey());
+            if (def == null) continue;
+            int n = en.getValue();
+            for (EffectDef e : def.piece_effects) applyArmorEffect(fx, p, e, n, def.name);
+            if (ArmorSets.full(def.id, n)) for (EffectDef e : def.set_effects) applyArmorEffect(fx, p, e, 1, def.name);
+        }
+    }
+
+    private static void applyArmorEffect(BoosterEffects fx, ServerPlayerEntity p, EffectDef e, int n, String label) {
+        if (e.isGame() || !Conditions.met(e.condition, p)) return;
+        String type = e.type == null ? "" : e.type;
+        applyType(fx, type, e, e.value * n, 1 + (e.value - 1) * n, -1, label, 1.0, false);
     }
 
     /** Издания: фольга +25 фишек, голограмма +0.4 множителя, полихром ×1.2 множителя */

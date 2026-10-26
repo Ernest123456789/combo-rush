@@ -1,6 +1,7 @@
 package com.derevna230.comborush.shop;
 
 import com.derevna230.comborush.booster.BoosterDef;
+import com.derevna230.comborush.cases.EssenceShopNet;
 import com.derevna230.comborush.booster.BoosterRegistry;
 import com.derevna230.comborush.consumable.ConsumableDef;
 import com.derevna230.comborush.consumable.ConsumableRegistry;
@@ -15,6 +16,7 @@ import com.derevna230.comborush.promo.PromoManager;
 import com.derevna230.comborush.score.BoosterEffects;
 import com.derevna230.comborush.shop.ShopService.Res;
 import com.derevna230.comborush.shop.ShopService.State;
+import com.derevna230.comborush.species.SpeciesNet;
 import com.derevna230.comborush.species.SpeciesRegistry;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -41,6 +43,8 @@ public class ShopNet {
     }
 
     private static void handle(ServerPlayerEntity p, ShopActionPayload a) {
+        if (a.action().startsWith("species")) { SpeciesNet.handle(p, a); return; }
+        if (a.action().startsWith("eshop") || a.action().equals("case_again")) { EssenceShopNet.handle(p, a); return; }
         if (CycleManager.phase() != CyclePhase.NORMAL) {
             ServerPlayNetworking.send(p, new HudPayload("shop_close", "{}"));
             return;

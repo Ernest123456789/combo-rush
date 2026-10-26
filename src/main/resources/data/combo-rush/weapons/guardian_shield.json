@@ -1,0 +1,24 @@
+{
+  "name": "Щит стража",
+  "description": "Возвращает удар тому, кто его нанёс.",
+  "set_effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.armor",
+      "value": 2,
+      "operation": "add_value"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "block",
+      "type": "reflect",
+      "value": 0.4
+    },
+    {
+      "trigger": "block",
+      "type": "knockback",
+      "value": 0.6
+    }
+  ]
+}

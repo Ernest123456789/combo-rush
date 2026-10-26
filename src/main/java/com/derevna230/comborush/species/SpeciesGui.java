@@ -1,7 +1,9 @@
 package com.derevna230.comborush.species;
 
 import com.derevna230.comborush.data.PlayerProfile;
+import com.derevna230.comborush.hud.HudSync;
 import com.derevna230.comborush.prestige.PrestigeManager;
+import com.derevna230.comborush.shop.ShopService.Res;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import net.minecraft.item.Item;
@@ -21,7 +23,10 @@ public class SpeciesGui {
     private final ServerPlayerEntity player;
     private final SimpleGui gui;
 
-    public static void open(ServerPlayerEntity player) { new SpeciesGui(player).gui.open(); }
+    public static void open(ServerPlayerEntity player) {
+        if (HudSync.has(player)) { SpeciesNet.open(player); return; }   // экран в стиле Balatro
+        new SpeciesGui(player).gui.open();
+    }
 
     private SpeciesGui(ServerPlayerEntity player) {
         this.player = player;
@@ -62,13 +67,9 @@ public class SpeciesGui {
     }
 
     private void choose(SpeciesDef d) {
-        PlayerProfile p = PlayerProfile.of(player);
-        if (d.id.equals(p.species())) return;
-        if (!d.unlockedFor(p)) { msg("§cЭто существо ещё закрыто."); return; }
-        if (p.eventsDone() != 0) { msg("§cСмена существа возможна только после сброса."); return; }
-        player.setAttached(PlayerProfile.TYPE, p.withSpecies(d.id));
-        SpeciesApplier.sync(player);
-        msg("§aТеперь ты: " + d.name);
+        if (d.id.equals(PlayerProfile.of(player).species())) return;
+        Res r = SpeciesService.choose(player, d.id);
+        msg((r.ok() ? "§a" : "§c") + r.msg());
         render();
     }
 

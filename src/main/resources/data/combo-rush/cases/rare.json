@@ -1,0 +1,177 @@
+{
+  "name": "Редкий кейс",
+  "description": "Клинки, щит стража, краб-моряк и лунная лилия.",
+  "rarity": "rare",
+  "price": 14,
+  "order": 1,
+  "drops": [
+    {
+      "set": "copper_knight",
+      "weight": 24
+    },
+    {
+      "set": "straw_hat",
+      "weight": 17
+    },
+    {
+      "set": "traveler_sword",
+      "weight": 17
+    },
+    {
+      "set": "traveler_dagger",
+      "weight": 17
+    },
+    {
+      "set": "starter_bow",
+      "weight": 17
+    },
+    {
+      "set": "traveler_buckler",
+      "weight": 17
+    },
+    {
+      "set": "pet_pigeon",
+      "weight": 17
+    },
+    {
+      "set": "decor_fern_pot",
+      "weight": 10
+    },
+    {
+      "set": "decor_tiny_cactus",
+      "weight": 10
+    },
+    {
+      "set": "thief",
+      "weight": 80
+    },
+    {
+      "set": "tiki_mask",
+      "weight": 57
+    },
+    {
+      "set": "crystal_sword",
+      "weight": 57
+    },
+    {
+      "set": "diamond_blade",
+      "weight": 57
+    },
+    {
+      "set": "kukri",
+      "weight": 57
+    },
+    {
+      "set": "pet_squirrel",
+      "weight": 57
+    },
+    {
+      "set": "decor_glow_shrooms",
+      "weight": 34
+    },
+    {
+      "set": "iron_defender",
+      "weight": 52
+    },
+    {
+      "set": "templar",
+      "weight": 52
+    },
+    {
+      "set": "netherite_blade",
+      "weight": 37
+    },
+    {
+      "set": "emerald_sword",
+      "weight": 37
+    },
+    {
+      "set": "rebel_pick",
+      "weight": 37
+    },
+    {
+      "set": "guardian_shield",
+      "weight": 37
+    },
+    {
+      "set": "flame_blade",
+      "weight": 37
+    },
+    {
+      "set": "pet_sailor_crab",
+      "weight": 37
+    },
+    {
+      "set": "decor_moon_lily",
+      "weight": 22
+    },
+    {
+      "set": "raider",
+      "weight": 13
+    },
+    {
+      "set": "pirate_hat",
+      "weight": 9
+    },
+    {
+      "set": "dreaded_blade",
+      "weight": 9
+    },
+    {
+      "set": "crimson_fang",
+      "weight": 9
+    },
+    {
+      "set": "thorn_bow",
+      "weight": 9
+    },
+    {
+      "set": "angler_trident",
+      "weight": 9
+    },
+    {
+      "set": "bass_guitar",
+      "weight": 9
+    },
+    {
+      "set": "flintlock",
+      "weight": 9
+    },
+    {
+      "set": "pet_creeper_skeleton",
+      "weight": 9
+    },
+    {
+      "set": "reverent",
+      "weight": 2
+    },
+    {
+      "set": "heavenly",
+      "weight": 2
+    },
+    {
+      "set": "polar_soul",
+      "weight": 2
+    },
+    {
+      "set": "void_claymore",
+      "weight": 2
+    },
+    {
+      "set": "storm_spear",
+      "weight": 2
+    },
+    {
+      "set": "hunting_shotgun",
+      "weight": 2
+    },
+    {
+      "set": "pet_traveler_skeleton",
+      "weight": 2
+    },
+    {
+      "set": "pet_succubus",
+      "weight": 2
+    }
+  ]
+}

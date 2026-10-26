@@ -1,0 +1,23 @@
+{
+  "name": "Багровый клык",
+  "description": "Чем меньше у тебя здоровья, тем он злее.",
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.3,
+      "condition": "low_health"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "lifesteal",
+      "value": 0.15
+    },
+    {
+      "trigger": "kill",
+      "type": "heal",
+      "value": 4
+    }
+  ]
+}

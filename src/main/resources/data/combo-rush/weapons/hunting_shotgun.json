@@ -1,0 +1,28 @@
+{
+  "name": "Охотничий дробовик",
+  "description": "Семь дробин, очень близко.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "KILL"
+    },
+    {
+      "type": "mult_add",
+      "value": 0.25
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "knockback",
+      "value": 0.7
+    },
+    {
+      "trigger": "kill",
+      "type": "self_effect",
+      "id": "minecraft:absorption",
+      "duration": 10
+    }
+  ]
+}

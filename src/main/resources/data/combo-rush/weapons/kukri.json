@@ -1,0 +1,24 @@
+{
+  "name": "Кукри",
+  "description": "Изогнутый нож оставляет глубокие раны.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 5,
+      "source": "KILL"
+    },
+    {
+      "type": "combo_step",
+      "value": 0.02
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "bleed",
+      "chance": 0.35,
+      "value": 1,
+      "duration": 4
+    }
+  ]
+}

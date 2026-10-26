@@ -1,0 +1,31 @@
+{
+  "name": "Мёртвый путник",
+  "description": "Старый воин с мечом и щитом. Прикрывает спину.",
+  "pet_damage": 6,
+  "set_effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.armor",
+      "value": 2,
+      "operation": "add_value"
+    },
+    {
+      "type": "mult_times",
+      "value": 1.15
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "cleave",
+      "chance": 0.3,
+      "value": 3,
+      "radius": 2.5
+    },
+    {
+      "trigger": "kill",
+      "type": "heal",
+      "value": 3
+    }
+  ]
+}

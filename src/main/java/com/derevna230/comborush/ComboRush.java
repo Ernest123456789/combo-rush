@@ -22,7 +22,19 @@ import com.derevna230.comborush.hud.HudPayload;
 import com.derevna230.comborush.hud.HudSync;
 import com.derevna230.comborush.hud.ShopActionPayload;
 import com.derevna230.comborush.shop.ShopNet;
+import com.derevna230.comborush.armor.ArmorSetApplier;
+import com.derevna230.comborush.armor.ArmorSetRegistry;
+import com.derevna230.comborush.armor.ArmorTooltips;
+import com.derevna230.comborush.cases.CaseRegistry;
+import com.derevna230.comborush.item.LootBonus;
+import com.derevna230.comborush.item.ModItems;
+import com.derevna230.comborush.pet.ModEntities;
+import com.derevna230.comborush.pet.PetManager;
+import com.derevna230.comborush.weapon.WeaponAbilities;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -38,6 +50,9 @@ public class ComboRush implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModItems.init();
+        ModEntities.init();
+        PetManager.init();
         PayloadTypeRegistry.playS2C().register(HudPayload.ID, HudPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ShopActionPayload.ID, ShopActionPayload.CODEC);
         ShopNet.register();
@@ -48,11 +63,15 @@ public class ComboRush implements ModInitializer {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new DirectorManager());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ConsumableRegistry());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new DebuffRegistry());
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ArmorSetRegistry());
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new CaseRegistry());
         PlacedBlocks.init();
         SpawnerTracker.init();
         Leaderboard.init();
         CycleManager.init();
         ScoreListeners.register();
+        WeaponAbilities.register();
+        LootBonus.register();
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             CycleManager.tick(server);
@@ -61,8 +80,11 @@ public class ComboRush implements ModInitializer {
             DirectorManager.tick(server);
             Leaderboard.tick(server);
             HudSync.tick(server);
+            ArmorTooltips.tick(server);
+            PetManager.tick(server);
+            WeaponAbilities.tick(server);
             if (server.getTicks() % 100 == 0)
-                server.getPlayerManager().getPlayerList().forEach(p -> { BoosterApplier.sync(p); SpeciesApplier.sync(p); });
+                server.getPlayerManager().getPlayerList().forEach(p -> { BoosterApplier.sync(p); SpeciesApplier.sync(p); ArmorSetApplier.sync(p); });
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             HudSync.forget(handler.player.getUuid());
@@ -77,9 +99,18 @@ public class ComboRush implements ModInitializer {
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             HudSync.forget(handler.player.getUuid());
+            ArmorTooltips.forget(handler.player.getUuid());
             Leaderboard.update(handler.player);
             CosmeticManager.onDisconnect(handler.player);
             PromoManager.onDisconnect(handler.player);
+            PetManager.despawn(handler.player);
+        });
+
+        // смена брони: сразу пересчитать атрибуты и эффекты комплектов
+        ServerEntityEvents.EQUIPMENT_CHANGE.register((entity, slot, previous, current) -> {
+            if (entity instanceof ServerPlayerEntity sp
+                    && (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR || slot.getType() == EquipmentSlot.Type.HAND))
+                ArmorSetApplier.sync(sp);
         });
 
         CommandRegistrationCallback.EVENT.register((d, r, e) -> ComboRushCommand.register(d));

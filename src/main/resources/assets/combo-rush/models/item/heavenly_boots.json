@@ -1,0 +1,6 @@
+{
+ "parent": "minecraft:item/generated",
+ "textures": {
+  "layer0": "combo-rush:item/icon/heavenly_boots"
+ }
+}

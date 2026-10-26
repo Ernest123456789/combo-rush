@@ -1,0 +1,273 @@
+{
+ "textures": {
+  "0": "combo-rush:item/weapon/traveler_buckler_0",
+  "particle": "combo-rush:item/weapon/traveler_buckler_0"
+ },
+ "elements": [
+  {
+   "from": [
+    2,
+    2,
+    5
+   ],
+   "to": [
+    14,
+    14,
+    7
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.0,
+      1.0,
+      7.0,
+      7.0
+     ],
+     "texture": "#0"
+    },
+    "east": {
+     "uv": [
+      0.0,
+      1.0,
+      1.0,
+      7.0
+     ],
+     "texture": "#0"
+    },
+    "south": {
+     "uv": [
+      8.0,
+      1.0,
+      14.0,
+      7.0
+     ],
+     "texture": "#0"
+    },
+    "west": {
+     "uv": [
+      7.0,
+      1.0,
+      8.0,
+      7.0
+     ],
+     "texture": "#0"
+    },
+    "up": {
+     "uv": [
+      7.0,
+      1.0,
+      1.0,
+      0.0
+     ],
+     "texture": "#0"
+    },
+    "down": {
+     "uv": [
+      13.0,
+      0.0,
+      7.0,
+      1.0
+     ],
+     "texture": "#0"
+    }
+   }
+  },
+  {
+   "from": [
+    7,
+    5,
+    7
+   ],
+   "to": [
+    9,
+    11,
+    10
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      1.5,
+      8.5,
+      2.5,
+      11.5
+     ],
+     "texture": "#0"
+    },
+    "east": {
+     "uv": [
+      0.0,
+      8.5,
+      1.5,
+      11.5
+     ],
+     "texture": "#0"
+    },
+    "south": {
+     "uv": [
+      4.0,
+      8.5,
+      5.0,
+      11.5
+     ],
+     "texture": "#0"
+    },
+    "west": {
+     "uv": [
+      2.5,
+      8.5,
+      4.0,
+      11.5
+     ],
+     "texture": "#0"
+    },
+    "up": {
+     "uv": [
+      2.5,
+      8.5,
+      1.5,
+      7.0
+     ],
+     "texture": "#0"
+    },
+    "down": {
+     "uv": [
+      3.5,
+      7.0,
+      2.5,
+      8.5
+     ],
+     "texture": "#0"
+    }
+   }
+  }
+ ],
+ "display": {
+  "thirdperson_righthand": {
+   "rotation": [
+    0.0,
+    -90.0,
+    0.0
+   ],
+   "translation": [
+    -0.225,
+    -2.0,
+    4.0
+   ],
+   "scale": [
+    1.45,
+    1.45,
+    1.45
+   ]
+  },
+  "thirdperson_lefthand": {
+   "rotation": [
+    0.0,
+    -90.0,
+    0.0
+   ],
+   "translation": [
+    -0.225,
+    -2.0,
+    20.0
+   ],
+   "scale": [
+    1.45,
+    1.45,
+    1.45
+   ]
+  },
+  "firstperson_righthand": {
+   "rotation": [
+    0.0,
+    -0.0,
+    -5.0
+   ],
+   "translation": [
+    -0.91,
+    -8.834,
+    2.781
+   ],
+   "scale": [
+    1.8125,
+    1.8125,
+    1.8125
+   ]
+  },
+  "firstperson_lefthand": {
+   "rotation": [
+    0.0,
+    -0.0,
+    -5.0
+   ],
+   "translation": [
+    19.09,
+    -10.834,
+    2.781
+   ],
+   "scale": [
+    1.8125,
+    1.8125,
+    1.8125
+   ]
+  },
+  "gui": {
+   "rotation": [
+    -165.0,
+    25.0,
+    -175.0
+   ],
+   "translation": [
+    -0.297,
+    0.609,
+    -9.341
+   ],
+   "scale": [
+    0.9425,
+    0.9425,
+    0.9425
+   ]
+  },
+  "fixed": {
+   "rotation": [
+    -0.0,
+    0.0,
+    -0.0
+   ],
+   "translation": [
+    -0.1,
+    0.1,
+    0.624
+   ],
+   "scale": [
+    0.7975,
+    0.7975,
+    0.7975
+   ]
+  },
+  "ground": {
+   "rotation": [
+    -180.0,
+    -0.0,
+    -180.0
+   ],
+   "translation": [
+    -0.0,
+    2.0,
+    -0.556
+   ],
+   "scale": [
+    0.3625,
+    0.3625,
+    0.3625
+   ]
+  }
+ },
+ "overrides": [
+  {
+   "predicate": {
+    "blocking": 1
+   },
+   "model": "combo-rush:item/traveler_buckler_blocking"
+  }
+ ]
+}

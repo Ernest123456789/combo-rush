@@ -1,0 +1,16 @@
+{
+  "name": "Маска Тики",
+  "description": "Дух джунглей бережёт урожай и стада.",
+  "set_effects": [
+    {
+      "type": "chips_multiplier",
+      "value": 1.5,
+      "source": "BREED"
+    },
+    {
+      "type": "chips_multiplier",
+      "value": 1.25,
+      "source": "HARVEST"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Белка",
+  "description": "Знает, где лучший урожай и спрятанные орехи.",
+  "pet_damage": 0,
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 8,
+      "source": "HARVEST"
+    },
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "MINE"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.05,
+      "operation": "add_multiplied_base"
+    }
+  ],
+  "abilities": []
+}

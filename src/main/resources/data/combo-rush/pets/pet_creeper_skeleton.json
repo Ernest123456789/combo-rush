@@ -1,0 +1,20 @@
+{
+  "name": "Скелет крипера",
+  "description": "Взрывается от радости, но не по-настоящему.",
+  "pet_damage": 4,
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.2
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "blast",
+      "chance": 0.25,
+      "value": 4,
+      "radius": 3
+    }
+  ]
+}

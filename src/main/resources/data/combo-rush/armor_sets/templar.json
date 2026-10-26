@@ -1,0 +1,24 @@
+{
+  "name": "Тамплиер",
+  "description": "Крестоносец: каждый удар на счету.",
+  "piece_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 6,
+      "source": "KILL"
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "chips_multiplier",
+      "value": 1.5,
+      "source": "KILL"
+    },
+    {
+      "type": "attribute",
+      "value": 1.5,
+      "id": "minecraft:generic.attack_damage",
+      "operation": "add_value"
+    }
+  ]
+}

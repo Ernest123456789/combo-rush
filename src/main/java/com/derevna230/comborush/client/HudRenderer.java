@@ -469,7 +469,7 @@ public final class HudRenderer {
 
         final int RW = 232;
         int rows = Math.min(7, r.rows.size());
-        int yRows = 58, yThr = yRows + rows * 12 + 8, yCoins = yThr + 32, RH = yCoins + 42;
+        int yRows = 70, yThr = yRows + rows * 12 + 8, yCoins = yThr + 32, RH = yCoins + 42;
         float rs = Math.max(0.4f, Math.min(1f, Math.min((W - 150f) / (RW + 8f), (H - 16f) / RH)));
         float ox = Math.max(4f, (W - 140f) / 2f - RW * rs / 2f);
         float oy = Math.max(6f, H * 0.08f) + (1f - in) * 14f;
@@ -493,7 +493,7 @@ public final class HudRenderer {
         text(c, tr, HudModel.fmtInt(Math.round(r.score * ks)), 8, 32, 2.2f, argb(0xF2B72B, alpha), 0);
 
         // медаль
-        drawMedal(c, tr, r, RW - 34, 36, t, alpha);
+        drawMedal(c, tr, r, RW - 36, 41, t, alpha);   // ниже заголовка, подпись не наезжает на строки
 
         // источники очков
         double max = r.rows.stream().mapToDouble(x -> x.points).max().orElse(1);
@@ -613,7 +613,7 @@ public final class HudRenderer {
                 c.fill(px, py - 1, px + 1, py + 2, argb(0xFFFFFF, a));
             }
         }
-        text(c, tr, r.medalLabel.isEmpty() ? "Без медали" : r.medalLabel, cx, cy + rad + 5, 0.75f,
+        text(c, tr, r.medalLabel.isEmpty() ? "Без медали" : r.medalLabel, cx, cy + rad + 4, 0.7f,
             argb(idx >= 0 ? MEDAL_RGB[idx] : 0x90909A, alpha), 1);
     }
 
@@ -743,7 +743,7 @@ public final class HudRenderer {
         m.push();
         m.translate(px, y, 0);
         m.scale(scale, scale, 1f);
-        c.drawText(tr, s, 0, 0, argb, true);
+        c.drawText(tr, s, 0, 0, argb, ((argb >> 16 & 255) * 3 + (argb >> 8 & 255) * 6 + (argb & 255)) > 700);
         m.pop();
     }
 }

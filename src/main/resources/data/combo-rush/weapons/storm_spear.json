@@ -1,0 +1,30 @@
+{
+  "name": "Копьё бури",
+  "description": "Небо отвечает на каждый удар.",
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.25,
+      "condition": "raining"
+    },
+    {
+      "type": "mult_add",
+      "value": 0.3
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "lightning",
+      "chance": 0.25,
+      "value": 6
+    },
+    {
+      "trigger": "kill",
+      "type": "self_effect",
+      "id": "minecraft:speed",
+      "amplifier": 1,
+      "duration": 4
+    }
+  ]
+}

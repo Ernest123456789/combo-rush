@@ -1,0 +1,19 @@
+{
+  "name": "Изумрудный меч",
+  "description": "Торговцы любят его владельца.",
+  "set_effects": [
+    {
+      "type": "coin_bonus",
+      "value": 0.1
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "kill",
+      "type": "drop_item",
+      "chance": 0.1,
+      "id": "minecraft:emerald",
+      "value": 1
+    }
+  ]
+}

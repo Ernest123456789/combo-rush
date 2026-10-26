@@ -1,0 +1,30 @@
+{
+  "name": "Медный рыцарь",
+  "description": "Надёжная медная броня для тех, кто живёт в шахтах.",
+  "piece_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 3,
+      "source": "MINE"
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.4,
+      "condition": "underground"
+    },
+    {
+      "type": "attribute",
+      "value": 0.2,
+      "id": "minecraft:generic.knockback_resistance",
+      "operation": "add_value"
+    },
+    {
+      "type": "attribute",
+      "value": 3,
+      "id": "minecraft:player.mining_efficiency",
+      "operation": "add_value"
+    }
+  ]
+}

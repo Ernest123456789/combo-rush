@@ -1,0 +1,17 @@
+{
+  "name": "Соломенная шляпа",
+  "description": "Для фермера под солнцем.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 8,
+      "source": "HARVEST",
+      "condition": "day"
+    },
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "BREED"
+    }
+  ]
+}

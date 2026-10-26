@@ -7,7 +7,13 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import com.derevna230.comborush.item.ModItems;
+import com.derevna230.comborush.pet.ModEntities;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.item.Item;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 /** Клиентская часть: HUD справа и анимации подсчёта. Без неё мод работает как раньше (action bar) */
 public class ComboRushClient implements ClientModInitializer {
@@ -16,6 +22,12 @@ public class ComboRushClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(HudPayload.ID, (payload, context) -> HudModel.receive(payload));
         HudRenderCallback.EVENT.register((context, tickCounter) -> HudRenderer.render(context));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> HudModel.reset());
+        EntityRendererRegistry.register(ModEntities.PET, PetRenderer::new);
+        EntityRendererRegistry.register(ModEntities.DECOR, DecorRenderer::new);
+        // щиты из кейсов: при блоке — модель <id>_blocking
+        for (Item shield : ModItems.SHIELDS)
+            ModelPredicateProviderRegistry.register(shield, Identifier.ofVanilla("blocking"), (stack, world, entity, seed) ->
+                entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0f : 0.0f);
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("crhud")

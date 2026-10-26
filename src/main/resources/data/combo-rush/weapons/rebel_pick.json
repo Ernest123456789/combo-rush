@@ -1,0 +1,24 @@
+{
+  "name": "Кирка бунтаря",
+  "description": "Копает быстрее и приносит больше за руду.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 8,
+      "source": "MINE"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:haste",
+      "amplifier": 0
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.2,
+      "value": 0.4
+    }
+  ]
+}

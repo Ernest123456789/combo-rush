@@ -1,5 +1,6 @@
 package com.derevna230.comborush.command;
 
+import com.derevna230.comborush.cases.EssenceShopNet;
 import com.derevna230.comborush.cosmetic.CosmeticsGui;
 import com.derevna230.comborush.cycle.CycleManager;
 import com.derevna230.comborush.director.DirectorManager;
@@ -39,6 +40,8 @@ public class ComboRushCommand {
         d.register(CommandManager.literal("species").executes(c -> {
             SpeciesGui.open(c.getSource().getPlayerOrThrow()); return 1; }));
         d.register(topNode());   // короткая команда /top
+        d.register(CommandManager.literal("essence").executes(c -> {
+            EssenceShopNet.open(c.getSource().getPlayerOrThrow()); return 1; }));
         d.register(CommandManager.literal("cosmetics").executes(c -> {
             CosmeticsGui.open(c.getSource().getPlayerOrThrow()); return 1; }));
 

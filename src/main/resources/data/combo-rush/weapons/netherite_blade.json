@@ -1,0 +1,25 @@
+{
+  "name": "Незеритовый клинок",
+  "description": "Тяжёлый клинок из обломков древности.",
+  "set_effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.knockback_resistance",
+      "value": 0.2,
+      "operation": "add_value"
+    },
+    {
+      "type": "mult_add",
+      "value": 0.15
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.25,
+      "id": "minecraft:weakness",
+      "duration": 3
+    }
+  ]
+}

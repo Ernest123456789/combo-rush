@@ -1,0 +1,37 @@
+{
+  "name": "Трезубец удильщика",
+  "description": "Светит в глубине и тянет добычу.",
+  "set_effects": [
+    {
+      "type": "status_effect",
+      "id": "minecraft:dolphins_grace",
+      "amplifier": 0
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:water_breathing",
+      "amplifier": 0
+    },
+    {
+      "type": "chips_per_action",
+      "value": 6,
+      "source": "FISH"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "id": "minecraft:glowing",
+      "duration": 6
+    },
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.3,
+      "id": "minecraft:slowness",
+      "amplifier": 1,
+      "duration": 3
+    }
+  ]
+}

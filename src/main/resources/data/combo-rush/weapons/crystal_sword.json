@@ -1,0 +1,19 @@
+{
+  "name": "Кристальный меч",
+  "description": "Холодный кристалл замедляет врагов.",
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.25,
+      "id": "minecraft:slowness",
+      "duration": 3
+    }
+  ]
+}

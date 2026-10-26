@@ -1,0 +1,20 @@
+{
+  "name": "Меч путника",
+  "description": "Простой, но надёжный клинок странника.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "KILL"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "self_effect",
+      "chance": 0.15,
+      "id": "minecraft:speed",
+      "duration": 3
+    }
+  ]
+}

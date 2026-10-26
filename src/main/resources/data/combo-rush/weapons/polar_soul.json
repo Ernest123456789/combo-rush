@@ -1,0 +1,31 @@
+{
+  "name": "Клинок полярной души",
+  "description": "Холод вечных льдов.",
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.4
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:fire_resistance",
+      "amplifier": 0
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "freeze",
+      "value": 0,
+      "duration": 3,
+      "amplifier": 1
+    },
+    {
+      "trigger": "hit",
+      "type": "cleave",
+      "chance": 0.3,
+      "value": 4,
+      "radius": 3
+    }
+  ]
+}

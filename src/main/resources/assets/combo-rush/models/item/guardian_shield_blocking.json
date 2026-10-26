@@ -1,0 +1,124 @@
+{
+ "parent": "combo-rush:item/guardian_shield",
+ "display": {
+  "thirdperson_righthand": {
+   "rotation": [
+    45.0,
+    -45.0,
+    -0.0
+   ],
+   "translation": [
+    3.475,
+    -2.682,
+    0.368
+   ],
+   "scale": [
+    1.45,
+    1.45,
+    1.45
+   ]
+  },
+  "thirdperson_lefthand": {
+   "rotation": [
+    45.0,
+    -45.0,
+    -0.0
+   ],
+   "translation": [
+    13.475,
+    -10.682,
+    7.368
+   ],
+   "scale": [
+    1.45,
+    1.45,
+    1.45
+   ]
+  },
+  "firstperson_righthand": {
+   "rotation": [
+    -0.0,
+    -0.0,
+    5.0
+   ],
+   "translation": [
+    -4.166,
+    -4.09,
+    -0.937
+   ],
+   "scale": [
+    1.8125,
+    1.8125,
+    1.8125
+   ]
+  },
+  "firstperson_lefthand": {
+   "rotation": [
+    -0.0,
+    -0.0,
+    5.0
+   ],
+   "translation": [
+    15.834,
+    -4.09,
+    -0.937
+   ],
+   "scale": [
+    1.8125,
+    1.8125,
+    1.8125
+   ]
+  },
+  "gui": {
+   "rotation": [
+    -165.0,
+    25.0,
+    -175.0
+   ],
+   "translation": [
+    -0.894,
+    0.278,
+    -8.104
+   ],
+   "scale": [
+    0.9425,
+    0.9425,
+    0.9425
+   ]
+  },
+  "fixed": {
+   "rotation": [
+    -0.0,
+    0.0,
+    -0.0
+   ],
+   "translation": [
+    -0.1,
+    0.1,
+    -0.572
+   ],
+   "scale": [
+    0.7975,
+    0.7975,
+    0.7975
+   ]
+  },
+  "ground": {
+   "rotation": [
+    -180.0,
+    -0.0,
+    -180.0
+   ],
+   "translation": [
+    0.0,
+    2.0,
+    -0.013
+   ],
+   "scale": [
+    0.3625,
+    0.3625,
+    0.3625
+   ]
+  }
+ }
+}

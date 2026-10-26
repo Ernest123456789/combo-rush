@@ -1,0 +1,145 @@
+{
+  "name": "Обычный кейс",
+  "description": "Путник: первое оружие, броня, голубь и растения.",
+  "rarity": "common",
+  "price": 6,
+  "order": 0,
+  "drops": [
+    {
+      "set": "copper_knight",
+      "weight": 101
+    },
+    {
+      "set": "straw_hat",
+      "weight": 72
+    },
+    {
+      "set": "traveler_sword",
+      "weight": 72
+    },
+    {
+      "set": "traveler_dagger",
+      "weight": 72
+    },
+    {
+      "set": "starter_bow",
+      "weight": 72
+    },
+    {
+      "set": "traveler_buckler",
+      "weight": 72
+    },
+    {
+      "set": "pet_pigeon",
+      "weight": 72
+    },
+    {
+      "set": "decor_fern_pot",
+      "weight": 43
+    },
+    {
+      "set": "decor_tiny_cactus",
+      "weight": 43
+    },
+    {
+      "set": "thief",
+      "weight": 56
+    },
+    {
+      "set": "tiki_mask",
+      "weight": 40
+    },
+    {
+      "set": "crystal_sword",
+      "weight": 40
+    },
+    {
+      "set": "diamond_blade",
+      "weight": 40
+    },
+    {
+      "set": "kukri",
+      "weight": 40
+    },
+    {
+      "set": "pet_squirrel",
+      "weight": 40
+    },
+    {
+      "set": "decor_glow_shrooms",
+      "weight": 24
+    },
+    {
+      "set": "iron_defender",
+      "weight": 13
+    },
+    {
+      "set": "templar",
+      "weight": 13
+    },
+    {
+      "set": "netherite_blade",
+      "weight": 10
+    },
+    {
+      "set": "emerald_sword",
+      "weight": 10
+    },
+    {
+      "set": "rebel_pick",
+      "weight": 10
+    },
+    {
+      "set": "guardian_shield",
+      "weight": 10
+    },
+    {
+      "set": "flame_blade",
+      "weight": 10
+    },
+    {
+      "set": "pet_sailor_crab",
+      "weight": 10
+    },
+    {
+      "set": "decor_moon_lily",
+      "weight": 6
+    },
+    {
+      "set": "raider",
+      "weight": 1
+    },
+    {
+      "set": "pirate_hat",
+      "weight": 1
+    },
+    {
+      "set": "dreaded_blade",
+      "weight": 1
+    },
+    {
+      "set": "crimson_fang",
+      "weight": 1
+    },
+    {
+      "set": "thorn_bow",
+      "weight": 1
+    },
+    {
+      "set": "angler_trident",
+      "weight": 1
+    },
+    {
+      "set": "bass_guitar",
+      "weight": 1
+    },
+    {
+      "set": "flintlock",
+      "weight": 1
+    },
+    {
+      "set": "pet_creeper_skeleton",
+      "weight": 1
+    }
+  ]
+}

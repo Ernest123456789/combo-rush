@@ -1,0 +1,19 @@
+{
+  "name": "Алмазный клинок",
+  "description": "Острый, как первая алмазная жила.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 6,
+      "source": "KILL"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.15,
+      "value": 0.5
+    }
+  ]
+}

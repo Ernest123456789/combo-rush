@@ -1,0 +1,20 @@
+{
+  "name": "Пиратская треуголка",
+  "description": "Капитан морей: рыба и сделки приносят больше.",
+  "set_effects": [
+    {
+      "type": "chips_multiplier",
+      "value": 2.0,
+      "source": "FISH"
+    },
+    {
+      "type": "chips_multiplier",
+      "value": 1.5,
+      "source": "TRADE"
+    },
+    {
+      "type": "coin_bonus",
+      "value": 0.1
+    }
+  ]
+}

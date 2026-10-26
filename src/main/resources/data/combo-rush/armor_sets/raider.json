@@ -1,0 +1,26 @@
+{
+  "name": "Налётчик",
+  "description": "Быстрый налёт — длинная серия.",
+  "piece_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "combo_window",
+      "value": 2
+    },
+    {
+      "type": "combo_step",
+      "value": 0.03
+    },
+    {
+      "type": "attribute",
+      "value": 0.08,
+      "id": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base"
+    }
+  ]
+}

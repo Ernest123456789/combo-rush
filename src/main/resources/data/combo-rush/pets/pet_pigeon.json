@@ -1,0 +1,17 @@
+{
+  "name": "Голубь",
+  "description": "Городской летун. Приносит удачу и монетки.",
+  "pet_damage": 0,
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 3,
+      "source": "ALL"
+    },
+    {
+      "type": "coin_bonus",
+      "value": 0.05
+    }
+  ],
+  "abilities": []
+}

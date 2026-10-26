@@ -1,0 +1,26 @@
+{
+  "name": "Благоговейный доспех",
+  "description": "Священная броня, усиливающая каждый подсчёт.",
+  "piece_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.15
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.4
+    },
+    {
+      "type": "attribute",
+      "value": 4,
+      "id": "minecraft:generic.max_health",
+      "operation": "add_value"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:regeneration"
+    }
+  ]
+}

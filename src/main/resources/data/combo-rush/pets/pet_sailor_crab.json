@@ -1,0 +1,28 @@
+{
+  "name": "Краб-моряк",
+  "description": "Бывалый моряк. Под водой как дома.",
+  "pet_damage": 0,
+  "set_effects": [
+    {
+      "type": "status_effect",
+      "id": "minecraft:water_breathing",
+      "amplifier": 0
+    },
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "FISH"
+    },
+    {
+      "type": "combo_window",
+      "value": 1.5
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.luck",
+      "value": 1,
+      "operation": "add_value"
+    }
+  ],
+  "abilities": []
+}

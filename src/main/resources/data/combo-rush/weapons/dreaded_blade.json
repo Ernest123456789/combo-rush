@@ -1,0 +1,30 @@
+{
+  "name": "Клинок ужаса",
+  "description": "Иссушает всё, к чему прикасается.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "KILL"
+    },
+    {
+      "type": "mult_add",
+      "value": 0.2,
+      "condition": "night"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.3,
+      "id": "minecraft:wither",
+      "duration": 3
+    },
+    {
+      "trigger": "hit",
+      "type": "lifesteal",
+      "value": 0.1
+    }
+  ]
+}

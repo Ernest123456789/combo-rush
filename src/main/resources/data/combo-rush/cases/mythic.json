@@ -1,0 +1,77 @@
+{
+  "name": "Мифический кейс",
+  "description": "Только лучшее: мёртвый путник, суккуб и легендарное оружие.",
+  "rarity": "mythic",
+  "price": 70,
+  "order": 4,
+  "drops": [
+    {
+      "set": "raider",
+      "weight": 60
+    },
+    {
+      "set": "pirate_hat",
+      "weight": 43
+    },
+    {
+      "set": "dreaded_blade",
+      "weight": 43
+    },
+    {
+      "set": "crimson_fang",
+      "weight": 43
+    },
+    {
+      "set": "thorn_bow",
+      "weight": 43
+    },
+    {
+      "set": "angler_trident",
+      "weight": 43
+    },
+    {
+      "set": "bass_guitar",
+      "weight": 43
+    },
+    {
+      "set": "flintlock",
+      "weight": 43
+    },
+    {
+      "set": "pet_creeper_skeleton",
+      "weight": 43
+    },
+    {
+      "set": "reverent",
+      "weight": 95
+    },
+    {
+      "set": "heavenly",
+      "weight": 95
+    },
+    {
+      "set": "polar_soul",
+      "weight": 68
+    },
+    {
+      "set": "void_claymore",
+      "weight": 68
+    },
+    {
+      "set": "storm_spear",
+      "weight": 68
+    },
+    {
+      "set": "hunting_shotgun",
+      "weight": 68
+    },
+    {
+      "set": "pet_traveler_skeleton",
+      "weight": 68
+    },
+    {
+      "set": "pet_succubus",
+      "weight": 68
+    }
+  ]
+}

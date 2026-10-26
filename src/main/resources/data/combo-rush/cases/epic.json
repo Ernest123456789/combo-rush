@@ -1,0 +1,141 @@
+{
+  "name": "Эпический кейс",
+  "description": "Бас-гитара, мушкет, скелет крипера и шанс на легенду.",
+  "rarity": "epic",
+  "price": 26,
+  "order": 2,
+  "drops": [
+    {
+      "set": "thief",
+      "weight": 20
+    },
+    {
+      "set": "tiki_mask",
+      "weight": 14
+    },
+    {
+      "set": "crystal_sword",
+      "weight": 14
+    },
+    {
+      "set": "diamond_blade",
+      "weight": 14
+    },
+    {
+      "set": "kukri",
+      "weight": 14
+    },
+    {
+      "set": "pet_squirrel",
+      "weight": 14
+    },
+    {
+      "set": "decor_glow_shrooms",
+      "weight": 9
+    },
+    {
+      "set": "iron_defender",
+      "weight": 60
+    },
+    {
+      "set": "templar",
+      "weight": 60
+    },
+    {
+      "set": "netherite_blade",
+      "weight": 43
+    },
+    {
+      "set": "emerald_sword",
+      "weight": 43
+    },
+    {
+      "set": "rebel_pick",
+      "weight": 43
+    },
+    {
+      "set": "guardian_shield",
+      "weight": 43
+    },
+    {
+      "set": "flame_blade",
+      "weight": 43
+    },
+    {
+      "set": "pet_sailor_crab",
+      "weight": 43
+    },
+    {
+      "set": "decor_moon_lily",
+      "weight": 26
+    },
+    {
+      "set": "raider",
+      "weight": 63
+    },
+    {
+      "set": "pirate_hat",
+      "weight": 45
+    },
+    {
+      "set": "dreaded_blade",
+      "weight": 45
+    },
+    {
+      "set": "crimson_fang",
+      "weight": 45
+    },
+    {
+      "set": "thorn_bow",
+      "weight": 45
+    },
+    {
+      "set": "angler_trident",
+      "weight": 45
+    },
+    {
+      "set": "bass_guitar",
+      "weight": 45
+    },
+    {
+      "set": "flintlock",
+      "weight": 45
+    },
+    {
+      "set": "pet_creeper_skeleton",
+      "weight": 45
+    },
+    {
+      "set": "reverent",
+      "weight": 13
+    },
+    {
+      "set": "heavenly",
+      "weight": 13
+    },
+    {
+      "set": "polar_soul",
+      "weight": 9
+    },
+    {
+      "set": "void_claymore",
+      "weight": 9
+    },
+    {
+      "set": "storm_spear",
+      "weight": 9
+    },
+    {
+      "set": "hunting_shotgun",
+      "weight": 9
+    },
+    {
+      "set": "pet_traveler_skeleton",
+      "weight": 9
+    },
+    {
+      "set": "pet_succubus",
+      "weight": 9
+    }
+  ]
+}

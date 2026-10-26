@@ -1,0 +1,20 @@
+{
+  "name": "Баклер путника",
+  "description": "Маленький щит: держи в любой руке.",
+  "set_effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.armor",
+      "value": 1,
+      "operation": "add_value"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "block",
+      "type": "heal",
+      "chance": 0.3,
+      "value": 2
+    }
+  ]
+}

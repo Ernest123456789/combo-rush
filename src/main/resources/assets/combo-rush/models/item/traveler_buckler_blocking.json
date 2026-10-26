@@ -1,0 +1,124 @@
+{
+ "parent": "combo-rush:item/traveler_buckler",
+ "display": {
+  "thirdperson_righthand": {
+   "rotation": [
+    45.0,
+    -45.0,
+    -0.0
+   ],
+   "translation": [
+    1.937,
+    -3.769,
+    1.456
+   ],
+   "scale": [
+    1.45,
+    1.45,
+    1.45
+   ]
+  },
+  "thirdperson_lefthand": {
+   "rotation": [
+    45.0,
+    -45.0,
+    -0.0
+   ],
+   "translation": [
+    11.937,
+    -11.769,
+    8.456
+   ],
+   "scale": [
+    1.45,
+    1.45,
+    1.45
+   ]
+  },
+  "firstperson_righthand": {
+   "rotation": [
+    -0.0,
+    -0.0,
+    5.0
+   ],
+   "translation": [
+    -4.166,
+    -4.09,
+    1.781
+   ],
+   "scale": [
+    1.8125,
+    1.8125,
+    1.8125
+   ]
+  },
+  "firstperson_lefthand": {
+   "rotation": [
+    -0.0,
+    -0.0,
+    5.0
+   ],
+   "translation": [
+    15.834,
+    -4.09,
+    1.781
+   ],
+   "scale": [
+    1.8125,
+    1.8125,
+    1.8125
+   ]
+  },
+  "gui": {
+   "rotation": [
+    -165.0,
+    25.0,
+    -175.0
+   ],
+   "translation": [
+    -0.297,
+    0.609,
+    -9.341
+   ],
+   "scale": [
+    0.9425,
+    0.9425,
+    0.9425
+   ]
+  },
+  "fixed": {
+   "rotation": [
+    -0.0,
+    0.0,
+    -0.0
+   ],
+   "translation": [
+    -0.1,
+    0.1,
+    0.624
+   ],
+   "scale": [
+    0.7975,
+    0.7975,
+    0.7975
+   ]
+  },
+  "ground": {
+   "rotation": [
+    -180.0,
+    -0.0,
+    -180.0
+   ],
+   "translation": [
+    -0.0,
+    2.0,
+    -0.556
+   ],
+   "scale": [
+    0.3625,
+    0.3625,
+    0.3625
+   ]
+  }
+ }
+}

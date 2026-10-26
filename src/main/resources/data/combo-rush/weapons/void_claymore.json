@@ -1,0 +1,36 @@
+{
+  "name": "Клеймор Пустоты",
+  "description": "Медленный, но каждый взмах рвёт пространство.",
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.15
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.knockback_resistance",
+      "value": 0.4,
+      "operation": "add_value"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "execute",
+      "value": 1.0
+    },
+    {
+      "trigger": "hit",
+      "type": "cleave",
+      "value": 5,
+      "radius": 3
+    },
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.2,
+      "id": "minecraft:levitation",
+      "duration": 1
+    }
+  ]
+}

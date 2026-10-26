@@ -1,0 +1,28 @@
+{
+  "name": "Бас-гитара",
+  "description": "Рок-н-ролл как оружие массового поражения.",
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.3
+    },
+    {
+      "type": "combo_window",
+      "value": 1.5
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "shockwave",
+      "chance": 0.35,
+      "value": 4,
+      "radius": 3.5
+    },
+    {
+      "trigger": "hit",
+      "type": "knockback",
+      "value": 0.8
+    }
+  ]
+}

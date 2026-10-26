@@ -1,5 +1,6 @@
 package com.derevna230.comborush.client;
 
+import com.derevna230.comborush.armor.ArmorTooltips;
 import com.derevna230.comborush.hud.HudPayload;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -204,6 +205,10 @@ public final class HudModel {
                 case "pop"      -> readPop(o);
                 case "result"   -> readResult(o);
                 case "shop_open", "shop", "shop_close" -> ShopScreen.onPacket(p.kind(), o);
+                case "species_open", "species" -> SpeciesScreen.onPacket(p.kind(), o);
+                case "eshop_open", "eshop" -> EssenceShopScreen.onPacket(p.kind(), o);
+                case "case_open" -> CaseOpenScreen.open(o);
+                case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }
         } catch (Exception ignored) { /* битый пакет не должен ронять клиент */ }

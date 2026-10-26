@@ -553,7 +553,7 @@ public class ShopScreen extends Screen {
         c.fill((int) x + 1, (int) y + 1, (int) x + iw - 1, (int) y + 2, 0x66FFFFFF);
         MatrixStack m = c.getMatrices();
         m.push(); m.translate(x + 3, y + 2, 0); m.scale(0.55f, 0.55f, 1f); c.drawItem(COIN, 0, 0); m.pop();
-        text(c, Integer.toString(price), x + iw - 4, y + 2.5f, 0.9f, afford ? 0xFF3A2A00 : 0xFFFFE0E0, 2);
+        text(c, Integer.toString(price), x + iw - 4, y + 2f, 1f, afford ? 0xFF4A2E00 : 0xFFFFE0E0, 2);
     }
 
     // ================= элементы интерфейса =================
@@ -741,7 +741,7 @@ public class ShopScreen extends Screen {
         m.push();
         m.translate(px, y, 0);
         m.scale(scale, scale, 1f);
-        c.drawText(textRenderer, s, 0, 0, argb, true);
+        c.drawText(textRenderer, s, 0, 0, argb, ((argb >> 16 & 255) * 3 + (argb >> 8 & 255) * 6 + (argb & 255)) > 700);   // тёмный текст без тени — иначе «грязный»
         m.pop();
     }
 }

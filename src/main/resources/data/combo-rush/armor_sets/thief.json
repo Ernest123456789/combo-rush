@@ -1,0 +1,28 @@
+{
+  "name": "Вор",
+  "description": "Тёмный плащ: тише шаг — больше монет.",
+  "piece_effects": [
+    {
+      "type": "shop_discount",
+      "value": 0.03
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "coin_bonus",
+      "value": 0.12
+    },
+    {
+      "type": "chips_per_action",
+      "value": 12,
+      "source": "ALL",
+      "condition": "sneaking"
+    },
+    {
+      "type": "attribute",
+      "value": 0.1,
+      "id": "minecraft:generic.movement_speed",
+      "operation": "add_multiplied_base"
+    }
+  ]
+}
