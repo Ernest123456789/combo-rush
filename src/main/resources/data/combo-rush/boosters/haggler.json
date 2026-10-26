@@ -1,0 +1,17 @@
+{
+  "name": "Торговец",
+  "description": "Скидка 15% в магазине, но ×0.9 к множителю",
+  "icon": "minecraft:name_tag",
+  "price": 25,
+  "effects": [
+    {
+      "type": "shop_discount",
+      "value": 0.15
+    },
+    {
+      "type": "mult_times",
+      "value": 0.9
+    }
+  ],
+  "rarity": "common"
+}

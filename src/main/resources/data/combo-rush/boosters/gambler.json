@@ -1,0 +1,13 @@
+{
+  "name": "Азартный игрок",
+  "description": "Перекрут витрины дешевле на 3 монеты",
+  "icon": "minecraft:amethyst_shard",
+  "price": 20,
+  "effects": [
+    {
+      "type": "reroll_discount",
+      "value": 3
+    }
+  ],
+  "rarity": "common"
+}

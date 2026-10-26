@@ -1,0 +1,8 @@
+{
+  "name": "Расширитель",
+  "description": "Открывает +1 дополнительный слот усилителей.",
+  "icon": "minecraft:ender_chest",
+  "price": 60,
+  "rarity": "rare",
+  "action": "add_slot"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Скряга",
+  "description": "+0.1 множителя за каждые 10 монет в запасе (макс. +2)",
+  "icon": "minecraft:gold_nugget",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1,
+      "scale": "coins",
+      "per": 10,
+      "max": 20
+    }
+  ],
+  "rarity": "rare"
+}

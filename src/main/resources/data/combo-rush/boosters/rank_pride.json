@@ -1,0 +1,17 @@
+{
+  "name": "Гордость ранга",
+  "description": "×(1 + 0.1 за каждый ранг текущего существа) к множителю, до ×1.5",
+  "icon": "minecraft:goat_horn",
+  "price": 50,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 0.1,
+      "scale": "rank",
+      "per": 1,
+      "max": 5
+    }
+  ],
+  "rarity": "legendary"
+}

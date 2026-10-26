@@ -1,0 +1,13 @@
+{
+  "name": "Мастер комбо",
+  "description": "Серия растёт быстрее: +0.03 к приросту множителя за действие",
+  "icon": "minecraft:redstone",
+  "price": 35,
+  "effects": [
+    {
+      "type": "combo_step",
+      "value": 0.03
+    }
+  ],
+  "rarity": "uncommon"
+}

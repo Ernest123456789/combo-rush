@@ -1,0 +1,13 @@
+{
+  "name": "Охотник за наградами",
+  "description": "+15% монет за каждое событие",
+  "icon": "minecraft:gold_ingot",
+  "price": 40,
+  "effects": [
+    {
+      "type": "coin_bonus",
+      "value": 0.15
+    }
+  ],
+  "rarity": "rare"
+}

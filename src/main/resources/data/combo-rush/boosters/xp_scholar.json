@@ -1,0 +1,16 @@
+{
+  "name": "Учёный",
+  "description": "+0.1 множителя за каждые 5 уровней опыта (макс. +1)",
+  "icon": "minecraft:enchanted_book",
+  "price": 30,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1,
+      "scale": "xp_level",
+      "per": 5,
+      "max": 10
+    }
+  ],
+  "rarity": "uncommon"
+}

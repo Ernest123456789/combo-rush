@@ -1,0 +1,14 @@
+{
+  "name": "Зельевар",
+  "description": "+15 фишек за каждое сваренное зелье",
+  "icon": "minecraft:brewing_stand",
+  "price": 25,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 15,
+      "source": "BREW"
+    }
+  ],
+  "rarity": "common"
+}

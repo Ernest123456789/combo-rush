@@ -1,0 +1,14 @@
+{
+  "name": "Глаз лучника",
+  "description": "+12 фишек за каждый выстрел с дистанции",
+  "icon": "minecraft:spectral_arrow",
+  "price": 25,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 12,
+      "source": "SHOOT"
+    }
+  ],
+  "rarity": "common"
+}

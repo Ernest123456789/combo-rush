@@ -1,0 +1,14 @@
+{
+  "name": "Банкир",
+  "description": "+1 монета за каждые 5 монет в запасе после события (макс. +10)",
+  "icon": "minecraft:emerald",
+  "price": 35,
+  "effects": [
+    {
+      "type": "interest",
+      "value": 10,
+      "per": 5
+    }
+  ],
+  "rarity": "uncommon"
+}

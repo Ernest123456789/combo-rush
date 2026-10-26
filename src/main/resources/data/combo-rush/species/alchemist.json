@@ -1,0 +1,4 @@
+{ "name": "Алхимик", "description": "×1.5 очков за зелья и зачарование, но слабее в ближнем бою (−0.5 урона). Открывается после 1 сброса.",
+  "icon": "minecraft:brewing_stand", "default_unlocked": false, "unlock_resets": 1,
+  "score_mult": { "BREW": 1.5, "ENCHANT": 1.5 },
+  "effects": [ { "type": "attribute", "id": "minecraft:generic.attack_damage", "value": -0.5, "operation": "add_value" } ] }

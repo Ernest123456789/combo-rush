@@ -1,0 +1,8 @@
+{
+  "name": "Великий свиток",
+  "description": "Повышает уровень всех усилителей на 1.",
+  "icon": "minecraft:knowledge_book",
+  "price": 70,
+  "rarity": "legendary",
+  "action": "level_up_all"
+}

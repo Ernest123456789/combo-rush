@@ -1,0 +1,21 @@
+{
+  "name": "Феникс",
+  "description": "×1.5 множитель при здоровье ≤30%, +1 сердце",
+  "icon": "minecraft:fire_charge",
+  "price": 55,
+  "unlock_resets": 3,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.5,
+      "condition": "low_health"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.max_health",
+      "value": 2,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "legendary"
+}

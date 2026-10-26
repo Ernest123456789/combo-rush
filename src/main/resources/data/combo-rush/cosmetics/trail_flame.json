@@ -1,0 +1,2 @@
+{ "name": "След: Огоньки", "description": "Мелкие огоньки под ногами.",
+  "icon": "minecraft:blaze_powder", "type": "trail", "price": 30, "particle": "minecraft:flame", "count": 2 }

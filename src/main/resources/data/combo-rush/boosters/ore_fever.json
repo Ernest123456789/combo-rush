@@ -1,0 +1,16 @@
+{
+  "name": "Рудная лихорадка",
+  "description": "+0.01 множителя за каждую добытую руду в забеге (макс. +1.5)",
+  "icon": "minecraft:raw_gold",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.01,
+      "scale": "ores",
+      "per": 1,
+      "max": 150
+    }
+  ],
+  "rarity": "rare"
+}

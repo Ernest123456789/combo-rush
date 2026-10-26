@@ -1,0 +1,16 @@
+{
+  "name": "Ветеран",
+  "description": "+0.05 множителя за каждое пройденное событие забега (макс. +2.5)",
+  "icon": "minecraft:shield",
+  "price": 50,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.05,
+      "scale": "events",
+      "per": 1,
+      "max": 50
+    }
+  ],
+  "rarity": "epic"
+}

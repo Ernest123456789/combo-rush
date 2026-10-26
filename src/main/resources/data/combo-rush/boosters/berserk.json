@@ -1,0 +1,21 @@
+{
+  "name": "Берсерк",
+  "description": "×1.5 множитель, но −3 сердца",
+  "icon": "minecraft:netherite_axe",
+  "price": 45,
+  "min_level": 5,
+  "negative_allowed": false,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.5
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.max_health",
+      "value": -6,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "epic"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Собиратель медалей",
+  "description": "+0.1 множителя за каждую золотую медаль забега (макс. +3)",
+  "icon": "minecraft:heart_of_the_sea",
+  "price": 40,
+  "min_level": 3,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1,
+      "scale": "gold_medals",
+      "per": 1,
+      "max": 30
+    }
+  ],
+  "rarity": "rare"
+}

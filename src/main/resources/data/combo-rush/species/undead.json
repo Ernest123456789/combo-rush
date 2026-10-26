@@ -1,0 +1,8 @@
+{ "name": "Нежить", "description": "×1.5 очков ночью и ×1.15 в темноте, но ×0.85 днём. Открывается после 4 сбросов.",
+  "icon": "minecraft:rotten_flesh", "default_unlocked": false, "unlock_resets": 4,
+  "conditional_mult": [
+    { "condition": "night", "value": 1.5 },
+    { "condition": "dark",  "value": 1.15 },
+    { "condition": "day",   "value": 0.85 }
+  ],
+  "effects": [ { "type": "attribute", "id": "minecraft:generic.attack_damage", "value": 0.5, "operation": "add_value" } ] }

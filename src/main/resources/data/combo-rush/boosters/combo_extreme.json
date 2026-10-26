@@ -1,0 +1,18 @@
+{
+  "name": "Комбо-безумие",
+  "description": "Серия растёт вдвое быстрее (+0.05), но окно короче на 2 секунды",
+  "icon": "minecraft:gunpowder",
+  "price": 35,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "combo_step",
+      "value": 0.05
+    },
+    {
+      "type": "combo_window",
+      "value": -2
+    }
+  ],
+  "rarity": "rare"
+}

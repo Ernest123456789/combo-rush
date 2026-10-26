@@ -1,0 +1,2 @@
+{ "name": "След: Ноты", "description": "Музыкальные ноты.",
+  "icon": "minecraft:note_block", "type": "trail", "price": 25, "particle": "minecraft:note", "count": 1 }

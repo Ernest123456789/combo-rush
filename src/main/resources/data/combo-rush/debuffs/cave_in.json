@@ -1,0 +1,8 @@
+{
+  "name": "Обвал",
+  "description": "Фишки за руду ×0.4.",
+  "weight": 8,
+  "source_mult": {
+    "MINE": 0.4
+  }
+}

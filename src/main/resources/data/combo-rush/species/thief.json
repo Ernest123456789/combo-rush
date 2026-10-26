@@ -1,0 +1,3 @@
+{ "name": "Вор", "description": "Скидка 15% в магазине, но ×0.8 очков за убийства. Открывается после 2 сбросов.",
+  "icon": "minecraft:golden_hoe", "default_unlocked": false, "unlock_resets": 2, "shop_price_mult": 0.85,
+  "score_mult": { "KILL": 0.8 } }

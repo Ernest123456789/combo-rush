@@ -1,0 +1,8 @@
+{
+  "name": "День рождения сервера",
+  "announce": "С днём рождения сервера! Скидка 25% в магазине.",
+  "enabled": false,
+  "date_start": "2027-03-14",
+  "date_end": "2027-03-14",
+  "effects": [ { "type": "shop_discount", "value": 0.25 } ]
+}

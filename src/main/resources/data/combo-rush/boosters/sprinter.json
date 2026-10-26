@@ -1,0 +1,20 @@
+{
+  "name": "Спринтер",
+  "description": "×1.25 к множителю на бегу, +8% скорости",
+  "icon": "minecraft:rabbit_foot",
+  "price": 30,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.25,
+      "condition": "sprinting"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.08,
+      "operation": "add_multiplied_base"
+    }
+  ],
+  "rarity": "uncommon"
+}

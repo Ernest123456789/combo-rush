@@ -1,0 +1,16 @@
+{
+  "name": "Эстафета",
+  "description": "+0.1 множителя за каждые 500 очков остальных игроков в событии (макс. +2)",
+  "icon": "minecraft:blaze_rod",
+  "price": 40,
+  "rarity": "rare",
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1,
+      "scale": "team_score",
+      "per": 500,
+      "max": 20
+    }
+  ]
+}

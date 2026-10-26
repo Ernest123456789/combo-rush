@@ -1,0 +1,13 @@
+{
+  "name": "Ростовщик",
+  "description": "Продажа усилителей возвращает 75% вместо 50%",
+  "icon": "minecraft:chest",
+  "price": 25,
+  "effects": [
+    {
+      "type": "sell_bonus",
+      "value": 0.25
+    }
+  ],
+  "rarity": "common"
+}

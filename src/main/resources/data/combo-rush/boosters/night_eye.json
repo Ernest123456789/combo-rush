@@ -1,0 +1,13 @@
+{
+  "name": "Ночной глаз",
+  "description": "Постоянное ночное зрение",
+  "icon": "minecraft:golden_carrot",
+  "price": 20,
+  "effects": [
+    {
+      "type": "status_effect",
+      "id": "minecraft:night_vision"
+    }
+  ],
+  "rarity": "common"
+}

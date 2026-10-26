@@ -1,0 +1,19 @@
+{
+  "name": "Тыквенный фонарь",
+  "description": "×1.4 к множителю ночью, ночное зрение (только на Хэллоуин)",
+  "icon": "minecraft:jack_o_lantern",
+  "price": 30,
+  "promo": "halloween",
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.4,
+      "condition": "night"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:night_vision"
+    }
+  ],
+  "rarity": "uncommon"
+}

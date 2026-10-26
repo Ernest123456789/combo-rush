@@ -1,0 +1,14 @@
+{
+  "name": "Мешок подарков",
+  "description": "+20% монет за событие (только на Новый год)",
+  "icon": "minecraft:purple_shulker_box",
+  "price": 35,
+  "promo": "new_year",
+  "effects": [
+    {
+      "type": "coin_bonus",
+      "value": 0.2
+    }
+  ],
+  "rarity": "uncommon"
+}

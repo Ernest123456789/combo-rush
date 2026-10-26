@@ -1,0 +1,16 @@
+{
+  "name": "Охота на Метку",
+  "description": "Один из вас помечен. За ним идёт охотник — убейте его ради бонусных очков!",
+  "weight": 6,
+  "min_event": 5,
+  "mark": {
+    "enabled": true,
+    "score_mult": 1.5,
+    "boss_entity": "minecraft:zombie",
+    "boss_name": "Охотник на {player}",
+    "boss_health": 60,
+    "boss_health_per_event": 3,
+    "bonus": 300,
+    "bonus_per_event": 40
+  }
+}

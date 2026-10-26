@@ -1,0 +1,3 @@
+{ "name": "Вечный цыплёнок", "description": "Маленький, бессмертный и никогда не вырастет.",
+  "icon": "minecraft:egg", "type": "pet", "price": 25,
+  "entity": "minecraft:chicken", "baby": true, "pet_name": "Цыплёнок {player}" }

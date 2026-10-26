@@ -1,0 +1,3 @@
+{ "name": "Воин", "description": "+1.5 урона, но цены в магазине выше на 10%.",
+  "icon": "minecraft:iron_sword", "default_unlocked": true, "shop_price_mult": 1.10,
+  "effects": [ { "type": "attribute", "id": "minecraft:generic.attack_damage", "value": 1.5, "operation": "add_value" } ] }

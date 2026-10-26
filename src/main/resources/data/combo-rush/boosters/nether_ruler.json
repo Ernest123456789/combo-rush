@@ -1,0 +1,19 @@
+{
+  "name": "Хозяин Незера",
+  "description": "×1.6 к множителю в Незере, огнестойкость",
+  "icon": "minecraft:nether_wart",
+  "price": 45,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.6,
+      "condition": "nether"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:fire_resistance"
+    }
+  ],
+  "rarity": "epic"
+}

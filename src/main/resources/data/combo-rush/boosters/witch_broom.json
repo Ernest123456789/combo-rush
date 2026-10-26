@@ -1,0 +1,22 @@
+{
+  "name": "Метла ведьмы",
+  "description": "+10 фишек за действие ночью, +10% скорости (только на Хэллоуин)",
+  "icon": "minecraft:stick",
+  "price": 30,
+  "promo": "halloween",
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "ALL",
+      "value": 10,
+      "condition": "night"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.1,
+      "operation": "add_multiplied_base"
+    }
+  ],
+  "rarity": "uncommon"
+}

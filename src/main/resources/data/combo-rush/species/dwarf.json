@@ -1,0 +1,3 @@
+{ "name": "Дварф", "description": "×1.5 очков за добычу руды, но ×0.8 за всё остальное.",
+  "icon": "minecraft:iron_pickaxe", "default_unlocked": true,
+  "score_mult": { "ALL": 0.8, "MINE": 1.5 } }

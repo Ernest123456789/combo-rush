@@ -1,0 +1,2 @@
+{ "name": "След: Руны", "description": "Руны зачарования.",
+  "icon": "minecraft:enchanted_book", "type": "trail", "price": 30, "particle": "minecraft:enchant", "count": 4 }

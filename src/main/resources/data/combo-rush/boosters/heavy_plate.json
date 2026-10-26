@@ -1,0 +1,22 @@
+{
+  "name": "Тяжёлая броня",
+  "description": "+0.3 множителя за каждые 4 очка брони (макс. +1.5), +2 к броне",
+  "icon": "minecraft:netherite_chestplate",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.3,
+      "scale": "armor",
+      "per": 4,
+      "max": 5
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.armor",
+      "value": 2,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "rare"
+}

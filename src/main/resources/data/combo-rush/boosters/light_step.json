@@ -1,0 +1,21 @@
+{
+  "name": "Лёгкая поступь",
+  "description": "+15% скорости, безопасное падение +4 блока",
+  "icon": "minecraft:leather_boots",
+  "price": 20,
+  "effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.15,
+      "operation": "add_multiplied_base"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.safe_fall_distance",
+      "value": 4,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "common"
+}

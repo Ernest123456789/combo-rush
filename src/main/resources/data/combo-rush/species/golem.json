@@ -1,0 +1,9 @@
+{ "name": "Голем", "description": "+5 сердец, +4 брони и стойкость к отбрасыванию, но медленнее (−10%) и серия комбо растёт на 40% медленнее. Открывается после 5 сбросов.",
+  "icon": "minecraft:iron_block", "default_unlocked": false, "unlock_resets": 5,
+  "combo_step_mult": 0.6,
+  "effects": [
+    { "type": "attribute", "id": "minecraft:generic.max_health", "value": 10, "operation": "add_value" },
+    { "type": "attribute", "id": "minecraft:generic.armor", "value": 4, "operation": "add_value" },
+    { "type": "attribute", "id": "minecraft:generic.knockback_resistance", "value": 0.5, "operation": "add_value" },
+    { "type": "attribute", "id": "minecraft:generic.movement_speed", "value": -0.10, "operation": "add_multiplied_base" }
+  ] }

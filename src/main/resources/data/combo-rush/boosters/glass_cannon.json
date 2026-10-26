@@ -1,0 +1,21 @@
+{
+  "name": "Стеклянная пушка",
+  "description": "×2 к множителю, но −4 сердца",
+  "icon": "minecraft:glass",
+  "price": 50,
+  "min_level": 8,
+  "negative_allowed": false,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 2.0
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.max_health",
+      "value": -8,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "epic"
+}

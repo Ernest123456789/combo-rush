@@ -1,0 +1,14 @@
+{
+  "name": "Голодный зверь",
+  "description": "+0.8 множителя при голоде (≤3 «ножек»)",
+  "icon": "minecraft:rotten_flesh",
+  "price": 25,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.8,
+      "condition": "hungry"
+    }
+  ],
+  "rarity": "common"
+}

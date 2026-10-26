@@ -1,0 +1,9 @@
+{
+  "name": "Ярмарка",
+  "description": "Фишки за торговлю ×2, монеты +20%.",
+  "weight": 5,
+  "source_mult": {
+    "TRADE": 2.0
+  },
+  "coin_bonus": 0.2
+}

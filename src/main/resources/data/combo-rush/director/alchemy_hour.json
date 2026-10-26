@@ -1,0 +1,9 @@
+{
+  "name": "Час алхимии",
+  "description": "Фишки за зелья и зачарование ×2.",
+  "weight": 6,
+  "source_mult": {
+    "BREW": 2.0,
+    "ENCHANT": 2.0
+  }
+}

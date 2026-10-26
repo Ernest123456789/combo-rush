@@ -1,0 +1,6 @@
+{
+  "name": "Выходные",
+  "announce": "Выходной бонус: +10% монет за события.",
+  "weekdays": ["SATURDAY", "SUNDAY"],
+  "effects": [ { "type": "coin_bonus", "value": 0.10 } ]
+}

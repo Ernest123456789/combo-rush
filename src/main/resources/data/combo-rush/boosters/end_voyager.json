@@ -1,0 +1,19 @@
+{
+  "name": "Странник Энда",
+  "description": "×1.6 к множителю в Крае, медленное падение",
+  "icon": "minecraft:ender_pearl",
+  "price": 50,
+  "unlock_resets": 2,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.6,
+      "condition": "end"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:slow_falling"
+    }
+  ],
+  "rarity": "legendary"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Ночная сова",
+  "description": "×1.5 к множителю ночью, ×0.8 днём",
+  "icon": "minecraft:phantom_membrane",
+  "price": 30,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.5,
+      "condition": "night"
+    },
+    {
+      "type": "mult_times",
+      "value": 0.8,
+      "condition": "day"
+    }
+  ],
+  "rarity": "uncommon"
+}

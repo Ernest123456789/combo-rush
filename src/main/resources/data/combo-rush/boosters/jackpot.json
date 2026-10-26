@@ -1,0 +1,18 @@
+{
+  "name": "Джекпот",
+  "description": "×1.75 к множителю и +20% монет за событие",
+  "icon": "minecraft:emerald_block",
+  "price": 60,
+  "rarity": "legendary",
+  "min_level": 10,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.75
+    },
+    {
+      "type": "coin_bonus",
+      "value": 0.2
+    }
+  ]
+}

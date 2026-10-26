@@ -1,0 +1,17 @@
+{
+  "name": "Золотое касание",
+  "description": "+5% монет за событие за каждую золотую медаль забега (макс. +50%)",
+  "icon": "minecraft:golden_apple",
+  "price": 45,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "coin_bonus",
+      "value": 0.05,
+      "scale": "gold_medals",
+      "per": 1,
+      "max": 10
+    }
+  ],
+  "rarity": "epic"
+}

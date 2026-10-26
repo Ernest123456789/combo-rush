@@ -1,0 +1,9 @@
+{
+  "name": "Руна голограммы",
+  "description": "Издание «Голограмма»: +0.4 к множителю.",
+  "icon": "minecraft:amethyst_shard",
+  "price": 20,
+  "rarity": "uncommon",
+  "action": "edition",
+  "edition": "holo"
+}

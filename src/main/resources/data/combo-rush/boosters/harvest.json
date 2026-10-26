@@ -1,0 +1,18 @@
+{
+  "name": "Жатва",
+  "description": "+10 фишек за урожай, +0.2 множителя",
+  "icon": "minecraft:wheat",
+  "price": 25,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "HARVEST",
+      "value": 10
+    },
+    {
+      "type": "mult_add",
+      "value": 0.2
+    }
+  ],
+  "rarity": "common"
+}

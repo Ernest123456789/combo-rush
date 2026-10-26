@@ -1,0 +1,20 @@
+{
+  "name": "Небожитель",
+  "description": "×1.4 к множителю на высоте выше Y=100, падение безопаснее",
+  "icon": "minecraft:feather",
+  "price": 30,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.4,
+      "condition": "high"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.safe_fall_distance",
+      "value": 6,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "uncommon"
+}

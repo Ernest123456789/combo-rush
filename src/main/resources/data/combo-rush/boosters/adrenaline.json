@@ -1,0 +1,19 @@
+{
+  "name": "Адреналин",
+  "description": "+0.5 множителя и +10% скорости",
+  "icon": "minecraft:sugar",
+  "price": 25,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.5
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.1,
+      "operation": "add_multiplied_base"
+    }
+  ],
+  "rarity": "common"
+}

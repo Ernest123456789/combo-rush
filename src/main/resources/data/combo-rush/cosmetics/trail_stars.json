@@ -1,0 +1,2 @@
+{ "name": "След: Звёзды", "description": "Мерцающие звёзды.",
+  "icon": "minecraft:end_rod", "type": "trail", "price": 35, "particle": "minecraft:end_rod", "count": 3 }

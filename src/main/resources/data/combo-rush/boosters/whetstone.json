@@ -1,0 +1,14 @@
+{
+  "name": "Точильный камень",
+  "description": "+20 фишек за убийство моба",
+  "icon": "minecraft:grindstone",
+  "price": 15,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "KILL",
+      "value": 20
+    }
+  ],
+  "rarity": "common"
+}

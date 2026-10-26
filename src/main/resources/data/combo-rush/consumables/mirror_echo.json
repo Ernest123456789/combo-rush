@@ -1,0 +1,8 @@
+{
+  "name": "Зеркало эха",
+  "description": "Создаёт копию усилителя в свободном слоте (уровень и издание сохраняются).",
+  "icon": "minecraft:glass_pane",
+  "price": 35,
+  "rarity": "epic",
+  "action": "duplicate"
+}

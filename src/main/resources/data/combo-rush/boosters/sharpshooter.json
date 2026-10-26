@@ -1,0 +1,14 @@
+{
+  "name": "Снайпер",
+  "description": "×1.5 фишек за выстрелы",
+  "icon": "minecraft:crossbow",
+  "price": 35,
+  "effects": [
+    {
+      "type": "chips_multiplier",
+      "value": 1.5,
+      "source": "SHOOT"
+    }
+  ],
+  "rarity": "uncommon"
+}

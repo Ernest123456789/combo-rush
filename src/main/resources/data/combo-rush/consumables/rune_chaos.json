@@ -1,0 +1,8 @@
+{
+  "name": "Руна хаоса",
+  "description": "Случайное издание (отличное от текущего).",
+  "icon": "minecraft:fire_charge",
+  "price": 12,
+  "rarity": "common",
+  "action": "random_edition"
+}

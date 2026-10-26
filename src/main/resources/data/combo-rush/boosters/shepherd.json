@@ -1,0 +1,16 @@
+{
+  "name": "Скотовод",
+  "description": "+0.05 множителя за каждое разведение забега (макс. +1.0)",
+  "icon": "minecraft:lead",
+  "price": 35,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.05,
+      "scale": "breeds",
+      "per": 1,
+      "max": 20
+    }
+  ],
+  "rarity": "uncommon"
+}

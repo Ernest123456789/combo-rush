@@ -1,0 +1,20 @@
+{
+  "name": "Пещерный житель",
+  "description": "×1.4 к множителю под землёй, копание быстрее",
+  "icon": "minecraft:glow_berries",
+  "price": 35,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.4,
+      "condition": "underground"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:player.mining_efficiency",
+      "value": 1,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "uncommon"
+}

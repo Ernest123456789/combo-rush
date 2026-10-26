@@ -1,0 +1,17 @@
+{
+  "name": "Зелёный палец",
+  "description": "+1 фишка за урожай за каждые 20 собранных культур (макс. +12)",
+  "icon": "minecraft:bone_meal",
+  "price": 25,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "HARVEST",
+      "value": 1,
+      "scale": "crops",
+      "per": 20,
+      "max": 12
+    }
+  ],
+  "rarity": "common"
+}

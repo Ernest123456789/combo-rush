@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "combo-rush",
+	"version": "${version}",
+	"name": "Combo Rush",
+	"description": "Каждые 10 минут — событие: набирай очки (фишки × множитель), получай монеты и покупай усилители.",
+	"authors": [
+		"derevna230"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/combo-rush/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.derevna230.comborush.ComboRush"
+		],
+		"client": [
+			"com.derevna230.comborush.client.ComboRushClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

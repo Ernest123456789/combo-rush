@@ -1,0 +1,16 @@
+{
+  "name": "Импульс охотника",
+  "description": "+0.01 множителя за каждое убийство в забеге (макс. +1.5)",
+  "icon": "minecraft:blaze_powder",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.01,
+      "scale": "kills",
+      "per": 1,
+      "max": 150
+    }
+  ],
+  "rarity": "rare"
+}

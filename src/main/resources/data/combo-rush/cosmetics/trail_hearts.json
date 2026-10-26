@@ -1,0 +1,2 @@
+{ "name": "След: Сердечки", "description": "Сердечки за тобой.",
+  "icon": "minecraft:pink_dye", "type": "trail", "price": 30, "particle": "minecraft:heart", "count": 1 }

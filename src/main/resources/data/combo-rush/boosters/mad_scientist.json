@@ -1,0 +1,16 @@
+{
+  "name": "Безумный учёный",
+  "description": "+0.05 множителя за каждое зелье забега (макс. +1.5)",
+  "icon": "minecraft:fermented_spider_eye",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.05,
+      "scale": "brews",
+      "per": 1,
+      "max": 30
+    }
+  ],
+  "rarity": "rare"
+}

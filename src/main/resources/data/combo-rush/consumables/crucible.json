@@ -1,0 +1,8 @@
+{
+  "name": "Тигель",
+  "description": "Превращает усилитель в случайный другой той же редкости. Уровень и издание сохраняются.",
+  "icon": "minecraft:cauldron",
+  "price": 22,
+  "rarity": "uncommon",
+  "action": "reroll_booster"
+}

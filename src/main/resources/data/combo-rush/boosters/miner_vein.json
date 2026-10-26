@@ -1,0 +1,20 @@
+{
+  "name": "Шахтёрская жилка",
+  "description": "+8 фишек за руду, копание быстрее",
+  "icon": "minecraft:iron_pickaxe",
+  "price": 30,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "MINE",
+      "value": 8
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:player.mining_efficiency",
+      "value": 2,
+      "operation": "add_value"
+    }
+  ],
+  "rarity": "uncommon"
+}

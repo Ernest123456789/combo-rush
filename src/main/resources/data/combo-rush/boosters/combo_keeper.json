@@ -1,0 +1,13 @@
+{
+  "name": "Хранитель серии",
+  "description": "Окно серии длиннее на 3 секунды",
+  "icon": "minecraft:clock",
+  "price": 30,
+  "effects": [
+    {
+      "type": "combo_window",
+      "value": 3
+    }
+  ],
+  "rarity": "common"
+}

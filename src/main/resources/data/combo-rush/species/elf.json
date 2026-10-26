@@ -1,0 +1,4 @@
+{ "name": "Эльф", "description": "×1.5 очков за выстрелы и урожай, но −2 сердца.",
+  "icon": "minecraft:bow", "default_unlocked": true,
+  "score_mult": { "SHOOT": 1.5, "HARVEST": 1.5, "BREED": 1.25 },
+  "effects": [ { "type": "attribute", "id": "minecraft:generic.max_health", "value": -4, "operation": "add_value" } ] }

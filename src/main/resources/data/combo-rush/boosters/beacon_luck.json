@@ -1,0 +1,14 @@
+{
+  "name": "Маяк удачи",
+  "description": "+10% монет за событие тебе и союзникам в радиусе 25 блоков",
+  "icon": "minecraft:beacon",
+  "price": 35,
+  "rarity": "uncommon",
+  "effects": [
+    {
+      "type": "aura_coin_bonus",
+      "value": 0.1,
+      "radius": 25
+    }
+  ]
+}

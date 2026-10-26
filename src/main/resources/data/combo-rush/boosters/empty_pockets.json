@@ -1,0 +1,16 @@
+{
+  "name": "Пустые слоты",
+  "description": "×(1 + 0.15 за каждый свободный слот усилителей) к множителю",
+  "icon": "minecraft:glass_bottle",
+  "price": 30,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 0.15,
+      "scale": "free_slots",
+      "per": 1,
+      "max": 5
+    }
+  ],
+  "rarity": "uncommon"
+}

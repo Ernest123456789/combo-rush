@@ -1,0 +1,9 @@
+{
+  "name": "Руна фольги",
+  "description": "Издание «Фольга»: +25 фишек к каждому действию.",
+  "icon": "minecraft:iron_nugget",
+  "price": 15,
+  "rarity": "common",
+  "action": "edition",
+  "edition": "foil"
+}

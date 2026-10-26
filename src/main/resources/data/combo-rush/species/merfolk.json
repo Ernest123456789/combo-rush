@@ -1,0 +1,4 @@
+{ "name": "Русал", "description": "×1.6 очков за рыбалку, ×1.2 за торговлю, дыхание под водой, но ×0.9 за убийства. Открывается после 3 сбросов.",
+  "icon": "minecraft:fishing_rod", "default_unlocked": false, "unlock_resets": 3,
+  "score_mult": { "FISH": 1.6, "TRADE": 1.2, "KILL": 0.9 },
+  "effects": [ { "type": "status_effect", "id": "minecraft:water_breathing" } ] }

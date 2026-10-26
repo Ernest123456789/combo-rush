@@ -1,0 +1,8 @@
+{
+  "name": "Свиток силы",
+  "description": "Повышает уровень усилителя на 1 (до 5). Каждый уровень даёт +20% к плюсам.",
+  "icon": "minecraft:enchanted_book",
+  "price": 18,
+  "rarity": "common",
+  "action": "level_up"
+}

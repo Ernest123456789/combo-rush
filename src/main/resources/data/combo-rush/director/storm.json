@@ -1,0 +1,10 @@
+{
+  "name": "Шторм",
+  "description": "Гроза! Фишки за выстрелы и рыбалку ×1.5.",
+  "weight": 5,
+  "weather": "thunder",
+  "source_mult": {
+    "SHOOT": 1.5,
+    "FISH": 1.5
+  }
+}

@@ -1,0 +1,2 @@
+{ "name": "Титул «Легенда»", "description": "Префикс [Легенда] жирным красным.",
+  "icon": "minecraft:name_tag", "type": "title", "price": 60, "prefix": "§c§l[Легенда] " }

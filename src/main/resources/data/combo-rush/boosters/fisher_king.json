@@ -1,0 +1,18 @@
+{
+  "name": "Король рыбаков",
+  "description": "+1 фишка за любое действие за каждые 10 уловов забега (макс. +10)",
+  "icon": "minecraft:nautilus_shell",
+  "price": 40,
+  "min_level": 4,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 1,
+      "source": "ALL",
+      "scale": "fish",
+      "per": 10,
+      "max": 10
+    }
+  ],
+  "rarity": "rare"
+}

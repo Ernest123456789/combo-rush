@@ -1,0 +1,9 @@
+{
+  "name": "Руна полихрома",
+  "description": "Издание «Полихром»: ×1.2 к множителю.",
+  "icon": "minecraft:prismarine_crystals",
+  "price": 28,
+  "rarity": "rare",
+  "action": "edition",
+  "edition": "poly"
+}

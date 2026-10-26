@@ -1,0 +1,4 @@
+{
+  "criteria": { "t": { "trigger": "minecraft:bred_animals" } },
+  "rewards": { "function": "combo-rush:trigger/bred" }
+}

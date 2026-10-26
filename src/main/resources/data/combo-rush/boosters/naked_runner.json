@@ -1,0 +1,20 @@
+{
+  "name": "Голый бегун",
+  "description": "×1.6 к множителю без брони, +10% скорости",
+  "icon": "minecraft:leather_boots",
+  "price": 35,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.6,
+      "condition": "no_armor"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.1,
+      "operation": "add_multiplied_base"
+    }
+  ],
+  "rarity": "uncommon"
+}

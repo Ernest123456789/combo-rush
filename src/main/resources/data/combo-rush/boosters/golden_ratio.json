@@ -1,0 +1,18 @@
+{
+  "name": "Золотое сечение",
+  "description": "+1 к множителю и +15 фишек за любое действие",
+  "icon": "minecraft:golden_carrot",
+  "price": 50,
+  "rarity": "epic",
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 1.0
+    },
+    {
+      "type": "chips_per_action",
+      "value": 15,
+      "source": "ALL"
+    }
+  ]
+}

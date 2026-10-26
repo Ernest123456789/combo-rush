@@ -1,0 +1,11 @@
+{
+  "name": "Хэллоуин",
+  "announce": "Страшная неделя! Очки ×1.15, монеты +10%, перекрут дешевле на 2 монеты, в магазине жуткие усилители.",
+  "start": "10-25",
+  "end": "11-02",
+  "effects": [
+    { "type": "score_multiplier", "value": 1.15 },
+    { "type": "coin_bonus", "value": 0.10 },
+    { "type": "reroll_discount", "value": 2 }
+  ]
+}

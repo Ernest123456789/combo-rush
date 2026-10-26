@@ -1,0 +1,14 @@
+{
+  "name": "Охотник за бурей",
+  "description": "×1.5 к множителю во время дождя",
+  "icon": "minecraft:lightning_rod",
+  "price": 25,
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.5,
+      "condition": "raining"
+    }
+  ],
+  "rarity": "common"
+}

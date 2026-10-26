@@ -1,0 +1,17 @@
+{
+  "name": "Перерождённый",
+  "description": "+0.3 множителя за каждый сброс (макс. +3)",
+  "icon": "minecraft:totem_of_undying",
+  "price": 45,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.3,
+      "scale": "resets",
+      "per": 1,
+      "max": 10
+    }
+  ],
+  "rarity": "epic"
+}

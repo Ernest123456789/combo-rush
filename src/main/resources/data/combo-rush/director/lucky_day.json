@@ -1,0 +1,7 @@
+{
+  "name": "Счастливый день",
+  "description": "Монеты за событие +25%.",
+  "weight": 3,
+  "min_event": 10,
+  "coin_bonus": 0.25
+}

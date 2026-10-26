@@ -1,0 +1,15 @@
+{
+  "name": "Дневной свет",
+  "description": "+8 фишек за любое действие днём",
+  "icon": "minecraft:sunflower",
+  "price": 20,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "ALL",
+      "value": 8,
+      "condition": "day"
+    }
+  ],
+  "rarity": "common"
+}

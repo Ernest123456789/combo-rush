@@ -1,0 +1,14 @@
+{
+  "name": "Чародей",
+  "description": "+15 фишек за каждое зачарование",
+  "icon": "minecraft:enchanting_table",
+  "price": 25,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 15,
+      "source": "ENCHANT"
+    }
+  ],
+  "rarity": "common"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Меткий глаз",
+  "description": "+0.01 множителя за каждый выстрел забега (макс. +1.5)",
+  "icon": "minecraft:target",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.01,
+      "scale": "shots",
+      "per": 1,
+      "max": 150
+    }
+  ],
+  "rarity": "rare"
+}

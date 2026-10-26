@@ -1,0 +1,17 @@
+{
+  "name": "Пьющий эссенцию",
+  "description": "+0.02 множителя за каждую единицу эссенции (макс. +2)",
+  "icon": "minecraft:experience_bottle",
+  "price": 55,
+  "unlock_resets": 2,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.02,
+      "scale": "essence",
+      "per": 1,
+      "max": 100
+    }
+  ],
+  "rarity": "legendary"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Командный дух",
+  "description": "Получаешь 10% очков, которые зарабатывают союзники в радиусе 20 блоков",
+  "icon": "minecraft:cake",
+  "price": 45,
+  "rarity": "rare",
+  "effects": [
+    {
+      "type": "share_score",
+      "value": 0.1,
+      "radius": 20
+    }
+  ]
+}

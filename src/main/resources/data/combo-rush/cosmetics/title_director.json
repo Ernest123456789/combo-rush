@@ -1,0 +1,2 @@
+{ "name": "Титул «Режиссёр»", "description": "Префикс [Режиссёр] в чате и над головой.",
+  "icon": "minecraft:name_tag", "type": "title", "price": 20, "prefix": "§d[Режиссёр] " }

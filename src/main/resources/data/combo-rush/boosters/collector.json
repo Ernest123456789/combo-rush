@@ -1,0 +1,16 @@
+{
+  "name": "Коллекционер",
+  "description": "+0.05 множителя за каждый уникальный предмет в инвентаре (макс. +2)",
+  "icon": "minecraft:item_frame",
+  "price": 40,
+  "effects": [
+    {
+      "type": "mult_add",
+      "value": 0.05,
+      "scale": "unique_items",
+      "per": 1,
+      "max": 40
+    }
+  ],
+  "rarity": "uncommon"
+}

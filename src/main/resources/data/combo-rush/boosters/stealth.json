@@ -1,0 +1,15 @@
+{
+  "name": "Крадущийся",
+  "description": "+15 фишек за любое действие при приседании",
+  "icon": "minecraft:ink_sac",
+  "price": 20,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "ALL",
+      "value": 15,
+      "condition": "sneaking"
+    }
+  ],
+  "rarity": "common"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Рыбак",
+  "description": "+10 фишек за каждую пойманную добычу",
+  "icon": "minecraft:fishing_rod",
+  "price": 20,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "FISH"
+    }
+  ],
+  "rarity": "common"
+}

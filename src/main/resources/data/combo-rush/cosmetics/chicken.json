@@ -1,0 +1,3 @@
+{ "name": "Бессмертная курица", "description": "Бегает за тобой и абсолютно бесполезна. Но бессмертна.",
+  "icon": "minecraft:chicken", "type": "pet", "price": 30,
+  "entity": "minecraft:chicken", "pet_name": "Курица {player}" }

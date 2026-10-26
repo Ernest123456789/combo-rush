@@ -1,0 +1,14 @@
+{
+  "name": "Торговая жилка",
+  "description": "+10 фишек за каждую сделку с жителем",
+  "icon": "minecraft:emerald",
+  "price": 20,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "TRADE"
+    }
+  ],
+  "rarity": "common"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Заводчик",
+  "description": "+10 фишек за каждое разведение животных",
+  "icon": "minecraft:wheat",
+  "price": 20,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "BREED"
+    }
+  ],
+  "rarity": "common"
+}

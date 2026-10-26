@@ -1,0 +1,17 @@
+{
+  "name": "Чистый чек",
+  "description": "Скидка 25% в магазине и перекрут дешевле на 3 монеты",
+  "icon": "minecraft:paper",
+  "price": 45,
+  "rarity": "epic",
+  "effects": [
+    {
+      "type": "shop_discount",
+      "value": 0.25
+    },
+    {
+      "type": "reroll_discount",
+      "value": 3
+    }
+  ]
+}

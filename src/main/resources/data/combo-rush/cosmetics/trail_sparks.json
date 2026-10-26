@@ -1,0 +1,2 @@
+{ "name": "След: Искры", "description": "Искры за спиной при движении.",
+  "icon": "minecraft:redstone", "type": "trail", "price": 25, "particle": "minecraft:electric_spark", "count": 3 }

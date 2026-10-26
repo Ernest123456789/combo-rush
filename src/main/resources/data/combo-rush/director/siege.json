@@ -1,0 +1,25 @@
+{
+  "name": "Осада",
+  "description": "Волны мобов атакуют. Множитель +0.25, фишки за убийства ×1.25, монеты +10%.",
+  "weight": 6,
+  "min_event": 6,
+  "source_mult": {
+    "KILL": 1.25
+  },
+  "mult_add": 0.25,
+  "coin_bonus": 0.1,
+  "spawns": {
+    "interval": 600,
+    "per_player": 4,
+    "cap": 16,
+    "radius_min": 10,
+    "radius_max": 18,
+    "entities": [
+      "minecraft:zombie",
+      "minecraft:husk",
+      "minecraft:skeleton",
+      "minecraft:stray",
+      "minecraft:spider"
+    ]
+  }
+}

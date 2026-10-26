@@ -1,0 +1,18 @@
+{
+  "name": "Вековой фермер",
+  "description": "+1 фишка за урожай за каждые 200 культур за всё время (макс. +20)",
+  "icon": "minecraft:hay_block",
+  "price": 35,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "HARVEST",
+      "value": 1,
+      "scale": "life_crops",
+      "per": 200,
+      "max": 20
+    }
+  ],
+  "rarity": "rare"
+}

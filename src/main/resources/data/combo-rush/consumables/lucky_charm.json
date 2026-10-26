@@ -1,0 +1,8 @@
+{
+  "name": "Талисман удачи",
+  "description": "Бесплатно обновляет витрину магазина.",
+  "icon": "minecraft:rabbit_foot",
+  "price": 8,
+  "rarity": "common",
+  "action": "free_reroll"
+}

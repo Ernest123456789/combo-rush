@@ -1,0 +1,18 @@
+{
+  "name": "Эхо прошлого",
+  "description": "+5 фишек за любое действие за каждый сброс (макс. +50)",
+  "icon": "minecraft:echo_shard",
+  "price": 40,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "ALL",
+      "value": 5,
+      "scale": "resets",
+      "per": 1,
+      "max": 10
+    }
+  ],
+  "rarity": "rare"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Свинцовые ноги",
+  "description": "Замедление на всё событие.",
+  "weight": 7,
+  "status_effect": "minecraft:slowness",
+  "amplifier": 1
+}

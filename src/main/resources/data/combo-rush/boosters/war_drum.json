@@ -1,0 +1,15 @@
+{
+  "name": "Боевой барабан",
+  "description": "+8 фишек за действие тебе и союзникам в радиусе 24 блоков",
+  "icon": "minecraft:note_block",
+  "price": 30,
+  "rarity": "uncommon",
+  "effects": [
+    {
+      "type": "aura_chips",
+      "value": 8,
+      "source": "ALL",
+      "radius": 24
+    }
+  ]
+}

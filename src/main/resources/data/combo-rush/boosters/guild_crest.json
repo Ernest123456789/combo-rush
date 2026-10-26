@@ -1,0 +1,14 @@
+{
+  "name": "Гербовый щит",
+  "description": "×1.15 к множителю тебе и союзникам в радиусе 16 блоков",
+  "icon": "minecraft:shield",
+  "price": 50,
+  "rarity": "epic",
+  "effects": [
+    {
+      "type": "aura_mult_times",
+      "value": 1.15,
+      "radius": 16
+    }
+  ]
+}

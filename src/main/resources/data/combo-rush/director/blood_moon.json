@@ -1,0 +1,21 @@
+{
+  "name": "Кровавая луна",
+  "description": "Мобы лезут отовсюду, фишки за убийства ×1.5.",
+  "weight": 8,
+  "min_event": 3,
+  "source_mult": {
+    "KILL": 1.5
+  },
+  "spawns": {
+    "interval": 400,
+    "per_player": 2,
+    "cap": 10,
+    "radius_min": 8,
+    "radius_max": 16,
+    "entities": [
+      "minecraft:zombie",
+      "minecraft:skeleton",
+      "minecraft:spider"
+    ]
+  }
+}

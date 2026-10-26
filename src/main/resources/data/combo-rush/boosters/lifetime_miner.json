@@ -1,0 +1,18 @@
+{
+  "name": "Вековой шахтёр",
+  "description": "+1 фишка за руду за каждые 150 руд за всё время (макс. +25)",
+  "icon": "minecraft:deepslate_diamond_ore",
+  "price": 35,
+  "unlock_resets": 1,
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "source": "MINE",
+      "value": 1,
+      "scale": "life_ores",
+      "per": 150,
+      "max": 25
+    }
+  ],
+  "rarity": "rare"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Вечный двигатель",
+  "description": "Серия растёт на 0.08 быстрее и держится на 5 секунд дольше",
+  "icon": "minecraft:clock",
+  "price": 60,
+  "rarity": "legendary",
+  "unlock_resets": 3,
+  "effects": [
+    {
+      "type": "combo_step",
+      "value": 0.08
+    },
+    {
+      "type": "combo_window",
+      "value": 5
+    }
+  ]
+}
