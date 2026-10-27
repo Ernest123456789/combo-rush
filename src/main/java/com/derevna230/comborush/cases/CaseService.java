@@ -82,7 +82,10 @@ public final class CaseService {
         stack.decrement(1);
         ItemStack rewardStack = new ItemStack(reward);
         String rewardName = rewardStack.getName().getString();
-        p.getInventory().offerOrDrop(rewardStack);          // награда выдаётся сразу; рулетка только показывает её
+        // Награду кладём на следующем шаге сервера: в креативе после ПКМ игра возвращает предмет в руку
+        // и перезаписала бы слот, куда только что легла награда (из-за этого в креативе «ничего не выпадало»).
+        ItemStack give = rewardStack.copy();
+        p.getServer().execute(() -> p.getInventory().offerOrDrop(give));
         String rar = ModItems.rarityOf(win.set);
         ArmorSetDef setDef = ArmorSetRegistry.get(win.set);
 
@@ -105,7 +108,7 @@ public final class CaseService {
         root.addProperty("off", 0.15 + ThreadLocalRandom.current().nextDouble() * 0.7);
         root.addProperty("name", rewardName);
         root.addProperty("rar", rar);
-        root.addProperty("set", setDef == null ? win.set : setDef.name);
+        root.addProperty("set", ModItems.piecesIn(win.set) > 1 ? (setDef == null ? win.set : setDef.name) : "");   // у оружия, питомцев и шляп — без «Комплект:»
         root.addProperty("left", countCases(p, caseId));
         root.add("items", items);
 

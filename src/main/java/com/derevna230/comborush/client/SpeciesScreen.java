@@ -393,6 +393,11 @@ public class SpeciesScreen extends Screen {
             m.pop();
         }
 
+        // всё дальнейшее — поверх иконки (предметы рисуются на глубине ~150)
+        MatrixStack mz = c.getMatrices();
+        mz.push();
+        mz.translate(0, 0, 250);
+
         // плашка с именем
         float ph = big ? 24 : 11;
         c.fill(2, (int) (h - ph - 2), w - 2, h - 2, 0xC8000000);
@@ -400,14 +405,16 @@ public class SpeciesScreen extends Screen {
             s.unlocked ? 0xFFFFFFFF : 0xFF8A8A8A, 1);
 
         if (!s.unlocked) {
-            c.fill(0, 0, w, h, 0x99000000);
+            c.fill(0, 0, w, h, 0xB0000000);
+            c.fill(0, (int) (h / 2f - (big ? 14 : 8)), w, (int) (h / 2f + (big ? 14 : 5)), 0xC0000000);
             text(c, "ЗАКРЫТО", w / 2f, h / 2f - (big ? 10 : 6), big ? 1.2f : 0.5f, 0xFFFF7A7A, 1);
             text(c, "сбросов: " + s.need, w / 2f, h / 2f + (big ? 4 : 0), big ? 0.8f : 0.42f, 0xFFFFD0D0, 1);
         }
-        if (cur) {                                   // лента «ВЫБРАНО»
-            float rh = big ? 12 : 6;
-            c.fill(0, (int) (h * 0.62f), w, (int) (h * 0.62f + rh), 0xE0C8901A);
-            text(c, "ВЫБРАНО", w / 2f, h * 0.62f + (big ? 2.5f : 1f), big ? 0.8f : 0.4f, 0xFF3A2A00, 1);
+        if (cur) {                                   // лента «ВЫБРАНО» — над плашкой с именем, не на ней
+            float rh = big ? 12 : 5;
+            float ry = big ? h * 0.62f : h - ph - 2 - rh;
+            c.fill(0, (int) ry, w, (int) (ry + rh), 0xE0C8901A);
+            text(c, "ВЫБРАНО", w / 2f, ry + (big ? 2.5f : 0.8f), big ? 0.8f : 0.38f, 0xFF3A2A00, 1);
         }
         // блик
         double phs = ((now / 1e9) + s.id.hashCode() % 7 * 0.3) % 4.0 / 4.0;
@@ -416,6 +423,7 @@ public class SpeciesScreen extends Screen {
             int x1 = Math.max(1, sx), x2 = Math.min(w - 1, sx + (big ? 10 : 5));
             if (x2 > x1) c.fill(x1, 1, x2, h - 1, 0x28FFFFFF);
         }
+        mz.pop();
     }
 
     private void arrow(DrawContext c, String key, float x, float y, boolean left, Runnable click) {

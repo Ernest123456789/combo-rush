@@ -123,7 +123,7 @@ public final class ArmorTooltips {
             StringBuilder line = new StringBuilder();
             for (int i = 0; i < names.size(); i++) {
                 String n = names.get(i) + (i + 1 < names.size() ? ", " : "");
-                if (line.length() > 0 && line.length() + n.length() > 44) { out.add("   §f" + line); line.setLength(0); }
+                if (line.length() > 0 && line.length() + n.length() > 56) { out.add("   §f" + line); line.setLength(0); }
                 line.append(n);
             }
             if (line.length() > 0) out.add("   §f" + line);

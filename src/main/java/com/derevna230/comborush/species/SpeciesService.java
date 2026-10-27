@@ -99,10 +99,12 @@ public final class SpeciesService {
             case "generic.max_health" -> new Trait(sign + num(Math.abs(v) / 2) + " " + hearts(Math.abs(v) / 2), v > 0);
             case "generic.attack_damage" -> new Trait(sign + amount + " урона", v > 0);
             case "generic.armor" -> new Trait(sign + amount + " брони", v > 0);
+            case "generic.armor_toughness" -> new Trait(sign + amount + " к прочности брони", v > 0);
+            case "generic.attack_speed" -> new Trait(sign + amount + " к скорости атаки", v > 0);
+            case "generic.luck" -> new Trait(sign + amount + " к удаче", v > 0);
             case "generic.movement_speed" -> new Trait("Скорость " + sign + (percent ? amount : num(Math.abs(v))), v > 0);
             case "generic.knockback_resistance" -> new Trait(sign + pct(v) + " стойкости к отбрасыванию", v > 0);
             case "player.mining_efficiency" -> new Trait("Копание быстрее (" + sign + amount + ")", v > 0);
-            case "generic.luck" -> new Trait(sign + amount + " к удаче", v > 0);
             default -> new Trait(id + " " + sign + amount, v > 0);
         };
     }

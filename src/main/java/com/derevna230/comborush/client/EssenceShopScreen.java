@@ -341,7 +341,7 @@ public class EssenceShopScreen extends Screen {
     private List<Text> caseTip(CaseV cv) {
         List<Text> t = new ArrayList<>();
         t.add(Text.literal(rarCode(cv.rar) + "§l" + cv.name));
-        for (String l : wrap(cv.desc, 170)) t.add(Text.literal("§7" + l));
+        for (String l : wrap(cv.desc, 240)) t.add(Text.literal("§7" + l));
         t.add(Text.literal("§8Может выпасть:"));
         for (String r : List.of("mythic", "legendary", "epic", "rare", "uncommon", "common")) {
             double sum = 0;
@@ -351,7 +351,7 @@ public class EssenceShopScreen extends Screen {
             double pc = sum * 100;
             String pct = (pc < 1 ? String.format(java.util.Locale.ROOT, "%.1f", pc) : String.valueOf(Math.round(pc))) + "%";
             t.add(Text.literal(" " + rarCode(r) + "■ " + rarLabel(r) + " §8— §7" + pct));
-            for (String l : wrap(String.join(", ", names), 190)) t.add(Text.literal("   §f" + l));
+            for (String l : wrap(String.join(", ", names), 260)) t.add(Text.literal("   §f" + l));
         }
         t.add(Text.literal("§dЦена: " + cv.price + " эссенции"));
         if (cv.owned > 0) t.add(Text.literal("§aВ инвентаре: " + cv.owned));

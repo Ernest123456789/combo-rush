@@ -202,7 +202,7 @@ public class CaseOpenScreen extends Screen {
             m.scale(pop, pop, 1f);
             text(c, rarLabel(rewardRar), 0, -12, 0.75f, 0xFF000000 | rarRgb(rewardRar), 1);
             text(c, rewardName, 0, -2, 1.5f, 0xFFFFFFFF, 1);
-            text(c, "Комплект: " + setName, 0, 13, 0.75f, 0xFFB8B8C8, 1);
+            if (!setName.isEmpty()) text(c, "Комплект: " + setName, 0, 13, 0.75f, 0xFFB8B8C8, 1);
             m.pop();
             text(c, "Предмет уже в твоём инвентаре", 210, 190, 0.65f, 0xFF8EF0A0, 1);
 
