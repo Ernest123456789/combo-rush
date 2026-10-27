@@ -14,6 +14,7 @@ public final class ModEntities {
 
     public static EntityType<CRPetEntity> PET;
     public static EntityType<DecorEntity> DECOR;
+    public static EntityType<com.derevna230.comborush.skate.SkateboardEntity> SKATE;
 
     public static void init() {
         PET = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "pet"),
@@ -29,5 +30,11 @@ public final class ModEntities {
                 .maxTrackingRange(10)
                 .build("decor"));
         FabricDefaultAttributeRegistry.register(DECOR, DecorEntity.createAttributes());
+        SKATE = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "skateboard"),
+            EntityType.Builder.create(com.derevna230.comborush.skate.SkateboardEntity::new, SpawnGroup.MISC)
+                .dimensions(0.8f, 0.25f)
+                .maxTrackingRange(10)
+                .build("skateboard"));
+        FabricDefaultAttributeRegistry.register(SKATE, com.derevna230.comborush.skate.SkateboardEntity.createAttributes());
     }
 }

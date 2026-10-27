@@ -70,5 +70,7 @@
   "item.combo-rush.decor_glow_shrooms": "Светогрибы",
   "item.combo-rush.decor_moon_lily": "Лунная лилия",
   "item.combo-rush.water_bottle": "Бутылка воды",
-  "entity.combo-rush.decor": "Декоративное растение"
+  "entity.combo-rush.decor": "Декоративное растение",
+  "item.combo-rush.skateboard": "Зачарованный скейтборд",
+  "entity.combo-rush.skateboard": "Скейтборд"
 }

@@ -24,6 +24,10 @@ public class ComboRushClient implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> HudModel.reset());
         EntityRendererRegistry.register(ModEntities.PET, PetRenderer::new);
         EntityRendererRegistry.register(ModEntities.DECOR, DecorRenderer::new);
+        EntityRendererRegistry.register(ModEntities.SKATE, SkateRenderer::new);
+        // скейт: клиент сам считает прыжок и планирование, ему нужно знать, зажат ли пробел
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client ->
+            com.derevna230.comborush.skate.SkateboardEntity.CLIENT_JUMP = client.player != null && client.options.jumpKey.isPressed());
         // щиты из кейсов: при блоке — модель <id>_blocking
         for (Item shield : ModItems.SHIELDS)
             ModelPredicateProviderRegistry.register(shield, Identifier.ofVanilla("blocking"), (stack, world, entity, seed) ->

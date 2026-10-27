@@ -116,6 +116,16 @@ public class ComboRushCommand {
                 CycleManager.startEvent(c.getSource().getServer()); return 1; }))
             .then(CommandManager.literal("end").requires(ComboRushCommand::op).executes(c -> {
                 CycleManager.endEvent(c.getSource().getServer()); return 1; }))
+            .then(CommandManager.literal("skate").requires(ComboRushCommand::op).executes(c -> {
+                c.getSource().getPlayerOrThrow().getInventory().offerOrDrop(new net.minecraft.item.ItemStack(com.derevna230.comborush.item.ModItems.SKATEBOARD));
+                return 1; }))
+            .then(CommandManager.literal("rift").requires(ComboRushCommand::op).executes(c -> {
+                boolean ok = com.derevna230.comborush.rift.RiftManager.open(c.getSource().getPlayerOrThrow());
+                c.getSource().sendFeedback(() -> Text.literal(ok ? "§5Разлом открыт рядом с тобой." : "§cНе нашёл места для разлома."), false);
+                return ok ? 1 : 0; }))
+            .then(eliteCmd("foil", com.derevna230.comborush.rift.EliteMobs.Edition.FOIL))
+            .then(eliteCmd("holo", com.derevna230.comborush.rift.EliteMobs.Edition.HOLO))
+            .then(eliteCmd("poly", com.derevna230.comborush.rift.EliteMobs.Edition.POLY))
             .then(CommandManager.literal("coins").requires(ComboRushCommand::op)
                 .then(CommandManager.argument("n", IntegerArgumentType.integer()).executes(c -> {
                     var p = c.getSource().getPlayerOrThrow();
@@ -171,5 +181,22 @@ public class ComboRushCommand {
         };
         src.sendFeedback(() -> Text.literal(ok ? "§aГотово: " + id : "§cАкция не найдена: " + id), false);
         return ok ? 1 : 0;
+    }
+
+    /** /cr elite_<издание> — призвать элитного зомби перед собой (проверка) */
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<net.minecraft.server.command.ServerCommandSource> eliteCmd(
+            String id, com.derevna230.comborush.rift.EliteMobs.Edition ed) {
+        return CommandManager.literal("elite_" + id).requires(ComboRushCommand::op).executes(c -> {
+            var p = c.getSource().getPlayerOrThrow();
+            var w = p.getServerWorld();
+            var z = net.minecraft.entity.EntityType.ZOMBIE.create(w);
+            if (z == null) return 0;
+            var look = p.getRotationVec(1f);
+            z.refreshPositionAndAngles(p.getX() + look.x * 3, p.getY(), p.getZ() + look.z * 3, p.getYaw() + 180f, 0);
+            z.initialize(w, w.getLocalDifficulty(p.getBlockPos()), net.minecraft.entity.SpawnReason.COMMAND, null);
+            w.spawnEntityAndPassengers(z);
+            com.derevna230.comborush.rift.EliteMobs.make(z, ed);
+            return 1;
+        });
     }
 }

@@ -44,6 +44,7 @@ public class ShopNet {
 
     private static void handle(ServerPlayerEntity p, ShopActionPayload a) {
         if (a.action().startsWith("species")) { SpeciesNet.handle(p, a); return; }
+        if (a.action().startsWith("skate")) { com.derevna230.comborush.skate.SkateNet.handle(p, a); return; }
         if (a.action().startsWith("eshop") || a.action().equals("case_again")) { EssenceShopNet.handle(p, a); return; }
         if (CycleManager.phase() != CyclePhase.NORMAL) {
             ServerPlayNetworking.send(p, new HudPayload("shop_close", "{}"));

@@ -52,6 +52,7 @@ public class CycleManager {
         ScoreEngine.reset();
         announce(server, "§a§lСОБЫТИЕ НАЧАЛОСЬ! §fНабирайте очки 5 минут!");
         DirectorManager.start(server);
+        com.derevna230.comborush.rift.RiftManager.onEventStart(server);
         HudSync.closeShop(server);
         updateBar(server);
     }
@@ -59,6 +60,7 @@ public class CycleManager {
     public static void endEvent(MinecraftServer server) {
         ScoreEngine.finishEvent(server);
         DirectorManager.end(server);
+        com.derevna230.comborush.rift.RiftManager.onEventEnd(server);
         phase = CyclePhase.NORMAL;
         ticksLeft = NORMAL_SECONDS * 20;
         announce(server, "§bСобытие завершено. Подготовка: " + (NORMAL_SECONDS / 60) + " мин. Магазин: §f/shop");

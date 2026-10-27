@@ -117,6 +117,15 @@ public class ScoreEngine {
         }
     }
 
+    /** Бонусные очки с отдельной строкой в итогах (например, «Разломы») */
+    public static void addBonus(ServerPlayerEntity p, double points, String key, String reason) {
+        if (CycleManager.phase() != CyclePhase.EVENT) return;
+        EventScore s = get(p.getUuid());
+        s.score += points;
+        s.bySource.merge(key, points, Double::sum);
+        p.sendMessage(Text.literal("§d§l+" + Math.round(points) + " очков §7— " + reason + " (всего " + s.total() + ")"), false);
+    }
+
     /** Бонусные очки (например, за убийство охотника), без множителей */
     public static void addBonus(ServerPlayerEntity p, double points) {
         if (CycleManager.phase() != CyclePhase.EVENT) return;
@@ -159,6 +168,7 @@ public class ScoreEngine {
         return switch (key) {
             case "BONUS" -> "Бонусы";
             case "SHARE" -> "Командный дух";
+            case "RIFT" -> "Разломы";
             default -> {
                 try { yield ScoreSource.valueOf(key).label; } catch (IllegalArgumentException e) { yield key; }
             }

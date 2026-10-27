@@ -5,6 +5,7 @@ import com.derevna230.comborush.anti.SpawnerTracker;
 import com.derevna230.comborush.cycle.CycleManager;
 import com.derevna230.comborush.cycle.CyclePhase;
 import com.derevna230.comborush.director.DirectorManager;
+import com.derevna230.comborush.rift.EliteMobs;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
@@ -55,8 +56,12 @@ public class ScoreListeners {
                     source.getAttacker() instanceof ServerPlayerEntity k ? k : null);
             if (source.getAttacker() instanceof ServerPlayerEntity sp && entity instanceof HostileEntity) {
                 String type = Registries.ENTITY_TYPE.getId(entity.getType()).toString();
+                double em = EliteMobs.scoreMult(entity);           // элитный моб: ×3 / ×4 / ×6
+                String el = EliteMobs.label(entity);
                 if (SpawnerTracker.isSpawnerMob(entity))
-                    ScoreEngine.award(sp, ScoreSource.KILL, "spawner:" + type, SPAWNER_MULT, "Спавнер");
+                    ScoreEngine.award(sp, ScoreSource.KILL, "spawner:" + type, SPAWNER_MULT * em, el.isEmpty() ? "Спавнер" : el);
+                else if (em > 1)
+                    ScoreEngine.award(sp, ScoreSource.KILL, "elite:" + type, em, el);
                 else
                     ScoreEngine.award(sp, ScoreSource.KILL, type);
             }

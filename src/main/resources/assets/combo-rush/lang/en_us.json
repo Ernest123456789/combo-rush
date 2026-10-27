@@ -70,5 +70,7 @@
   "item.combo-rush.decor_glow_shrooms": "Glow Shrooms",
   "item.combo-rush.decor_moon_lily": "Moon Lily",
   "item.combo-rush.water_bottle": "Water Bottle",
-  "entity.combo-rush.decor": "Decorative Plant"
+  "entity.combo-rush.decor": "Decorative Plant",
+  "item.combo-rush.skateboard": "Enchanted Skateboard",
+  "entity.combo-rush.skateboard": "Skateboard"
 }

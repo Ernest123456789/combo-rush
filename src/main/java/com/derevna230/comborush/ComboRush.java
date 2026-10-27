@@ -27,6 +27,8 @@ import com.derevna230.comborush.armor.ArmorSetRegistry;
 import com.derevna230.comborush.armor.ArmorTooltips;
 import com.derevna230.comborush.cases.CaseRegistry;
 import com.derevna230.comborush.item.LootBonus;
+import com.derevna230.comborush.rift.EliteMobs;
+import com.derevna230.comborush.rift.RiftManager;
 import com.derevna230.comborush.item.ModItems;
 import com.derevna230.comborush.pet.ModEntities;
 import com.derevna230.comborush.pet.PetManager;
@@ -72,6 +74,8 @@ public class ComboRush implements ModInitializer {
         ScoreListeners.register();
         WeaponAbilities.register();
         LootBonus.register();
+        EliteMobs.register();
+        RiftManager.register();
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             CycleManager.tick(server);
@@ -83,6 +87,8 @@ public class ComboRush implements ModInitializer {
             ArmorTooltips.tick(server);
             PetManager.tick(server);
             WeaponAbilities.tick(server);
+            EliteMobs.tick(server);
+            RiftManager.tick(server);
             if (server.getTicks() % 100 == 0)
                 server.getPlayerManager().getPlayerList().forEach(p -> { BoosterApplier.sync(p); SpeciesApplier.sync(p); ArmorSetApplier.sync(p); });
         });

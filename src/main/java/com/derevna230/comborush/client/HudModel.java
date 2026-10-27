@@ -208,6 +208,7 @@ public final class HudModel {
                 case "species_open", "species" -> SpeciesScreen.onPacket(p.kind(), o);
                 case "eshop_open", "eshop" -> EssenceShopScreen.onPacket(p.kind(), o);
                 case "case_open" -> CaseOpenScreen.open(o);
+                case "skate_open", "skate" -> SkateScreen.onPacket(p.kind(), o);
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }

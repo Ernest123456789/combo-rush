@@ -93,6 +93,7 @@ public final class ModItems {
         new PetInfo("moon_lily", "rare"));
 
     public static Item WATER_BOTTLE;
+    public static Item SKATEBOARD;
 
     public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic");
     public static final List<String> PIECES = List.of("helmet", "chestplate", "leggings", "boots");
@@ -175,6 +176,7 @@ public final class ModItems {
             KIND.put(setId, "decor");
         }
         WATER_BOTTLE = register("water_bottle", new WaterBottleItem(new Item.Settings().maxCount(16)));
+        SKATEBOARD = register("skateboard", new SkateboardItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
         for (String c : CASE_IDS) {
             Item it = register("case_" + c, new CaseItem(c, new Item.Settings().maxCount(16).rarity(mcRarity(c))));
             CASES.put(c, it);

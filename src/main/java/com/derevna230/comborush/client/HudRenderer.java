@@ -444,11 +444,11 @@ public final class HudRenderer {
         return switch (k) {
             case "KILL" -> 0xFF6B6B; case "MINE" -> 0x6FA8FF; case "HARVEST" -> 0x58D68D; case "SHOOT" -> 0xF0A030;
             case "BREW" -> 0xC084FC; case "ENCHANT" -> 0xFF7AD9; case "BREED" -> 0xA3E635; case "TRADE" -> 0xFFD45B;
-            case "FISH" -> 0x5EEAD4; case "SHARE" -> 0x2DD4BF; default -> 0xFFFFFF;
+            case "FISH" -> 0x5EEAD4; case "SHARE" -> 0x2DD4BF; case "RIFT" -> 0xB46BFF; default -> 0xFFFFFF;
         };
     }
     private static String srcName(String k) {
-        return switch (k) { case "BONUS" -> "Бонусы"; case "SHARE" -> "Ком. дух"; default -> HudModel.srcLabel(k); };
+        return switch (k) { case "BONUS" -> "Бонусы"; case "SHARE" -> "Ком. дух"; case "RIFT" -> "Разломы"; default -> HudModel.srcLabel(k); };
     }
 
     private static void disc(DrawContext c, int cx, int cy, int r, int argb) {
