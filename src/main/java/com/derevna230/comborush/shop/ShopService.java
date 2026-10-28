@@ -115,6 +115,7 @@ public final class ShopService {
             return Res.err("Нет свободных слотов. Продай усилитель или купи негативный.");
 
         p.setAttached(PlayerProfile.TYPE, pr.addCoins(-price).addBooster(new OwnedBooster(d.id, dropped, price)));
+        com.derevna230.comborush.campaign.Campaign.trigger(p, "booster", "", 1);
         st.offers.remove(idx);
         BoosterApplier.sync(p);
         return Res.ok("Куплено: " + d.name);

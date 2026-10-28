@@ -94,6 +94,8 @@ public final class ModItems {
 
     public static Item WATER_BOTTLE;
     public static Item SKATEBOARD;
+    public static Item PASS;
+    public static Item LETTER;
 
     public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic");
     public static final List<String> PIECES = List.of("helmet", "chestplate", "leggings", "boots");
@@ -177,6 +179,8 @@ public final class ModItems {
         }
         WATER_BOTTLE = register("water_bottle", new WaterBottleItem(new Item.Settings().maxCount(16)));
         SKATEBOARD = register("skateboard", new SkateboardItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
+        PASS = register("pass", new com.derevna230.comborush.campaign.PassItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
+        LETTER = register("letter", new com.derevna230.comborush.campaign.LetterItem(new Item.Settings().maxCount(1)));
         for (String c : CASE_IDS) {
             Item it = register("case_" + c, new CaseItem(c, new Item.Settings().maxCount(16).rarity(mcRarity(c))));
             CASES.put(c, it);

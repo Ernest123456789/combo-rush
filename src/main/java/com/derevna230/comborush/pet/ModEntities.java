@@ -15,6 +15,9 @@ public final class ModEntities {
     public static EntityType<CRPetEntity> PET;
     public static EntityType<DecorEntity> DECOR;
     public static EntityType<com.derevna230.comborush.skate.SkateboardEntity> SKATE;
+    /** Сюжетные персонажи (Билетёр, адресаты) и предметы сцены (афиши) — один класс, разный размер */
+    public static EntityType<com.derevna230.comborush.campaign.StoryEntity> STORY_NPC;
+    public static EntityType<com.derevna230.comborush.campaign.StoryEntity> STORY_PROP;
 
     public static void init() {
         PET = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "pet"),
@@ -36,5 +39,17 @@ public final class ModEntities {
                 .maxTrackingRange(10)
                 .build("skateboard"));
         FabricDefaultAttributeRegistry.register(SKATE, com.derevna230.comborush.skate.SkateboardEntity.createAttributes());
+        STORY_NPC = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "story_npc"),
+            EntityType.Builder.create(com.derevna230.comborush.campaign.StoryEntity::new, SpawnGroup.MISC)
+                .dimensions(0.6f, 1.95f)
+                .maxTrackingRange(10)
+                .build("story_npc"));
+        FabricDefaultAttributeRegistry.register(STORY_NPC, com.derevna230.comborush.campaign.StoryEntity.createAttributes());
+        STORY_PROP = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "story_prop"),
+            EntityType.Builder.create(com.derevna230.comborush.campaign.StoryEntity::new, SpawnGroup.MISC)
+                .dimensions(1.3f, 2.0f)
+                .maxTrackingRange(10)
+                .build("story_prop"));
+        FabricDefaultAttributeRegistry.register(STORY_PROP, com.derevna230.comborush.campaign.StoryEntity.createAttributes());
     }
 }

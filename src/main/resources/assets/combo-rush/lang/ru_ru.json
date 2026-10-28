@@ -72,5 +72,21 @@
   "item.combo-rush.water_bottle": "Бутылка воды",
   "entity.combo-rush.decor": "Декоративное растение",
   "item.combo-rush.skateboard": "Зачарованный скейтборд",
-  "entity.combo-rush.skateboard": "Скейтборд"
+  "entity.combo-rush.skateboard": "Скейтборд",
+  "item.combo-rush.pass": "Пропуск участника",
+  "item.combo-rush.letter": "Письмо Режиссёра",
+  "entity.combo-rush.story_npc": "Персонаж шоу",
+  "entity.combo-rush.story_prop": "Афиша",
+  "key.combo-rush.journal": "Журнал «Сценарий»",
+  "key.categories.combo-rush": "Combo Rush",
+  "subtitles.combo-rush.event_start": "Событие начинается",
+  "subtitles.combo-rush.event_end": "Событие окончено",
+  "subtitles.combo-rush.boss_start": "Босс-блайнд!",
+  "subtitles.combo-rush.last_minute": "Последняя минута",
+  "subtitles.combo-rush.medal_none": "Без медали",
+  "subtitles.combo-rush.medal_bronze": "Бронза",
+  "subtitles.combo-rush.medal_silver": "Серебро",
+  "subtitles.combo-rush.medal_gold": "Золото",
+  "subtitles.combo-rush.medal_platinum": "Платина",
+  "subtitles.combo-rush.quest_done": "Сцена сыграна"
 }

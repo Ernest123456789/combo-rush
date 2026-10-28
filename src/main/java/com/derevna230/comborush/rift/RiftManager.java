@@ -53,12 +53,21 @@ public final class RiftManager {
         final ServerWorld world; final BlockPos pos; final ServerBossBar bar;
         int age = 0, wave = 0, cooldown = 0;
         boolean active = false;
+        /** Сюжетная «склейка»: не схлопывается по времени и в конце события */
+        boolean story = false;
+        String name = "§5§lРазлом";
         final List<UUID> mobs = new ArrayList<>();
         final Set<UUID> fighters = new HashSet<>();
 
         Rift(ServerWorld world, BlockPos pos) {
             this.world = world; this.pos = pos;
             this.bar = new ServerBossBar(Text.literal("§5§lРазлом §7— подойди ближе"), BossBar.Color.PURPLE, BossBar.Style.NOTCHED_6);
+        }
+
+        Rift(ServerWorld world, BlockPos pos, boolean story) {
+            this(world, pos);
+            this.story = story;
+            if (story) { this.name = "§d§lСклейка"; this.bar.setColor(BossBar.Color.PINK); this.bar.setName(Text.literal(name + " §7— подойди ближе")); }
         }
 
         Vec3d center() { return Vec3d.ofBottomCenter(pos).add(0, 1.6, 0); }
@@ -74,7 +83,7 @@ public final class RiftManager {
     }
 
     public static void onEventEnd(MinecraftServer server) {
-        for (Rift rf : new ArrayList<>(RIFTS)) collapse(rf, "§7Событие закончилось — разлом схлопнулся.");
+        for (Rift rf : new ArrayList<>(RIFTS)) if (!rf.story) collapse(rf, "§7Событие закончилось — разлом схлопнулся.");
         SCHEDULE.clear();
     }
 
@@ -117,6 +126,25 @@ public final class RiftManager {
         }
         return true;
     }
+
+    /** Сюжетная склейка (кампания, Акт I). Живёт, пока её не закроют */
+    public static boolean openStory(ServerPlayerEntity near) {
+        if (hasStory()) return true;
+        ServerWorld w = near.getServerWorld();
+        BlockPos pos = findSpot(w, near.getBlockPos());
+        if (pos == null) return false;
+        RIFTS.add(new Rift(w, pos, true));
+        w.playSound(null, pos, SoundEvents.ENTITY_WITHER_SPAWN, SoundCategory.HOSTILE, 1.5f, 1.8f);
+        for (ServerPlayerEntity p : w.getPlayers()) {
+            if (p.squaredDistanceTo(Vec3d.ofCenter(pos)) > 200 * 200) continue;
+            p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("§d§lСКЛЕЙКА")));
+            p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("§f" + direction(p, pos) + " · кадры расходятся по шву")));
+        }
+        return true;
+    }
+
+    public static boolean hasStory() { return RIFTS.stream().anyMatch(r -> r.story); }
+    public static BlockPos storyPos() { return RIFTS.stream().filter(r -> r.story).map(r -> r.pos).findFirst().orElse(null); }
 
     private static String direction(ServerPlayerEntity p, BlockPos pos) {
         double dx = pos.getX() + 0.5 - p.getX(), dz = pos.getZ() + 0.5 - p.getZ();
@@ -169,12 +197,15 @@ public final class RiftManager {
             if (near) rf.bar.addPlayer(p); else rf.bar.removePlayer(p);
         }
 
-        if (rf.age > LIFETIME) { collapse(rf, "§7Разлом схлопнулся — не успели закрыть."); return; }
+        if (!rf.story && rf.age > LIFETIME) { collapse(rf, "§7Разлом схлопнулся — не успели закрыть."); return; }
 
         if (!rf.active) {
             int left = (LIFETIME - rf.age) / 20;
-            rf.bar.setName(Text.literal("§5§lРазлом §7— подойди ближе §8(" + left / 60 + ":" + String.format("%02d", left % 60) + ")"));
-            rf.bar.setPercent(1f - rf.age / (float) LIFETIME);
+            if (rf.story) { rf.bar.setName(Text.literal(rf.name + " §7— подойди ближе")); rf.bar.setPercent(1f); }
+            else {
+                rf.bar.setName(Text.literal(rf.name + " §7— подойди ближе §8(" + left / 60 + ":" + String.format("%02d", left % 60) + ")"));
+                rf.bar.setPercent(1f - rf.age / (float) LIFETIME);
+            }
             for (ServerPlayerEntity p : w.getPlayers())
                 if (!p.isSpectator() && p.squaredDistanceTo(c) < ACTIVATE_DIST * ACTIVATE_DIST) { rf.active = true; rf.cooldown = 40; break; }
             return;
@@ -182,7 +213,7 @@ public final class RiftManager {
 
         rf.mobs.removeIf(id -> { Entity e = w.getEntity(id); return e == null || !e.isAlive(); });
         if (rf.wave > 0) {
-            rf.bar.setName(Text.literal("§5§lРазлом §f— волна " + rf.wave + "/" + WAVES + " §7· врагов: " + rf.mobs.size()));
+            rf.bar.setName(Text.literal(rf.name + " §f— волна " + rf.wave + "/" + WAVES + " §7· врагов: " + rf.mobs.size()));
             rf.bar.setPercent(Math.max(0f, 1f - ((rf.wave - 1) + (rf.mobs.isEmpty() ? 1f : 0.5f)) / WAVES));
         }
         if (!rf.mobs.isEmpty()) return;
@@ -255,9 +286,11 @@ public final class RiftManager {
             double roll = r.nextDouble();
             if (roll < 0.06) give(p, "rare");
             else if (roll < 0.30) give(p, "common");
-            p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("§d§lРАЗЛОМ ЗАКРЫТ")));
+            p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(rf.story ? "§d§lШОВ ЗАШИТ" : "§d§lРАЗЛОМ ЗАКРЫТ")));
             p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("§fБонус к очкам и добыча — твои")));
+            if (!rf.story) com.derevna230.comborush.campaign.Campaign.trigger(p, "rift", "", 1);
         }
+        if (rf.story) com.derevna230.comborush.campaign.Campaign.onSpliceClosed(server, who);
         w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, c.x, c.y, c.z, 1, 0, 0, 0, 0);
         w.spawnParticles(ParticleTypes.TOTEM_OF_UNDYING, c.x, c.y, c.z, 60, 0.8, 1.0, 0.8, 0.5);
         w.playSound(null, rf.pos, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 1.2f, 1.0f);

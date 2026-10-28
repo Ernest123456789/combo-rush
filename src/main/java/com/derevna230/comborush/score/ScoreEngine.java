@@ -215,6 +215,10 @@ public class ScoreEngine {
 
             p.setAttached(PlayerProfile.TYPE, profile.finishEvent(score, gold).addCoins(coins));
             Leaderboard.update(p);
+            com.derevna230.comborush.campaign.Campaign.onEventFinished(p, medal.ordinal());
+            BalanceStats.record(server, p.getName().getString(), eventNumber, score,
+                bronzeTarget(eventNumber) * DirectorManager.targetMult(p), medal.name(), profile.species(),
+                DirectorManager.currentName(), deb == null ? "" : deb.name, profile.boosters().size(), profile.resets());
             p.sendMessage(Text.literal("§6Итог: §f" + score + " очков §7| " + medal.label
                 + " §7| §e+" + coins + " монет" + (interest > 0 ? " §7(проценты: " + interest + ")" : "")), false);
 

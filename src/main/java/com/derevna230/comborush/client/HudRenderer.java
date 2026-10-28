@@ -73,6 +73,7 @@ public final class HudRenderer {
         drawBanner(c, tr, now, W, H);
         drawResult(c, tr, now, W, H);
         drawHover(c, tr, mc, W, H, s);
+        StoryHud.render(c, tr, W, H);
     }
 
     // ===================================================== панель счёта

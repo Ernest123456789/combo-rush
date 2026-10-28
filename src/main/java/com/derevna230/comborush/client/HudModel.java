@@ -12,7 +12,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayDeque;
@@ -166,11 +165,11 @@ public final class HudModel {
         if (!medalSnd && t >= T_MEDAL) {
             medalSnd = true;
             switch (result.medal) {
-                case "BRONZE"   -> play(SoundEvents.ENTITY_PLAYER_LEVELUP, 0.9f, 0.4f);
-                case "SILVER"   -> play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.1f, 0.4f);
-                case "GOLD"     -> play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.3f, 0.45f);
-                case "PLATINUM" -> play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.6f, 0.5f);
-                default         -> play(SoundEvents.ENTITY_VILLAGER_NO, 1.0f, 0.5f);
+                case "BRONZE"   -> play(com.derevna230.comborush.sound.ModSounds.MEDAL_BRONZE, 1.0f, 0.7f);
+                case "SILVER"   -> play(com.derevna230.comborush.sound.ModSounds.MEDAL_SILVER, 1.0f, 0.75f);
+                case "GOLD"     -> play(com.derevna230.comborush.sound.ModSounds.MEDAL_GOLD, 1.0f, 0.8f);
+                case "PLATINUM" -> play(com.derevna230.comborush.sound.ModSounds.MEDAL_PLATINUM, 1.0f, 0.85f);
+                default         -> play(com.derevna230.comborush.sound.ModSounds.MEDAL_NONE, 1.0f, 0.6f);
             }
         }
         if (!coinsSpawned && t >= T_COINS) {
@@ -189,7 +188,7 @@ public final class HudModel {
             if (!f.landed && now >= f.start + f.dur) {
                 f.landed = true;
                 coinBounceAt = now;
-                play(SoundEvents.ENTITY_ITEM_PICKUP, 1.0f + 0.05f * i, 0.35f);
+                play(com.derevna230.comborush.sound.ModSounds.COIN, 0.9f + 0.04f * Math.min(i, 14), 0.3f);
             }
         }
         if (t > RESULT_LIFE) { result = null; flies.clear(); }
@@ -209,6 +208,9 @@ public final class HudModel {
                 case "eshop_open", "eshop" -> EssenceShopScreen.onPacket(p.kind(), o);
                 case "case_open" -> CaseOpenScreen.open(o);
                 case "skate_open", "skate" -> SkateScreen.onPacket(p.kind(), o);
+                case "camp_open", "camp" -> JournalScreen.onPacket(p.kind(), o);
+                case "camp_track" -> StoryHud.readTrack(o);
+                case "camp_say" -> StoryHud.readSay(o);
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }
@@ -343,7 +345,7 @@ public final class HudModel {
                 a.finalDone = true;
                 chipsShown = a.pop.chips; multShown = a.pop.mult;
                 chipsBounce = now; multBounce = now;
-                play(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.2f + 0.05f * Math.min(n, 8), 0.35f);
+                play(com.derevna230.comborush.sound.ModSounds.MULT, 1.0f + 0.05f * Math.min(n, 8), 0.5f);
             }
             double tGain = tFinal + GAP_GAIN;
             if (!a.gainDone && el >= tGain) {
@@ -353,7 +355,7 @@ public final class HudModel {
                 totalShakeAt = now;
                 totalShakeAmp = (float) Math.min(4.0, 0.8 + Math.log10(a.pop.gain + 1));
                 addFloat("+" + fmtInt(Math.round(a.pop.gain)), 0xFFE066, -1, "total", 1.4f, now);
-                play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.6f, 0.12f);
+                play(com.derevna230.comborush.sound.ModSounds.COIN, 1.0f, 0.45f);
             }
             if (el >= tGain + HOLD) { cur = null; idleSince = now; }
         }
@@ -388,10 +390,11 @@ public final class HudModel {
         } else {
             addFloat(t, color, -1, chipsSide ? "chips" : "mult", 0.85f, now);
         }
-        float pitch = 0.8f + 0.07f * Math.min(idx, 10);
-        if (s.k.equals("xmult")) play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.3f + 0.04f * idx, 0.2f);
-        else if (chipsSide)      play(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, pitch, 0.3f);
-        else                     play(SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, pitch + 0.2f, 0.5f);
+        // своя «лесенка» звуков: каждая следующая строка подсчёта выше на полтона
+        float step = (float) Math.pow(2, Math.min(idx, 14) / 12.0);
+        if (s.k.equals("xmult")) { play(com.derevna230.comborush.sound.ModSounds.MULT, 0.75f * step, 0.55f); play(com.derevna230.comborush.sound.ModSounds.MULT, 1.12f * step, 0.3f); }
+        else if (chipsSide)      play(com.derevna230.comborush.sound.ModSounds.CHIPS, 0.7f * step, 0.35f);
+        else                     play(com.derevna230.comborush.sound.ModSounds.MULT, 0.75f * step, 0.4f);
     }
 
     private static void addFloat(String text, int rgb, int card, String box, float scale, long now) {

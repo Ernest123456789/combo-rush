@@ -119,6 +119,22 @@ public class ComboRushCommand {
             .then(CommandManager.literal("skate").requires(ComboRushCommand::op).executes(c -> {
                 c.getSource().getPlayerOrThrow().getInventory().offerOrDrop(new net.minecraft.item.ItemStack(com.derevna230.comborush.item.ModItems.SKATEBOARD));
                 return 1; }))
+            .then(CommandManager.literal("balance").requires(ComboRushCommand::op).executes(c -> {
+                com.derevna230.comborush.score.BalanceStats.report(c.getSource()); return 1; }))
+            .then(CommandManager.literal("journal").executes(c -> {
+                com.derevna230.comborush.campaign.Campaign.openJournal(c.getSource().getPlayerOrThrow()); return 1; }))
+            .then(CommandManager.literal("story").requires(ComboRushCommand::op)
+                .then(CommandManager.literal("complete")
+                    .then(CommandManager.argument("quest", StringArgumentType.word())
+                        .suggests((ctx, b2) -> CommandSource.suggestMatching(com.derevna230.comborush.campaign.Campaign.questIds(), b2))
+                        .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Campaign.debugComplete(
+                            c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "quest"))))))
+                .then(CommandManager.literal("reset")
+                    .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Campaign.debugReset(c.getSource().getPlayerOrThrow(), false)))
+                    .then(CommandManager.literal("server")
+                        .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Campaign.debugReset(c.getSource().getPlayerOrThrow(), true)))))
+                .then(CommandManager.literal("booth")
+                    .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Campaign.debugBooth(c.getSource().getPlayerOrThrow())))))
             .then(CommandManager.literal("rift").requires(ComboRushCommand::op).executes(c -> {
                 boolean ok = com.derevna230.comborush.rift.RiftManager.open(c.getSource().getPlayerOrThrow());
                 c.getSource().sendFeedback(() -> Text.literal(ok ? "§5Разлом открыт рядом с тобой." : "§cНе нашёл места для разлома."), false);
@@ -198,5 +214,10 @@ public class ComboRushCommand {
             com.derevna230.comborush.rift.EliteMobs.make(z, ed);
             return 1;
         });
+    }
+
+    private static int story(ServerCommandSource src, String msg) {
+        src.sendFeedback(() -> Text.literal("§6[Сценарий] §f" + msg), false);
+        return 1;
     }
 }

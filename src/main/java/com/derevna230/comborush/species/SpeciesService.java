@@ -29,6 +29,7 @@ public final class SpeciesService {
         if (!canChange(p)) return Res.err("Сменить существо можно только после сброса.");
         player.setAttached(PlayerProfile.TYPE, p.withSpecies(d.id));
         SpeciesApplier.sync(player);
+        com.derevna230.comborush.campaign.Campaign.trigger(player, "species", "", 1);
         return Res.ok("Теперь ты: " + d.name);
     }
 

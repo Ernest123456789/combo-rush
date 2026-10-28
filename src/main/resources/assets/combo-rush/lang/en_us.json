@@ -72,5 +72,21 @@
   "item.combo-rush.water_bottle": "Water Bottle",
   "entity.combo-rush.decor": "Decorative Plant",
   "item.combo-rush.skateboard": "Enchanted Skateboard",
-  "entity.combo-rush.skateboard": "Skateboard"
+  "entity.combo-rush.skateboard": "Skateboard",
+  "item.combo-rush.pass": "Contestant Pass",
+  "item.combo-rush.letter": "Director's Letter",
+  "entity.combo-rush.story_npc": "Show Character",
+  "entity.combo-rush.story_prop": "Poster",
+  "key.combo-rush.journal": "Script Journal",
+  "key.categories.combo-rush": "Combo Rush",
+  "subtitles.combo-rush.event_start": "Event starts",
+  "subtitles.combo-rush.event_end": "Event over",
+  "subtitles.combo-rush.boss_start": "Boss blind!",
+  "subtitles.combo-rush.last_minute": "Last minute",
+  "subtitles.combo-rush.medal_none": "No medal",
+  "subtitles.combo-rush.medal_bronze": "Bronze",
+  "subtitles.combo-rush.medal_silver": "Silver",
+  "subtitles.combo-rush.medal_gold": "Gold",
+  "subtitles.combo-rush.medal_platinum": "Platinum",
+  "subtitles.combo-rush.quest_done": "Scene complete"
 }

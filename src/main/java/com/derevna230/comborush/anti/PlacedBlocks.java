@@ -78,6 +78,12 @@ public class PlacedBlocks {
         dirty = true;
     }
 
+    /** Поставлен ли блок игроком (без удаления записи) — чтобы сюжетные постройки не ломали чужое */
+    public static boolean isPlaced(World w, BlockPos pos) {
+        Set<Long> set = DATA.get(key(w));
+        return set != null && set.contains(pos.asLong());
+    }
+
     /** @return true, если блок был поставлен игроком (запись при этом удаляется) */
     public static boolean consume(World w, BlockPos pos) {
         Set<Long> set = DATA.get(key(w));

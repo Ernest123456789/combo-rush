@@ -21,10 +21,26 @@ public class ComboRushClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(HudPayload.ID, (payload, context) -> HudModel.receive(payload));
         HudRenderCallback.EVENT.register((context, tickCounter) -> HudRenderer.render(context));
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> HudModel.reset());
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> { HudModel.reset(); StoryHud.reset(); MusicPlayer.reset(); });
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer::tick);
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> Hints.tick());
+        Hints.register();
         EntityRendererRegistry.register(ModEntities.PET, PetRenderer::new);
         EntityRendererRegistry.register(ModEntities.DECOR, DecorRenderer::new);
         EntityRendererRegistry.register(ModEntities.SKATE, SkateRenderer::new);
+        EntityRendererRegistry.register(ModEntities.STORY_NPC, StoryRenderer::new);
+        EntityRendererRegistry.register(ModEntities.STORY_PROP, StoryRenderer::new);
+        // J — журнал «Сценарий»
+        net.minecraft.client.option.KeyBinding journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
+            new net.minecraft.client.option.KeyBinding("key.combo-rush.journal", net.minecraft.client.util.InputUtil.Type.KEYSYM,
+                org.lwjgl.glfw.GLFW.GLFW_KEY_J, "key.categories.combo-rush"));
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (journalKey.wasPressed()) {
+                if (client.player == null || client.currentScreen != null) continue;
+                if (ClientPlayNetworking.canSend(com.derevna230.comborush.hud.ShopActionPayload.ID))
+                    ClientPlayNetworking.send(new com.derevna230.comborush.hud.ShopActionPayload("camp_open", 0, 0, ""));
+            }
+        });
         // скейт: клиент сам считает прыжок и планирование, ему нужно знать, зажат ли пробел
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client ->
             com.derevna230.comborush.skate.SkateboardEntity.CLIENT_JUMP = client.player != null && client.options.jumpKey.isPressed());
@@ -43,6 +59,11 @@ public class ComboRushClient implements ClientModInitializer {
                 .then(ClientCommandManager.literal("results").executes(ctx -> {
                     boolean ok = HudModel.showLastResult();
                     ctx.getSource().sendFeedback(Text.literal(ok ? "Показываю итоги прошлого события." : "Итогов пока нет."));
+                    return 1;
+                }))
+                .then(ClientCommandManager.literal("hints").executes(ctx -> {
+                    Hints.resetAll();
+                    ctx.getSource().sendFeedback(Text.literal("Подсказки покажутся заново при открытии экранов."));
                     return 1;
                 }))
                 .then(ClientCommandManager.literal("sound").executes(ctx -> {

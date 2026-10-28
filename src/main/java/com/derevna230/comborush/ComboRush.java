@@ -52,6 +52,7 @@ public class ComboRush implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        com.derevna230.comborush.sound.ModSounds.init();
         ModItems.init();
         ModEntities.init();
         PetManager.init();
@@ -67,6 +68,8 @@ public class ComboRush implements ModInitializer {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new DebuffRegistry());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ArmorSetRegistry());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new CaseRegistry());
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new com.derevna230.comborush.campaign.QuestRegistry());
+        com.derevna230.comborush.campaign.Campaign.init();
         PlacedBlocks.init();
         SpawnerTracker.init();
         Leaderboard.init();
@@ -89,6 +92,7 @@ public class ComboRush implements ModInitializer {
             WeaponAbilities.tick(server);
             EliteMobs.tick(server);
             RiftManager.tick(server);
+            com.derevna230.comborush.campaign.Campaign.tick(server);
             if (server.getTicks() % 100 == 0)
                 server.getPlayerManager().getPlayerList().forEach(p -> { BoosterApplier.sync(p); SpeciesApplier.sync(p); ArmorSetApplier.sync(p); });
         });

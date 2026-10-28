@@ -1,0 +1,133 @@
+{
+  "music_event": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event",
+        "stream": true
+      }
+    ]
+  },
+  "music_boss": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_boss",
+        "stream": true
+      }
+    ]
+  },
+  "event_start": {
+    "sounds": [
+      {
+        "name": "combo-rush:event_start"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.event_start"
+  },
+  "event_end": {
+    "sounds": [
+      {
+        "name": "combo-rush:event_end"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.event_end"
+  },
+  "boss_start": {
+    "sounds": [
+      {
+        "name": "combo-rush:boss_start"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.boss_start"
+  },
+  "last_minute": {
+    "sounds": [
+      {
+        "name": "combo-rush:last_minute"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.last_minute"
+  },
+  "tick": {
+    "sounds": [
+      {
+        "name": "combo-rush:tick"
+      }
+    ]
+  },
+  "medal_none": {
+    "sounds": [
+      {
+        "name": "combo-rush:medal_none"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.medal_none"
+  },
+  "medal_bronze": {
+    "sounds": [
+      {
+        "name": "combo-rush:medal_bronze"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.medal_bronze"
+  },
+  "medal_silver": {
+    "sounds": [
+      {
+        "name": "combo-rush:medal_silver"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.medal_silver"
+  },
+  "medal_gold": {
+    "sounds": [
+      {
+        "name": "combo-rush:medal_gold"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.medal_gold"
+  },
+  "medal_platinum": {
+    "sounds": [
+      {
+        "name": "combo-rush:medal_platinum"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.medal_platinum"
+  },
+  "quest_done": {
+    "sounds": [
+      {
+        "name": "combo-rush:quest_done"
+      }
+    ],
+    "subtitle": "subtitles.combo-rush.quest_done"
+  },
+  "chips": {
+    "sounds": [
+      {
+        "name": "combo-rush:chips"
+      }
+    ]
+  },
+  "mult": {
+    "sounds": [
+      {
+        "name": "combo-rush:mult"
+      }
+    ]
+  },
+  "voice": {
+    "sounds": [
+      {
+        "name": "combo-rush:voice"
+      }
+    ]
+  },
+  "coin": {
+    "sounds": [
+      {
+        "name": "combo-rush:coin"
+      }
+    ]
+  }
+}
