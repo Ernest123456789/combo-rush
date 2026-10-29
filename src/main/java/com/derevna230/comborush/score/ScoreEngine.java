@@ -211,6 +211,8 @@ public class ScoreEngine {
             int interest = fx.interestMax > 0
                 ? (int) Math.min(fx.interestMax, Math.floor(profile.coins() / fx.interestPer)) : 0;
             int coins = base + interest;
+            if (com.derevna230.comborush.campaign.Finale.chaos(server)) coins *= 2;     // финал «хаос»: монеты ×2
+            coins = (int) Math.round(coins * Math.max(0, com.derevna230.comborush.ModConfig.get().coin_multiplier));
             boolean gold = medal.ordinal() >= Medal.GOLD.ordinal();
 
             p.setAttached(PlayerProfile.TYPE, profile.finishEvent(score, gold).addCoins(coins));

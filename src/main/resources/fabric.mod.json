@@ -3,7 +3,10 @@
 	"id": "combo-rush",
 	"version": "${version}",
 	"name": "Combo Rush",
-	"description": "Каждые 10 минут — событие: набирай очки (фишки × множитель), получай монеты и покупай усилители.",
+	"description": "Minecraft в ритме Balatro: события с подсчётом очков (фишки × множитель), магазин усилителей, кейсы, разломы и сюжетная кампания «Сезон».",
+	"contact": {
+		"sources": "https://github.com/Ernest123456789/combo-rush"
+	},
 	"authors": [
 		"derevna230"
 	],

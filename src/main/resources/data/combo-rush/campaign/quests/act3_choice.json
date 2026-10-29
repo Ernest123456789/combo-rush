@@ -1,0 +1,22 @@
+{
+  "chapter": "act3",
+  "order": 2,
+  "scope": "server",
+  "title": "Кресло или хаос",
+  "speaker": "director",
+  "desc": "Шоу без режиссёра не бывает. Или бывает? Выбор один на весь сервер.",
+  "hint": "Поговори с Режиссёром на троне и выбери финал",
+  "goal": {
+    "type": "choice"
+  },
+  "requires": [
+    "act3_director"
+  ],
+  "reward": {
+    "essence": 15,
+    "cases": [
+      "legendary"
+    ]
+  },
+  "lines_done": []
+}

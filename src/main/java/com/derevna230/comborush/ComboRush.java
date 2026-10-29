@@ -52,6 +52,7 @@ public class ComboRush implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModConfig.load();
         com.derevna230.comborush.sound.ModSounds.init();
         ModItems.init();
         ModEntities.init();

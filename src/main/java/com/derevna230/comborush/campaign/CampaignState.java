@@ -24,6 +24,15 @@ public class CampaignState extends PersistentState {
     public final List<Poster> posters = new ArrayList<>();
     /** Съёмочная площадка мини-босса */
     public BlockPos stage = null;
+    /** Акт II: Закулисье (место Суфлёра) и трасса гонки на скейте (кольца по порядку) */
+    public BlockPos backstage = null;
+    public float backstageYaw = 0;
+    public final List<BlockPos> race = new ArrayList<>();
+    /** Акт III: студия Режиссёра (центр сцены) и трон (место Режиссёра) */
+    public BlockPos studio = null, throne = null;
+    public float studioYaw = 0;
+    /** Выбранный финал: "" — ещё нет, "chair" — кресло Режиссёра, "chaos" — шоу сломано */
+    public String ending = "";
 
     public static final class Poster {
         public BlockPos pos; public boolean found; public UUID entity; public int index; public float yaw;
@@ -50,6 +59,13 @@ public class CampaignState extends PersistentState {
         if (ticketer != null) nbt.putUuid("ticketer", ticketer);
         nbt.putFloat("booth_yaw", boothYaw);
         if (stage != null) nbt.putLong("stage", stage.asLong());
+        if (backstage != null) nbt.putLong("backstage", backstage.asLong());
+        nbt.putFloat("backstage_yaw", backstageYaw);
+        if (studio != null) nbt.putLong("studio", studio.asLong());
+        if (throne != null) nbt.putLong("throne", throne.asLong());
+        nbt.putFloat("studio_yaw", studioYaw);
+        nbt.putString("ending", ending);
+        nbt.putLongArray("race", race.stream().mapToLong(BlockPos::asLong).toArray());
         NbtList ps = new NbtList();
         for (Poster p : posters) {
             NbtCompound o = new NbtCompound();
@@ -73,6 +89,13 @@ public class CampaignState extends PersistentState {
         if (nbt.containsUuid("ticketer")) s.ticketer = nbt.getUuid("ticketer");
         s.boothYaw = nbt.getFloat("booth_yaw");
         if (nbt.contains("stage")) s.stage = BlockPos.fromLong(nbt.getLong("stage"));
+        if (nbt.contains("backstage")) s.backstage = BlockPos.fromLong(nbt.getLong("backstage"));
+        s.backstageYaw = nbt.getFloat("backstage_yaw");
+        if (nbt.contains("studio")) s.studio = BlockPos.fromLong(nbt.getLong("studio"));
+        if (nbt.contains("throne")) s.throne = BlockPos.fromLong(nbt.getLong("throne"));
+        s.studioYaw = nbt.getFloat("studio_yaw");
+        s.ending = nbt.getString("ending");
+        for (long l : nbt.getLongArray("race")) s.race.add(BlockPos.fromLong(l));
         for (NbtElement e : nbt.getList("posters", NbtElement.COMPOUND_TYPE)) {
             NbtCompound o = (NbtCompound) e;
             Poster p = new Poster(o.getInt("i"), BlockPos.fromLong(o.getLong("pos")), o.getFloat("yaw"));

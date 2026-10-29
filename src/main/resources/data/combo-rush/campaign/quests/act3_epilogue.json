@@ -1,0 +1,22 @@
+{
+  "chapter": "act3",
+  "order": 3,
+  "scope": "personal",
+  "title": "Аплодисменты",
+  "speaker": "ticketer",
+  "desc": "Сезон окончен. Билетёр ждёт у кассы.",
+  "hint": "Поговори с Билетёром",
+  "goal": {
+    "type": "talk",
+    "target": "ticketer"
+  },
+  "requires": [
+    "act3_choice"
+  ],
+  "reward": {
+    "essence": 10
+  },
+  "lines_done": [
+    "Ну что, участник… вот и финал."
+  ]
+}

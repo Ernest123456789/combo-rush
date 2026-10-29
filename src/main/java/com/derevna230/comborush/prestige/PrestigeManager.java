@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class PrestigeManager {
-    public static final int REQUIRED_EVENTS = 50;
+    public static int REQUIRED_EVENTS = 50;                // config: reset_after_events
     public static final int MAX_RANK = 5;
 
     // Эссенция за сброс: ранг 1 → 15, 2 → 20, 3 → 25, 4 → 30, 5 → 35; при уже имеющемся 5 ранге → 40

@@ -62,6 +62,7 @@ public final class Campaign {
     public static void init() {
         Objects.requireNonNull(PlayerCampaign.TYPE);          // зарегистрировать вложение до загрузки мира
         StageBoss.register();
+        DirectorBoss.register();
         ServerPlayConnectionEvents.JOIN.register((h, s, server) -> {
             LAST_TRACK.remove(h.player.getUuid());
             LAST_JOURNAL.remove(h.player.getUuid());
@@ -113,7 +114,7 @@ public final class Campaign {
     // ================================================================ продвижение
     /** Действие игрока: type — тип цели, target — уточнение (роль NPC и т.п.), amount — сколько добавить */
     public static void trigger(ServerPlayerEntity p, String type, String target, int amount) {
-        if (p == null || p.getServer() == null) return;
+        if (p == null || p.getServer() == null || !enabled()) return;
         // сначала собрать подходящие, чтобы только что открывшееся задание не засчиталось тем же действием
         List<QuestDef> hit = new ArrayList<>();
         for (QuestDef q : QuestRegistry.all()) {
@@ -170,6 +171,7 @@ public final class Campaign {
         p.getServerWorld().playSound(null, p.getBlockPos(), com.derevna230.comborush.sound.ModSounds.QUEST_DONE, SoundCategory.PLAYERS, 0.9f, 1.0f);
         if (!byOther.isEmpty()) p.sendMessage(Text.literal("§6✦ §f" + byOther + " §7завершил общее задание «§f" + q.title + "§7»"), false);
         if (!q.lines_done.isEmpty()) say(p, q.speaker, q.lines_done);
+        if (q.id.equals("act3_epilogue")) say(p, "ticketer", Finale.epilogue(p.getServer()));
         QuestDef next = current(p);
         if (next != null && !next.id.equals(q.id))
             p.sendMessage(Text.literal("§6✦ Новое задание: §e" + next.title + " §7— " + next.hint), false);
@@ -243,7 +245,8 @@ public final class Campaign {
             case "lighter" -> RECIPIENT_NAME[0];
             case "makeup" -> RECIPIENT_NAME[1];
             case "costumer" -> RECIPIENT_NAME[2];
-            case "director" -> "Голос Режиссёра";
+            case "director" -> "Режиссёр";
+            case "prompter" -> "Суфлёр";
             case "assistant" -> "Помощник режиссёра";
             default -> kind.startsWith("poster") ? "Афиша" : kind;
         };
@@ -253,6 +256,7 @@ public final class Campaign {
         return switch (kind) {
             case "ticketer" -> 0xFFC94A;
             case "director" -> 0xFF5A6E;
+            case "prompter" -> 0xB48CFF;
             case "assistant" -> 0xFFAA33;
             case "lighter" -> 0x7FD8FF;
             case "makeup" -> 0xFF8AD8;
@@ -284,6 +288,15 @@ public final class Campaign {
         String kind = e.kind();
         if (kind.equals("ticketer")) { talkTicketer(p); return; }
         if (kind.startsWith("poster_")) { readPoster(p, e); return; }
+        if (kind.equals("prompter") || kind.equals("director")) {
+            for (QuestDef q : QuestRegistry.all()) {
+                if (!q.goal.type.equals("talk") || !q.goal.target.equals(kind) || status(p, q) != St.ACTIVE) continue;
+                setProgress(p, q, q.count());
+                return;
+            }
+            if (kind.equals("prompter")) Finale.talkPrompter(p); else Finale.talkDirector(p, e);
+            return;
+        }
         if (e.owner() != null) { deliver(p, e); return; }
         say(p, kind, List.of("Здравствуй! Шоу идёт, а мы тут работаем."));
     }
@@ -314,7 +327,11 @@ public final class Campaign {
         }
         // 3. подсказка
         QuestDef cur = current(p);
-        if (cur == null) say(p, "ticketer", List.of("Первый акт сыгран. Второй готовится за кулисами — а туда даже мне вход закрыт. Пока."));
+        if (cur == null) say(p, "ticketer", Finale.ending(p.getServer()).isEmpty()
+            ? List.of("Сезон ещё идёт. Загляни в журнал — там видно, что дальше.")
+            : List.of(Finale.CHAOS.equals(Finale.ending(p.getServer()))
+                ? "Хаос, монеты, крики зрителей — лучший сезон в истории! Билеты раскуплены."
+                : "Как работается при новом Режиссёре? Выбирай события: /cr direct <событие>."));
         else say(p, "ticketer", List.of("По сценарию у тебя сейчас: «" + cur.title + "». " + cur.hint));
     }
 
@@ -550,11 +567,13 @@ public final class Campaign {
 
     // ================================================================ события мода → задания
     public static void onEventFinished(ServerPlayerEntity p, int medalOrdinal) {
+        if (!enabled()) return;
         for (QuestDef q : new ArrayList<>(QuestRegistry.all())) {
             if (!q.goal.type.equals("event") || status(p, q) != St.ACTIVE) continue;
             int need = switch (q.goal.target) { case "SILVER" -> 2; case "GOLD" -> 3; case "PLATINUM" -> 4; case "NONE" -> 0; default -> 1; };
             if (medalOrdinal >= need) setProgress(p, q, progress(p, q) + 1);
-            else p.sendMessage(Text.literal("§6✦ " + q.title + ": §7нужна медаль не ниже бронзы — в следующий раз!"), false);
+            else p.sendMessage(Text.literal("§6✦ " + q.title + ": §7нужна медаль не ниже "
+                + (need >= 3 ? "золота" : need == 2 ? "серебра" : "бронзы") + " — в следующий раз!"), false);
         }
     }
 
@@ -573,8 +592,13 @@ public final class Campaign {
     }
 
     // ================================================================ тик
+    public static boolean enabled() { return com.derevna230.comborush.ModConfig.get().campaign; }
+
     public static void tick(MinecraftServer server) {
+        if (!enabled()) return;
         StageBoss.tick(server);
+        DirectorBoss.tick(server);
+        RaceManager.tick(server);
         if (server.getTicks() % 20 != 0) return;
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             if (p.isSpectator()) continue;
@@ -586,7 +610,12 @@ public final class Campaign {
                 if (status(p, q) != St.ACTIVE) continue;
                 if (cur == null) cur = q;
                 switch (q.goal.type) {
-                    case "talk" -> { if (q.goal.target.equals("ticketer")) ensureBooth(p); }
+                    case "talk" -> {
+                        if (q.goal.target.equals("ticketer")) ensureBooth(p);
+                        else if (q.goal.target.equals("prompter")) Finale.ensureBackstage(p);
+                    }
+                    case "race" -> RaceManager.ensureCourse(p);
+                    case "director", "choice" -> Finale.ensureStudio(p);
                     case "poster" -> ensurePosters(p);
                     case "splice" -> ensureSplice(p);
                     case "stage" -> ensureStage(p);
@@ -595,7 +624,7 @@ public final class Campaign {
             }
             beacons(p);
         }
-        if (server.getTicks() % 200 == 0) upkeep(server);
+        if (server.getTicks() % 200 == 0) { upkeep(server); Finale.upkeep(server); }
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) sendTrack(p);
     }
 
@@ -619,7 +648,7 @@ public final class Campaign {
 
     // ================================================================ вход
     private static void onJoin(ServerPlayerEntity p) {
-        if (p.isRemoved()) return;
+        if (p.isRemoved() || !enabled()) return;
         claimServer(p);
         checkConditions(p);
         QuestDef cur = current(p);
@@ -632,6 +661,7 @@ public final class Campaign {
 
     // ================================================================ журнал и трекер
     public static void openJournal(ServerPlayerEntity p) {
+        if (!enabled()) { p.sendMessage(Text.literal("§7Сюжетная кампания на этом сервере выключена."), false); return; }
         if (!HudSync.has(p)) { chatJournal(p); return; }
         String json = journalJson(p).toString();
         LAST_JOURNAL.put(p.getUuid(), json);
@@ -724,6 +754,7 @@ public final class Campaign {
                 o.addProperty("approx", approx);
             }
             long dl = PlayerCampaign.of(p).flag("courier_deadline");
+            if (q.goal.type.equals("race") && RaceManager.timeLeft(p) >= 0) o.addProperty("timer", RaceManager.timeLeft(p));
             if (q.id.equals(COURIER) && dl > 0)
                 o.addProperty("timer", Math.max(0, (dl - p.getServer().getOverworld().getTime()) / 20));
         }
@@ -737,7 +768,8 @@ public final class Campaign {
         CampaignState st = state(p);
         PlayerCampaign pc = PlayerCampaign.of(p);
         switch (q.goal.type) {
-            case "talk": return st.booth;
+            case "talk": return q.goal.target.equals("prompter") ? st.backstage : st.booth;
+            case "race": case "director": case "choice": return Finale.target(p, q);
             case "courier": {
                 if (pc.flag("courier_deadline") <= 0) return st.booth;
                 BlockPos best = null; double bd = Double.MAX_VALUE;
@@ -792,6 +824,7 @@ public final class Campaign {
             CampaignState st = state(p);
             st.done.clear(); st.counters.clear(); st.posters.clear();
             st.booth = null; st.ticketer = null; st.stage = null;
+            st.backstage = null; st.studio = null; st.throne = null; st.ending = ""; st.race.clear();
             st.markDirty();
         }
         refreshAll(p.getServer());

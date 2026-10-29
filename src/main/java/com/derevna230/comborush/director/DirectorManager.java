@@ -108,7 +108,7 @@ public class DirectorManager implements SimpleSynchronousResourceReloadListener 
     }
 
     // ================= Босс-блайнд: каждое 5-е событие игрока =================
-    public static final int BOSS_EVERY = 5;
+    public static int BOSS_EVERY = 5;                      // config: boss_blind_every (0 — без босс-блайндов)
     private static DebuffDef debuff = null;
     private static final Set<UUID> debuffPlayers = new HashSet<>();
     private static String lastDebuff = "";
@@ -141,7 +141,10 @@ public class DirectorManager implements SimpleSynchronousResourceReloadListener 
         debuff = null;
         debuffPlayers.clear();
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList())
-            if ((PlayerProfile.of(p).eventsDone() + 1) % BOSS_EVERY == 0) debuffPlayers.add(p.getUuid());
+            if (BOSS_EVERY > 0 && (PlayerProfile.of(p).eventsDone() + 1) % BOSS_EVERY == 0) debuffPlayers.add(p.getUuid());
+        // финал «хаос»: случайное правило босс-блайнда в каждом событии и для всех
+        boolean chaos = com.derevna230.comborush.campaign.Finale.chaos(server);
+        if (chaos) for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) debuffPlayers.add(p.getUuid());
         if (debuffPlayers.isEmpty()) return;
 
         DebuffDef d = DebuffRegistry.pick(lastDebuff);

@@ -60,7 +60,7 @@ public final class EliteMobs {
     private static final String TAG = "cr_elite:";
     private static final String CHECKED = "cr_elite_checked";
     /** Шанс стать элитным: вне события / во время события */
-    private static final double CHANCE_IDLE = 0.03, CHANCE_EVENT = 0.08;
+    public static double CHANCE_IDLE = 0.03, CHANCE_EVENT = 0.08;      // config: elite_chance, elite_chance_event
     private static final Set<EntityType<?>> EXCLUDED = Set.of(EntityType.WITHER, EntityType.WARDEN, EntityType.ELDER_GUARDIAN,
         EntityType.ENDER_DRAGON);
 
@@ -84,6 +84,7 @@ public final class EliteMobs {
             LIVE.remove(entity);
             if (!(source.getAttacker() instanceof ServerPlayerEntity p)) return;
             drops(p, entity, ed);
+            com.derevna230.comborush.campaign.Campaign.trigger(p, "elite", "", 1);
         });
     }
 

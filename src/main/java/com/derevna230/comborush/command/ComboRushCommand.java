@@ -121,6 +121,17 @@ public class ComboRushCommand {
                 return 1; }))
             .then(CommandManager.literal("balance").requires(ComboRushCommand::op).executes(c -> {
                 com.derevna230.comborush.score.BalanceStats.report(c.getSource()); return 1; }))
+            .then(CommandManager.literal("choose")
+                .then(CommandManager.argument("ending", StringArgumentType.word())
+                    .suggests((ctx, b2) -> CommandSource.suggestMatching(java.util.List.of("chair", "chaos"), b2))
+                    .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Finale.choose(
+                        c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "ending"))))))
+            .then(CommandManager.literal("direct")
+                .then(CommandManager.argument("event", StringArgumentType.word()).suggests(EVENT_IDS)
+                    .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Finale.direct(
+                        c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "event"))))))
+            .then(CommandManager.literal("config").requires(ComboRushCommand::op)
+                .then(CommandManager.literal("reload").executes(c -> story(c.getSource(), com.derevna230.comborush.ModConfig.load()))))
             .then(CommandManager.literal("journal").executes(c -> {
                 com.derevna230.comborush.campaign.Campaign.openJournal(c.getSource().getPlayerOrThrow()); return 1; }))
             .then(CommandManager.literal("story").requires(ComboRushCommand::op)

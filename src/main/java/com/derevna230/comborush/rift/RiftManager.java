@@ -41,9 +41,9 @@ public final class RiftManager {
 
     static final String MOB_TAG = "cr_rift_mob";
     private static final int WAVES = 3;
-    private static final int LIFETIME = 20 * 240;          // 4 минуты
+    public static int LIFETIME = 20 * 240;                 // 4 минуты (config: rift_minutes)
     private static final int ACTIVATE_DIST = 22;           // волны начинаются, когда игрок подошёл
-    private static final int PER_EVENT = 2;
+    public static int PER_EVENT = 2;                       // config: rifts_per_event (0–2)
 
     private static final List<Rift> RIFTS = new ArrayList<>();
     private static final List<Integer> SCHEDULE = new ArrayList<>();   // секунды события до открытия
@@ -78,6 +78,7 @@ public final class RiftManager {
         SCHEDULE.clear();
         eventTicks = 0;
         ThreadLocalRandom r = ThreadLocalRandom.current();
+        if (PER_EVENT <= 0) return;
         SCHEDULE.add(20 + r.nextInt(40));
         if (PER_EVENT > 1) SCHEDULE.add(140 + r.nextInt(50));
     }

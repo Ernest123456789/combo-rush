@@ -10,8 +10,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 
 public class CycleManager {
-    public static final int NORMAL_SECONDS = 5 * 60;   // подготовка между событиями
-    public static final int EVENT_SECONDS  = 5 * 60;
+    public static int NORMAL_SECONDS = 5 * 60;   // подготовка между событиями (config: pause_minutes)
+    public static int EVENT_SECONDS  = 5 * 60;   // длительность события (config: event_minutes)
 
     private static CyclePhase phase = CyclePhase.NORMAL;
     private static int ticksLeft = NORMAL_SECONDS * 20;
@@ -23,6 +23,14 @@ public class CycleManager {
     }
 
     public static CyclePhase phase() { return phase; }
+
+    /** Из файла настроек; текущая фаза не обрывается, если только она не длиннее новой */
+    public static void configure(int normalSeconds, int eventSeconds) {
+        NORMAL_SECONDS = normalSeconds;
+        EVENT_SECONDS = eventSeconds;
+        int max = (phase == CyclePhase.EVENT ? EVENT_SECONDS : NORMAL_SECONDS) * 20;
+        if (ticksLeft > max) ticksLeft = max;
+    }
     public static int secondsLeft() { return ticksLeft / 20; }
 
     public static void tick(MinecraftServer server) {

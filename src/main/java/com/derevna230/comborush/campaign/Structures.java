@@ -295,4 +295,102 @@ public final class Structures {
         poof(w, s, 5);
         return s.at(0, 0, 0);
     }
+
+    // ------------------------------------------------------------------ Закулисье (Акт II)
+    public static Site findBackstage(ServerWorld w, BlockPos near) {
+        return findSite(w, near, 25, 55, Double.NaN, 0, 5, 4, 3, 5, 3);
+    }
+
+    /** Тёмная комната за сценой: занавес, цепи с фонарями, свечи, будка Суфлёра. Возвращает место Суфлёра */
+    public static BlockPos buildBackstage(ServerWorld w, Site s) {
+        prepare(w, s, 5, 4, 3, 5);
+        BlockState log = Blocks.STRIPPED_DARK_OAK_LOG.getDefaultState(), planks = Blocks.DARK_OAK_PLANKS.getDefaultState();
+        for (int x = -4; x <= 4; x++) {
+            for (int z = -3; z <= 2; z++) set(w, s, x, -1, z, planks);
+            set(w, s, x, -1, 3, Blocks.POLISHED_BLACKSTONE.getDefaultState());
+        }
+        for (int y = 0; y <= 4; y++) {
+            for (int x = -5; x <= 5; x++)
+                set(w, s, x, y, -4, (y == 2 && Math.abs(x) == 2 ? Blocks.PURPLE_STAINED_GLASS : Blocks.BLACK_WOOL).getDefaultState());
+            for (int z = -3; z <= 2; z++) { set(w, s, -5, y, z, log); set(w, s, 5, y, z, log); }
+        }
+        for (int x = -5; x <= 5; x++) for (int z = -4; z <= 2; z++) set(w, s, x, 5, z, planks);
+        // занавес по краям проёма
+        for (int y = 0; y <= 4; y++) { set(w, s, -4, y, 2, Blocks.RED_WOOL.getDefaultState()); set(w, s, 4, y, 2, Blocks.RED_WOOL.getDefaultState()); }
+        for (int y = 3; y <= 4; y++) { set(w, s, -3, y, 2, Blocks.RED_WOOL.getDefaultState()); set(w, s, 3, y, 2, Blocks.RED_WOOL.getDefaultState()); }
+        // будка Суфлёра: стенки, полукруглый козырёк, полка с суфлёрским текстом
+        set(w, s, -1, 0, -2, planks); set(w, s, 1, 0, -2, planks);
+        set(w, s, -1, 1, -2, planks); set(w, s, 1, 1, -2, planks);
+        for (int x = -1; x <= 1; x++) {
+            set(w, s, x, 0, -1, Blocks.DARK_OAK_SLAB.getDefaultState());
+            set(w, s, x, 2, -2, planks);
+            set(w, s, x, 2, -1, Blocks.DARK_OAK_SLAB.getDefaultState().with(SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+        }
+        set(w, s, 1, 1, -1, Blocks.CANDLE.getDefaultState().with(CandleBlock.CANDLES, 2).with(CandleBlock.LIT, true));
+        set(w, s, -1, 1, -1, Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true));
+        // реквизит
+        set(w, s, -4, 0, -3, Blocks.BARREL.getDefaultState());
+        set(w, s, -4, 1, -3, Blocks.BARREL.getDefaultState());
+        set(w, s, -4, 2, -3, Blocks.CANDLE.getDefaultState().with(CandleBlock.CANDLES, 3).with(CandleBlock.LIT, true));
+        set(w, s, -3, 0, -3, Blocks.BARREL.getDefaultState());
+        set(w, s, -3, 1, -3, Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true));
+        for (int y = 0; y <= 2; y++) set(w, s, 4, y, -3, Blocks.BOOKSHELF.getDefaultState());
+        set(w, s, 3, 0, -3, Blocks.BARREL.getDefaultState());
+        set(w, s, 3, 1, -3, Blocks.CANDLE.getDefaultState().with(CandleBlock.CANDLES, 4).with(CandleBlock.LIT, true));
+        set(w, s, -4, 0, 1, Blocks.AMETHYST_CLUSTER.getDefaultState());
+        set(w, s, 4, 0, 1, Blocks.AMETHYST_CLUSTER.getDefaultState());
+        // цепи с фонарями
+        for (int y = 3; y <= 4; y++) set(w, s, -2, y, 0, Blocks.CHAIN.getDefaultState());
+        set(w, s, -2, 2, 0, Blocks.SOUL_LANTERN.getDefaultState().with(LanternBlock.HANGING, true));
+        for (int y = 2; y <= 4; y++) set(w, s, 2, y, 1, Blocks.CHAIN.getDefaultState());
+        set(w, s, 2, 1, 1, Blocks.SOUL_LANTERN.getDefaultState().with(LanternBlock.HANGING, true));
+        set(w, s, 0, 4, -1, Blocks.SOUL_LANTERN.getDefaultState().with(LanternBlock.HANGING, true));
+        sign(w, s, 0, 3, -3, "ЗАКУЛИСЬЕ", "посторонним", "вход воспрещён", DyeColor.PURPLE);
+        poof(w, s, 4);
+        return s.at(0, 0, -2);
+    }
+
+    // ------------------------------------------------------------------ Студия Режиссёра (Акт III)
+    public static Site findStudio(ServerWorld w, BlockPos near) {
+        return findSite(w, near, 30, 60, Double.NaN, 0, 7, 7, 8, 7, 3);
+    }
+
+    /** Студия: сцена 11×11, трон Режиссёра, прожекторы, занавес, камеры. Возвращает центр сцены; трон — at(0,0,-4) */
+    public static BlockPos buildStudio(ServerWorld w, Site s) {
+        prepare(w, s, 7, 7, 8, 7);
+        for (int x = -5; x <= 5; x++)
+            for (int z = -5; z <= 5; z++) {
+                boolean edge = Math.abs(x) == 5 || Math.abs(z) == 5;
+                BlockState st = edge ? Blocks.GILDED_BLACKSTONE.getDefaultState()
+                    : ((x + z) % 2 == 0 ? Blocks.BLACK_CONCRETE : Blocks.POLISHED_BLACKSTONE).getDefaultState();
+                set(w, s, x, -1, z, st);
+            }
+        for (int z = -3; z <= 8; z++) set(w, s, 0, 0, z, Blocks.RED_CARPET.getDefaultState());
+        // занавес и золотая кромка
+        for (int x = -6; x <= 6; x++) {
+            for (int y = 0; y <= 5; y++) set(w, s, x, y, -6, Blocks.RED_WOOL.getDefaultState());
+            set(w, s, x, 6, -6, Blocks.GOLD_BLOCK.getDefaultState());
+        }
+        // трон
+        set(w, s, 0, 0, -4, Blocks.CRIMSON_STAIRS.getDefaultState().with(StairsBlock.FACING, s.front().getOpposite()));
+        set(w, s, -1, 0, -4, Blocks.GOLD_BLOCK.getDefaultState());
+        set(w, s, 1, 0, -4, Blocks.GOLD_BLOCK.getDefaultState());
+        for (int y = 0; y <= 3; y++) set(w, s, 0, y, -5, (y == 3 ? Blocks.GOLD_BLOCK : Blocks.CRIMSON_PLANKS).getDefaultState());
+        set(w, s, -1, 1, -5, Blocks.CRIMSON_PLANKS.getDefaultState());
+        set(w, s, 1, 1, -5, Blocks.CRIMSON_PLANKS.getDefaultState());
+        // прожекторы
+        for (int sx : new int[]{-6, 6})
+            for (int sz : new int[]{-5, 5}) {
+                for (int y = 0; y <= 3; y++) set(w, s, sx, y, sz, Blocks.DARK_OAK_FENCE.getDefaultState());
+                set(w, s, sx, 4, sz, Blocks.SEA_LANTERN.getDefaultState());
+            }
+        // камеры
+        for (int cx : new int[]{-3, 3}) {
+            set(w, s, cx, 0, 7, Blocks.DARK_OAK_FENCE.getDefaultState());
+            set(w, s, cx, 1, 7, Blocks.OBSERVER.getDefaultState().with(ObserverBlock.FACING, s.front().getOpposite()));
+        }
+        sign(w, s, 0, 4, -5, "СТУДИЯ", "РЕЖИССЁРА", "идёт съёмка", DyeColor.RED);
+        poof(w, s, 6);
+        return s.at(0, 0, 0);
+    }
 }

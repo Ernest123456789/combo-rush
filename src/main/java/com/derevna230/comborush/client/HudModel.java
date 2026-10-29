@@ -211,6 +211,7 @@ public final class HudModel {
                 case "camp_open", "camp" -> JournalScreen.onPacket(p.kind(), o);
                 case "camp_track" -> StoryHud.readTrack(o);
                 case "camp_say" -> StoryHud.readSay(o);
+                case "camp_choice" -> ChoiceScreen.open();
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }
