@@ -25,6 +25,7 @@ public class ComboRushClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer::tick);
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> Hints.tick());
         Hints.register();
+        TitleCredits.register();
         EntityRendererRegistry.register(ModEntities.PET, PetRenderer::new);
         EntityRendererRegistry.register(ModEntities.DECOR, DecorRenderer::new);
         EntityRendererRegistry.register(ModEntities.SKATE, SkateRenderer::new);
