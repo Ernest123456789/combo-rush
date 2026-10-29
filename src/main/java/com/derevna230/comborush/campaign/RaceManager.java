@@ -118,7 +118,7 @@ public final class RaceManager {
                     (float) Math.pow(2, (run.next - 1) / 12.0 * 2));
                 if (run.next >= st.race.size()) {
                     RUNS.remove(p.getUuid());
-                    int sec = (now - run.start) / 20;
+                    int sec = (int) ((now - run.start) / 20);
                     title(p, "§6§lФИНИШ!", "§f" + sec + " с");
                     Campaign.trigger(p, "race", "", 1);
                 } else p.sendMessage(Text.literal("§aКольцо " + (run.next - 1) + "/" + (st.race.size() - 1)
