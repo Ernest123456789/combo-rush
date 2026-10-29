@@ -110,8 +110,6 @@ public class SkateboardEntity extends MobEntity implements GeoEntity {
         return this.getFirstPassenger() instanceof PlayerEntity p ? p : null;
     }
 
-    @Override public boolean shouldRiderSit() { return false; }          // игрок стоит на доске
-
     @Override
     protected void tickControlled(PlayerEntity player, Vec3d movementInput) {
         super.tickControlled(player, movementInput);
