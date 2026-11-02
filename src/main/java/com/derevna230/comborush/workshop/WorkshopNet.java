@@ -48,10 +48,10 @@ public final class WorkshopNet {
 
     private static String desc(String id) {
         return switch (id) {
-            case "pocket_crafting" -> "Верстак 3×3 прямо из кармана";
-            case "pocket_furnace" -> "Мгновенно плавит стопку из другой руки за уголь";
-            case "pocket_anvil" -> "Наковальня, которая никогда не ломается";
-            case "pocket_enchanting" -> "Стол зачарований где угодно";
+            case "pocket_crafting" -> "Верстак 3×3: кнопка справа от инвентаря, навсегда";
+            case "pocket_furnace" -> "Мгновенно плавит стопку с курсора или из руки за уголь";
+            case "pocket_anvil" -> "Наковальня, которая не ломается: кнопка у инвентаря";
+            case "pocket_enchanting" -> "Стол зачарований где угодно: кнопка у инвентаря";
             default -> "";
         };
     }
@@ -91,13 +91,13 @@ public final class WorkshopNet {
         Item item = ModItems.POCKET.get(id);
         int price = price(id);
         if (item == null || price < 0) { send(p, "ws", "Такого станка нет.", false); return; }
-        if (has(p, item)) { send(p, "ws", "Он уже у тебя в инвентаре.", false); return; }
+        if (PocketTools.unlocked(p, id)) { send(p, "ws", "Он уже открыт: кнопка справа от инвентаря.", false); return; }
         PlayerProfile pr = PlayerProfile.of(p);
         if (pr.coins() < price) { send(p, "ws", "Не хватает монет: нужно " + price + ".", false); return; }
         p.setAttached(PlayerProfile.TYPE, pr.addCoins(-price));
-        p.getInventory().offerOrDrop(new ItemStack(item));
+        PocketTools.unlock(p, id);
         p.getServerWorld().playSound(null, p.getBlockPos(), SoundEvents.BLOCK_SMITHING_TABLE_USE, SoundCategory.PLAYERS, 0.8f, 1.1f);
-        send(p, "ws", "Куплено: " + new ItemStack(item).getName().getString(), true);
+        send(p, "ws", PocketTools.title(id) + " открыт навсегда — кнопка справа от инвентаря", true);
     }
 
     /** Сдать алмазы/изумруды: amount > 0 — столько штук, 0 — всё, включая блоки (блок = 9) */
@@ -144,7 +144,7 @@ public final class WorkshopNet {
             o.addProperty("name", new ItemStack(item).getName().getString());
             o.addProperty("desc", desc(id));
             o.addProperty("price", price(id));
-            o.addProperty("owned", has(p, item));
+            o.addProperty("owned", PocketTools.unlocked(p, id));
             offers.add(o);
         });
         root.add("offers", offers);

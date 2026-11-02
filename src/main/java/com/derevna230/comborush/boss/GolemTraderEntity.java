@@ -1,5 +1,6 @@
 package com.derevna230.comborush.boss;
 
+import com.derevna230.comborush.hud.HudSync;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
@@ -39,8 +40,13 @@ public class GolemTraderEntity extends PathAwareEntity implements GeoEntity {
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("animation.cr_trader.walk");
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    /** Скидка на кейсы и сколько штук каждого кейса торговец привёз */
+    public static final int DISCOUNT_PERCENT = 25, STOCK = 4, OFFERS = 3;
+
     private int left = LIFE, ticks = 0, pauseUntil = 0;
     private boolean warned = false;
+    private final java.util.List<String> offers = new java.util.ArrayList<>();
+    private final int[] stock = new int[OFFERS];
 
     public GolemTraderEntity(EntityType<? extends PathAwareEntity> type, World world) {
         super(type, world);
@@ -48,7 +54,21 @@ public class GolemTraderEntity extends PathAwareEntity implements GeoEntity {
         this.setInvulnerable(true);
         this.setCustomName(Text.literal("§c§lТорговец Редстоуна"));
         this.setCustomNameVisible(true);
+        rollOffers();
     }
+
+    /** Каждый торговец привозит свои 3 кейса со скидкой — от визита к визиту набор другой */
+    private void rollOffers() {
+        java.util.List<String> all = new java.util.ArrayList<>(com.derevna230.comborush.item.ModItems.CASE_IDS);
+        java.util.Collections.shuffle(all, new java.util.Random(this.getRandom().nextLong()));
+        offers.clear();
+        for (int i = 0; i < OFFERS && i < all.size(); i++) { offers.add(all.get(i)); stock[i] = STOCK; }
+    }
+
+    public java.util.List<String> offers() { return offers; }
+    public int stock(int idx) { return idx >= 0 && idx < OFFERS ? stock[idx] : 0; }
+    public void takeStock(int idx) { if (idx >= 0 && idx < OFFERS && stock[idx] > 0) stock[idx]--; }
+    public int leftTicks() { return left; }
 
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
@@ -96,7 +116,8 @@ public class GolemTraderEntity extends PathAwareEntity implements GeoEntity {
             getNavigation().stop();
             lookAtEntity(player, 30f, 30f);
             if (getWorld() instanceof ServerWorld w) Fx.sound(w, getX(), getY(), getZ(), "entity.wandering_trader.yes", 1f, 1f);
-            TraderGui.open(sp, this);
+            if (HudSync.has(sp)) TraderNet.open(sp, this);
+            else TraderGui.open(sp, this);
         }
         return ActionResult.success(getWorld().isClient);
     }
@@ -117,12 +138,22 @@ public class GolemTraderEntity extends PathAwareEntity implements GeoEntity {
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
         nbt.putInt("TraderLeft", left);
+        net.minecraft.nbt.NbtList l = new net.minecraft.nbt.NbtList();
+        for (String s : offers) l.add(net.minecraft.nbt.NbtString.of(s));
+        nbt.put("TraderOffers", l);
+        nbt.putIntArray("TraderStock", stock);
     }
 
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
         if (nbt.contains("TraderLeft")) left = nbt.getInt("TraderLeft");
+        if (nbt.contains("TraderOffers")) {
+            offers.clear();
+            for (net.minecraft.nbt.NbtElement e : nbt.getList("TraderOffers", net.minecraft.nbt.NbtElement.STRING_TYPE)) offers.add(e.asString());
+            int[] st = nbt.getIntArray("TraderStock");
+            for (int i = 0; i < OFFERS; i++) stock[i] = i < st.length ? st[i] : 0;
+        }
     }
 
     @Override

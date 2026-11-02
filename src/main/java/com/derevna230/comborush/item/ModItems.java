@@ -110,10 +110,7 @@ public final class ModItems {
         new PetInfo("fumeshroom", "uncommon"),
         new PetInfo("armor_stand", "uncommon"),
         new PetInfo("wandering_trader", "rare"),
-        new PetInfo("mustang", "rare"),
-        new PetInfo("redstone_golem", "epic"),
-        new PetInfo("mustang_modified", "epic"),
-        new PetInfo("trueno", "epic"));
+        new PetInfo("redstone_golem", "epic"));
 
     public static Item WATER_BOTTLE;
     public static Item SKATEBOARD;
@@ -121,6 +118,8 @@ public final class ModItems {
     public static Item LETTER;
     /** Предмет-призыв босса «Редстоуновый голем» (у Торговца Редстоуна) */
     public static Item REDSTONE_HEART;
+    /** Машины (предметы): id → предмет. Не выпадают из кейсов, ставятся ПКМ по блоку и ездят */
+    public static final Map<String, Item> CARS = new LinkedHashMap<>();
     /** Карманные станки из Мастерской: id → предмет */
     public static final Map<String, Item> POCKET = new LinkedHashMap<>();
 
@@ -207,10 +206,12 @@ public final class ModItems {
         PASS = register("pass", new com.derevna230.comborush.campaign.PassItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
         LETTER = register("letter", new com.derevna230.comborush.campaign.LetterItem(new Item.Settings().maxCount(1)));
         REDSTONE_HEART = register("redstone_heart", new RedstoneHeartItem(new Item.Settings().maxCount(4).rarity(Rarity.EPIC)));
-        POCKET.put("pocket_crafting", register("pocket_crafting", new PocketToolItem(PocketToolItem.Kind.CRAFTING, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));
-        POCKET.put("pocket_furnace", register("pocket_furnace", new PocketToolItem(PocketToolItem.Kind.FURNACE, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));
-        POCKET.put("pocket_anvil", register("pocket_anvil", new PocketToolItem(PocketToolItem.Kind.ANVIL, new Item.Settings().maxCount(1).rarity(Rarity.RARE))));
-        POCKET.put("pocket_enchanting", register("pocket_enchanting", new PocketToolItem(PocketToolItem.Kind.ENCHANTING, new Item.Settings().maxCount(1).rarity(Rarity.RARE))));
+        for (com.derevna230.comborush.car.CarDefs.Def cd : com.derevna230.comborush.car.CarDefs.ALL.values())
+            CARS.put(cd.id(), register("car_" + cd.id(), new CarItem(cd.id(), new Item.Settings().maxCount(1).rarity(Rarity.EPIC))));
+        POCKET.put("pocket_crafting", registerHidden("pocket_crafting", new PocketToolItem(PocketToolItem.Kind.CRAFTING, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));
+        POCKET.put("pocket_furnace", registerHidden("pocket_furnace", new PocketToolItem(PocketToolItem.Kind.FURNACE, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));
+        POCKET.put("pocket_anvil", registerHidden("pocket_anvil", new PocketToolItem(PocketToolItem.Kind.ANVIL, new Item.Settings().maxCount(1).rarity(Rarity.RARE))));
+        POCKET.put("pocket_enchanting", registerHidden("pocket_enchanting", new PocketToolItem(PocketToolItem.Kind.ENCHANTING, new Item.Settings().maxCount(1).rarity(Rarity.RARE))));
         for (String c : CASE_IDS) {
             Item it = register("case_" + c, new CaseItem(c, new Item.Settings().maxCount(16).rarity(mcRarity(c))));
             CASES.put(c, it);
@@ -232,6 +233,11 @@ public final class ModItems {
             case "kraber" -> new CRGunItem(id, st, 40f, 1, 0, 70, 128);
             default -> new CRGunItem(id, st, 18f, 1, 0, 50, 48);
         };
+    }
+
+    /** Предмет есть в игре (старые сохранения, иконки), но в креативной вкладке его нет */
+    private static Item registerHidden(String name, Item item) {
+        return Registry.register(Registries.ITEM, Identifier.of(ComboRush.MOD_ID, name), item);
     }
 
     private static Item register(String name, Item item) {

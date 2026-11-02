@@ -11,15 +11,12 @@ public final class DecorSizes {
     public static final Size DEFAULT = new Size(0.6f, 0.7f, 1f);
 
     private static final Map<String, Size> SIZES = Map.ofEntries(
-        Map.entry("camping_campfire", new Size(0.55f, 0.38f, 0.329f)),
+        Map.entry("camping_campfire", new Size(1.0f, 0.75f, 0.6f)),
         Map.entry("wooden_stump", new Size(0.48f, 0.55f, 0.637f)),
         Map.entry("fumeshroom", new Size(0.6f, 0.47f, 0.565f)),
         Map.entry("armor_stand", new Size(0.48f, 1.1f, 0.55f)),
         Map.entry("wandering_trader", new Size(0.52f, 1.0f, 0.464f)),
-        Map.entry("redstone_golem", new Size(1.0f, 1.17f, 0.311f)),
-        Map.entry("mustang", new Size(1.0f, 0.5f, 0.252f)),
-        Map.entry("mustang_modified", new Size(1.0f, 0.47f, 0.235f)),
-        Map.entry("trueno", new Size(1.0f, 0.43f, 0.191f)));
+        Map.entry("redstone_golem", new Size(1.0f, 1.17f, 0.311f)));
 
     public static Size of(String id) { return SIZES.getOrDefault(id, DEFAULT); }
 }

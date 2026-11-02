@@ -71,6 +71,10 @@ public class HudSync {
         o.addProperty("score", event ? ScoreEngine.get(p.getUuid()).total() : 0L);
         o.addProperty("event", DirectorManager.currentName());
         o.addProperty("level", prof.level());
+        JsonArray pk = new JsonArray();
+        for (String id : com.derevna230.comborush.workshop.PocketTools.IDS)
+            if (com.derevna230.comborush.workshop.PocketTools.unlocked(prof, id)) pk.add(id);
+        o.add("pockets", pk);
         o.addProperty("species", SpeciesRegistry.get(prof.species()).name);
         o.addProperty("rank", prof.rank());
         o.addProperty("promo", String.join(", ", PromoManager.activeNames()));

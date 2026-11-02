@@ -126,11 +126,14 @@
   "item.combo-rush.decor_armor_stand": "Mannequin",
   "item.combo-rush.decor_wandering_trader": "Jungle Trader",
   "item.combo-rush.decor_redstone_golem": "Redstone Golem",
-  "item.combo-rush.decor_mustang": "Red Muscle Car",
-  "item.combo-rush.decor_mustang_modified": "Green Racing Muscle Car",
-  "item.combo-rush.decor_trueno": "White Drift Hatchback",
   "item.combo-rush.case_decor": "Decor Case",
   "item.combo-rush.redstone_heart": "Golem Heart",
   "entity.combo-rush.redstone_golem": "Redstone Golem",
-  "entity.combo-rush.golem_trader": "Redstone Trader"
+  "entity.combo-rush.golem_trader": "Redstone Trader",
+  "item.combo-rush.car_mustang": "Red Muscle Car",
+  "entity.combo-rush.car_mustang": "Red Muscle Car",
+  "item.combo-rush.car_mustang_modified": "Green Racing Muscle Car",
+  "entity.combo-rush.car_mustang_modified": "Green Racing Muscle Car",
+  "item.combo-rush.car_trueno": "White Drift Hatchback",
+  "entity.combo-rush.car_trueno": "White Drift Hatchback"
 }

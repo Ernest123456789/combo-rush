@@ -132,7 +132,7 @@ public class WorkshopScreen extends Screen {
             text(c, ch, tx, 6 + (float) Math.sin(t * 3 + i * 0.6) * 1.5f, 2.2f, 0xFFFFC94A, 0);
             tx += textRenderer.getWidth(ch) * 2.2f;
         }
-        text(c, "Карманные станки за монеты · обмен драгоценностей", DW / 2f, 28, 0.6f, 0xFFB8D0C0, 1);
+        text(c, "Карманные станки (кнопки у инвентаря, навсегда) · обмен драгоценностей", DW / 2f, 28, 0.6f, 0xFFB8D0C0, 1);
         float pop = (float) Math.max(0, 1 - (now - coinAt) / 4e8);
         panel(c, DW - 96, 4, 90, 24);
         m.push(); m.translate(DW - 92, 8, 0); c.drawItem(COIN, 0, 0); m.pop();
@@ -165,7 +165,7 @@ public class WorkshopScreen extends Screen {
             boolean hb = in(mx, my, x + 6, by, cw - 12, 16);
             int top = f.owned ? 0xFF4A6A5A : afford ? (hb ? 0xFF8CF0A6 : 0xFF6FE08A) : 0xFF8A6A6A;
             int bot = f.owned ? 0xFF2A3A30 : afford ? 0xFF1E8A4A : 0xFF4A2A2A;
-            button(c, x + 6, by, cw - 12, 16, f.owned ? "УЖЕ ЕСТЬ" : "КУПИТЬ · " + f.price, top, bot);
+            button(c, x + 6, by, cw - 12, 16, f.owned ? "ОТКРЫТО" : "КУПИТЬ · " + f.price, top, bot);
             if (!f.owned) { String id = f.id; hit(x + 6, by, cw - 12, 16, () -> send("ws_buy", 0, id)); }
         }
 

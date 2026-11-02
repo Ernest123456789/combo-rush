@@ -183,12 +183,14 @@ public final class Finale {
             if (CHAIR.equals(which)) {
                 title(o, "§6§lНОВЫЙ РЕЖИССЁР", "§f" + p.getName().getString() + " занял кресло");
                 o.sendMessage(Text.literal("§6✦ §fФинал: §6кресло Режиссёра§f. Те, кто прошёл сюжет, могут выбирать следующее событие: §e/cr direct <событие>"), false);
+                o.sendMessage(Text.literal("§6✦ §fОткрылась кампания §e«С других сюжетов»§f — §eГлава 1§f ждёт в журнале §8(J)§f. Пролог пройден."), false);
             } else {
                 title(o, "§d§lШОУ СЛОМАНО", "§fхаос: монеты ×2, правила случайны");
                 o.sendMessage(Text.literal("§d✦ §fФинал: §dхаос§f. Теперь в каждом событии — случайное правило босс-блайнда для всех, а монеты удваиваются."), false);
             }
         }
         Campaign.trigger(p, "choice", "", 1);
+        Campaign.refreshAll(server);
         return CHAIR.equals(which) ? "Ты занял кресло Режиссёра." : "Ты сломал шоу.";
     }
 

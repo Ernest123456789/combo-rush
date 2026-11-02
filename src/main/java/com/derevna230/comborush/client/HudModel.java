@@ -17,6 +17,8 @@ import net.minecraft.util.Identifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Locale;
 
@@ -195,6 +197,9 @@ public final class HudModel {
     }
 
     // ================= приём пакетов =================
+    /** Открытые карманные станки (кнопки справа от инвентаря): pocket_crafting, pocket_furnace… */
+    public static volatile Set<String> pockets = Set.of();
+
     public static void receive(HudPayload p) {
         try {
             JsonObject o = JsonParser.parseString(p.json()).getAsJsonObject();
@@ -213,6 +218,8 @@ public final class HudModel {
                 case "camp_say" -> StoryHud.readSay(o);
                 case "camp_choice" -> ChoiceScreen.open();
                 case "ws_open", "ws" -> WorkshopScreen.onPacket(p.kind(), o);
+                case "trader_open", "trader" -> TraderScreen.onPacket(p.kind(), o);
+                case "cosm_open", "cosm" -> CosmeticsScreen.onPacket(p.kind(), o);
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }
@@ -285,6 +292,11 @@ public final class HudModel {
         blind = o.has("blind") && o.get("blind").getAsBoolean();
         level = o.has("level") ? o.get("level").getAsInt() : 1;
         rank = o.has("rank") ? o.get("rank").getAsInt() : 0;
+        if (o.has("pockets")) {
+            Set<String> pk = new HashSet<>();
+            for (JsonElement el : o.getAsJsonArray("pockets")) pk.add(el.getAsString());
+            pockets = pk;
+        }
         // синхронизация счёта (например, после бонусных очков), если анимаций нет
         long sv = o.has("score") ? o.get("score").getAsLong() : 0;
         if (phase.equals("EVENT") && cur == null && queue.isEmpty() && sv > targetTotal) targetTotal = sv;

@@ -134,6 +134,8 @@ public record PlayerProfile(int coins, int eventsDone, long totalScore,
         return b;
     }
 
+    /** Записать число в статистику (ключи life_* переживают сброс прогресса) */
+    public PlayerProfile withStat(String key, long value) { B b = b(); b.stats.put(key, value); return b.build(); }
     public PlayerProfile addCoins(int c) { B b = b(); b.coins += c; return b.build(); }
     public PlayerProfile addTotalScore(long s) { B b = b(); b.totalScore += s; return b.build(); }
     public PlayerProfile addExtraSlot() { B b = b(); b.extraSlots++; return b.build(); }

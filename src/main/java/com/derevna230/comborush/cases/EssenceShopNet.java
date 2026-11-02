@@ -2,7 +2,7 @@ package com.derevna230.comborush.cases;
 
 import com.derevna230.comborush.armor.ArmorSetDef;
 import com.derevna230.comborush.armor.ArmorSetRegistry;
-import com.derevna230.comborush.cosmetic.CosmeticsGui;
+import com.derevna230.comborush.cosmetic.CosmeticsNet;
 import com.derevna230.comborush.data.PlayerProfile;
 import com.derevna230.comborush.hud.HudPayload;
 import com.derevna230.comborush.hud.ShopActionPayload;
@@ -27,7 +27,7 @@ public final class EssenceShopNet {
 
     public static void handle(ServerPlayerEntity p, ShopActionPayload a) {
         switch (a.action()) {
-            case "eshop_cosmetics" -> { CosmeticsGui.open(p); return; }
+            case "eshop_cosmetics" -> { CosmeticsNet.open(p); return; }
             case "case_again" -> {
                 Res r = CaseService.openAgain(p, a.c());
                 if (!r.ok()) send(p, "eshop_open", r.msg(), false);

@@ -45,10 +45,22 @@ public class PocketToolItem extends Item {
 
     @Override public boolean hasGlint(ItemStack stack) { return true; }
 
+    /**
+     * Предмет остался для старых сохранений: ПКМ превращает его в открытую навсегда кнопку справа от инвентаря.
+     * Новые станки покупаются в Мастерской сразу как кнопки.
+     */
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack st = user.getStackInHand(hand);
         if (world.isClient || !(user instanceof ServerPlayerEntity p)) return TypedActionResult.success(st, true);
+        com.derevna230.comborush.workshop.PocketTools.unlock(p, kind);
+        if (!p.isCreative()) st.decrement(1);
+        return TypedActionResult.success(st, false);
+    }
+
+    /** Открыть станок: верстак, наковальня и чаровальня — своё меню, печь — переплавить стопку */
+    public static void openFor(ServerPlayerEntity p, Kind kind) {
+        ServerWorld world = p.getServerWorld();
         ScreenHandlerContext ctx = ScreenHandlerContext.create(world, p.getBlockPos());
         switch (kind) {
             case CRAFTING -> p.openHandledScreen(new SimpleNamedScreenHandlerFactory((id, inv, pl) ->
@@ -63,16 +75,23 @@ public class PocketToolItem extends Item {
                 new EnchantmentScreenHandler(id, inv, ctx) {
                     @Override public boolean canUse(PlayerEntity player) { return true; }
                 }, Text.literal("Карманная чаровальня")));
-            case FURNACE -> smelt(p, hand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND);
+            case FURNACE -> smeltFromHands(p);
         }
-        return TypedActionResult.success(st, false);
     }
 
-    /** Переплавить стопку из другой руки; топливо берётся из инвентаря */
-    private static void smelt(ServerPlayerEntity p, Hand other) {
+    /** Печь: переплавляется стопка на курсоре (если взята в инвентаре) или в основной руке, иначе в запасной */
+    private static void smeltFromHands(ServerPlayerEntity p) {
+        ItemStack cursor = p.currentScreenHandler.getCursorStack();
+        if (!cursor.isEmpty()) { smelt(p, cursor); p.currentScreenHandler.sendContentUpdates(); return; }
+        ItemStack main = p.getStackInHand(Hand.MAIN_HAND);
+        if (!main.isEmpty()) { smelt(p, main); return; }
+        smelt(p, p.getStackInHand(Hand.OFF_HAND));
+    }
+
+    /** Переплавить стопку; топливо берётся из инвентаря */
+    private static void smelt(ServerPlayerEntity p, ItemStack input) {
         ServerWorld w = p.getServerWorld();
-        ItemStack input = p.getStackInHand(other);
-        if (input.isEmpty()) { p.sendMessage(Text.literal("§eВозьми во вторую руку то, что нужно переплавить."), true); return; }
+        if (input.isEmpty()) { p.sendMessage(Text.literal("§eВозьми курсором или в руку то, что нужно переплавить."), true); return; }
         Optional<RecipeEntry<SmeltingRecipe>> r = w.getRecipeManager().getFirstMatch(RecipeType.SMELTING, new SingleStackRecipeInput(input), w);
         if (r.isEmpty()) { p.sendMessage(Text.literal("§cЭто нельзя переплавить."), true); return; }
         ItemStack result = r.get().value().getResult(w.getRegistryManager());
@@ -127,18 +146,8 @@ public class PocketToolItem extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        switch (kind) {
-            case CRAFTING -> tooltip.add(Text.literal("§7ПКМ — верстак 3×3 где угодно"));
-            case ANVIL -> tooltip.add(Text.literal("§7ПКМ — наковальня где угодно, не ломается"));
-            case ENCHANTING -> {
-                tooltip.add(Text.literal("§7ПКМ — стол зачарований где угодно"));
-                tooltip.add(Text.literal("§7Рядом с книжными полками — сильнее, как у обычного"));
-            }
-            case FURNACE -> {
-                tooltip.add(Text.literal("§7ПКМ — мгновенно переплавить стопку из другой руки"));
-                tooltip.add(Text.literal("§7Топливо из инвентаря: уголь — 8 предметов, стержень — 12, блок угля — 80"));
-            }
-        }
-        tooltip.add(Text.literal("§8Куплено в Мастерской"));
+        tooltip.add(Text.literal("§7Старый предмет: ПКМ — открыть этот станок навсегда"));
+        tooltip.add(Text.literal("§7кнопкой справа от окна инвентаря."));
+        tooltip.add(Text.literal("§8Теперь станки покупаются в Мастерской сразу как кнопки"));
     }
 }

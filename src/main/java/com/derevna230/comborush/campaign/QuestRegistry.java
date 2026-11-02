@@ -17,6 +17,10 @@ public class QuestRegistry implements SimpleSynchronousResourceReloadListener {
         public String subtitle = "";
         /** Глава ещё не сделана: в журнале «скоро» */
         public boolean soon = false;
+        /** Книга журнала: "prologue" — весь нынешний сюжет, "other" — кампания «С других сюжетов» */
+        public String book = "prologue";
+        /** Текст главы без заданий (заглушка до выхода сюжета) */
+        public String note = "";
     }
 
     private static final Map<String, QuestDef> QUESTS = new LinkedHashMap<>();

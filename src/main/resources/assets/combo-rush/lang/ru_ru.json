@@ -126,11 +126,14 @@
   "item.combo-rush.decor_armor_stand": "Манекен",
   "item.combo-rush.decor_wandering_trader": "Торговец джунглей",
   "item.combo-rush.decor_redstone_golem": "Редстоуновый голем",
-  "item.combo-rush.decor_mustang": "Красный масл-кар",
-  "item.combo-rush.decor_mustang_modified": "Зелёный гоночный масл-кар",
-  "item.combo-rush.decor_trueno": "Белый дрифт-хэтчбек",
   "item.combo-rush.case_decor": "Кейс декора",
   "item.combo-rush.redstone_heart": "Сердце голема",
   "entity.combo-rush.redstone_golem": "Редстоуновый голем",
-  "entity.combo-rush.golem_trader": "Торговец Редстоуна"
+  "entity.combo-rush.golem_trader": "Торговец Редстоуна",
+  "item.combo-rush.car_mustang": "Красный масл-кар",
+  "entity.combo-rush.car_mustang": "Красный масл-кар",
+  "item.combo-rush.car_mustang_modified": "Зелёный гоночный масл-кар",
+  "entity.combo-rush.car_mustang_modified": "Зелёный гоночный масл-кар",
+  "item.combo-rush.car_trueno": "Белый дрифт-хэтчбек",
+  "entity.combo-rush.car_trueno": "Белый дрифт-хэтчбек"
 }

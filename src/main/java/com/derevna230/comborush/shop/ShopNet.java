@@ -50,6 +50,9 @@ public class ShopNet {
             p.sendMessage(net.minecraft.text.Text.literal("§6[Сценарий] §f" + com.derevna230.comborush.campaign.Finale.choose(p, a.c())), false);
             return;
         }
+        if (a.action().startsWith("trader")) { com.derevna230.comborush.boss.TraderNet.handle(p, a); return; }
+        if (a.action().startsWith("cosm")) { com.derevna230.comborush.cosmetic.CosmeticsNet.handle(p, a); return; }
+        if (a.action().startsWith("pocket")) { com.derevna230.comborush.workshop.PocketTools.handle(p, a); return; }
         if (a.action().startsWith("skate")) { com.derevna230.comborush.skate.SkateNet.handle(p, a); return; }
         if (a.action().startsWith("eshop") || a.action().equals("case_again")) { EssenceShopNet.handle(p, a); return; }
         if (CycleManager.phase() != CyclePhase.NORMAL) {

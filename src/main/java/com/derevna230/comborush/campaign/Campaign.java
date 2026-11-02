@@ -693,6 +693,19 @@ public final class Campaign {
 
     private static JsonObject journalJson(ServerPlayerEntity p) {
         JsonObject root = new JsonObject();
+        boolean chair = Finale.CHAIR.equals(Finale.ending(p.getServer()));
+        // две книги журнала: «Пролог» (весь сюжет, что есть сейчас) и кампания «С других сюжетов» (после финала «кресло»)
+        JsonArray books = new JsonArray();
+        boolean prologueDone = QuestRegistry.all().stream().allMatch(q -> status(p, q) == St.DONE);
+        JsonObject b1 = new JsonObject();
+        b1.addProperty("id", "prologue"); b1.addProperty("title", "ПРОЛОГ"); b1.addProperty("sub", "Шоу «Combo Rush»");
+        b1.addProperty("state", prologueDone ? "done" : "active");
+        books.add(b1);
+        JsonObject b2 = new JsonObject();
+        b2.addProperty("id", "other"); b2.addProperty("title", "С ДРУГИХ СЮЖЕТОВ"); b2.addProperty("sub", "Кампания");
+        b2.addProperty("state", chair ? "open" : "locked");
+        books.add(b2);
+        root.add("books", books);
         JsonArray chs = new JsonArray();
         for (QuestRegistry.ChapterDef c : QuestRegistry.chapters()) {
             JsonObject o = new JsonObject();
@@ -701,7 +714,10 @@ public final class Campaign {
             o.addProperty("sub", c.subtitle);
             List<QuestDef> qs = QuestRegistry.of(c.id);
             String state;
-            if (c.soon || qs.isEmpty()) state = "soon";
+            o.addProperty("book", c.book);
+            o.addProperty("note", c.note);
+            if ("other".equals(c.book)) state = !chair ? "locked" : c.soon ? "soon" : "open";
+            else if (c.soon || qs.isEmpty()) state = "soon";
             else if (qs.stream().allMatch(q -> status(p, q) == St.DONE)) state = "done";
             else if (qs.stream().anyMatch(q -> status(p, q) == St.ACTIVE)) state = "active";
             else state = qs.stream().anyMatch(q -> status(p, q) == St.DONE) ? "active" : "locked";

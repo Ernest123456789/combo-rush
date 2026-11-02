@@ -1,7 +1,6 @@
 package com.derevna230.comborush.command;
 
 import com.derevna230.comborush.cases.EssenceShopNet;
-import com.derevna230.comborush.cosmetic.CosmeticsGui;
 import com.derevna230.comborush.cycle.CycleManager;
 import com.derevna230.comborush.director.DirectorManager;
 import com.derevna230.comborush.leaderboard.Leaderboard;
@@ -45,7 +44,7 @@ public class ComboRushCommand {
         d.register(CommandManager.literal("essence").executes(c -> {
             EssenceShopNet.open(c.getSource().getPlayerOrThrow()); return 1; }));
         d.register(CommandManager.literal("cosmetics").executes(c -> {
-            CosmeticsGui.open(c.getSource().getPlayerOrThrow()); return 1; }));
+            com.derevna230.comborush.cosmetic.CosmeticsNet.open(c.getSource().getPlayerOrThrow()); return 1; }));
 
         d.register(root("cr"));
         d.register(root("comborush"));
@@ -166,6 +165,16 @@ public class ComboRushCommand {
                 boolean ok = com.derevna230.comborush.boss.TraderSpawner.spawnNear(c.getSource().getPlayerOrThrow().getServerWorld(), c.getSource().getPlayerOrThrow());
                 c.getSource().sendFeedback(() -> Text.literal(ok ? "§cТорговец Редстоуна пришёл." : "§cНе нашёл места для торговца."), false);
                 return ok ? 1 : 0; }))
+            .then(CommandManager.literal("car").requires(ComboRushCommand::op)
+                .then(CommandManager.argument("id", StringArgumentType.word())
+                    .suggests((ctx, b) -> CommandSource.suggestMatching(com.derevna230.comborush.car.CarDefs.ALL.keySet(), b))
+                    .executes(c -> {
+                        String id = StringArgumentType.getString(c, "id");
+                        var item = com.derevna230.comborush.item.ModItems.CARS.get(id);
+                        if (item == null) { c.getSource().sendFeedback(() -> Text.literal("§cНет такой машины: " + id), false); return 0; }
+                        c.getSource().getPlayerOrThrow().getInventory().offerOrDrop(new net.minecraft.item.ItemStack(item));
+                        c.getSource().sendFeedback(() -> Text.literal("§aМашина выдана: " + id), false);
+                        return 1; })))
             .then(eliteCmd("foil", com.derevna230.comborush.rift.EliteMobs.Edition.FOIL))
             .then(eliteCmd("holo", com.derevna230.comborush.rift.EliteMobs.Edition.HOLO))
             .then(eliteCmd("poly", com.derevna230.comborush.rift.EliteMobs.Edition.POLY))

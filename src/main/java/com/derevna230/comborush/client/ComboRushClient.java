@@ -21,7 +21,7 @@ public class ComboRushClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(HudPayload.ID, (payload, context) -> HudModel.receive(payload));
         HudRenderCallback.EVENT.register((context, tickCounter) -> HudRenderer.render(context));
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> { HudModel.reset(); StoryHud.reset(); MusicPlayer.reset(); });
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> { HudModel.reset(); HudModel.pockets = java.util.Set.of(); StoryHud.reset(); MusicPlayer.reset(); });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer::tick);
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> Hints.tick());
         Hints.register();
@@ -34,6 +34,7 @@ public class ComboRushClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.STORY_PROP, StoryRenderer::new);
         EntityRendererRegistry.register(ModEntities.GOLEM, GolemRenderer::new);
         EntityRendererRegistry.register(ModEntities.TRADER, TraderRenderer::new);
+        ModEntities.CARS.forEach((id, type) -> EntityRendererRegistry.register(type, ctx -> new CarRenderer(ctx, id)));
         // J — журнал «Сценарий»
         net.minecraft.client.option.KeyBinding journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
             new net.minecraft.client.option.KeyBinding("key.combo-rush.journal", net.minecraft.client.util.InputUtil.Type.KEYSYM,

@@ -39,15 +39,21 @@ public final class CaseService {
 
     public static Res buy(ServerPlayerEntity p, String caseId) {
         CaseDef def = CaseRegistry.get(caseId);
+        return buy(p, caseId, def == null ? 0 : def.price);
+    }
+
+    /** Покупка по своей цене (скидки Торговца Редстоуна); валюта — как у кейса */
+    public static Res buy(ServerPlayerEntity p, String caseId, int price) {
+        CaseDef def = CaseRegistry.get(caseId);
         Item item = ModItems.CASES.get(caseId);
         if (def == null || item == null) return Res.err("Такого кейса нет.");
         if (def.paysDiamonds()) {
-            if (countDiamonds(p) < def.price) return Res.err("Не хватает алмазов: нужно " + def.price + ".");
-            takeDiamonds(p, def.price);
+            if (countDiamonds(p) < price) return Res.err("Не хватает алмазов: нужно " + price + ".");
+            takeDiamonds(p, price);
         } else {
             PlayerProfile pr = PlayerProfile.of(p);
-            if (pr.essence() < def.price) return Res.err("Не хватает эссенции: нужно " + def.price + ".");
-            p.setAttached(PlayerProfile.TYPE, pr.addEssence(-def.price));
+            if (pr.essence() < price) return Res.err("Не хватает эссенции: нужно " + price + ".");
+            p.setAttached(PlayerProfile.TYPE, pr.addEssence(-price));
         }
         p.getInventory().offerOrDrop(new ItemStack(item));
         return Res.ok("Куплен " + def.name + ". Он в инвентаре — ПКМ, чтобы открыть.");

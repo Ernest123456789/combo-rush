@@ -21,6 +21,8 @@ public final class ModEntities {
     /** Босс «Редстоуновый голем» и Торговец Редстоуна, продающий Сердце голема */
     public static EntityType<com.derevna230.comborush.boss.RedstoneGolemEntity> GOLEM;
     public static EntityType<com.derevna230.comborush.boss.GolemTraderEntity> TRADER;
+    /** Машины: combo-rush:car_<id>, один класс, разные модели и места */
+    public static final java.util.Map<String, EntityType<com.derevna230.comborush.car.CarEntity>> CARS = new java.util.LinkedHashMap<>();
 
     public static void init() {
         PET = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "pet"),
@@ -67,5 +69,16 @@ public final class ModEntities {
                 .maxTrackingRange(10)
                 .build("golem_trader"));
         FabricDefaultAttributeRegistry.register(TRADER, com.derevna230.comborush.boss.GolemTraderEntity.createAttributes());
+        for (com.derevna230.comborush.car.CarDefs.Def d : com.derevna230.comborush.car.CarDefs.ALL.values()) {
+            EntityType<com.derevna230.comborush.car.CarEntity> t = Registry.register(Registries.ENTITY_TYPE,
+                Identifier.of(ComboRush.MOD_ID, "car_" + d.id()),
+                EntityType.Builder.create(com.derevna230.comborush.car.CarEntity::new, SpawnGroup.MISC)
+                    .dimensions(d.width(), d.height())
+                    .passengerAttachments(d.seats())
+                    .maxTrackingRange(12)
+                    .build("car_" + d.id()));
+            FabricDefaultAttributeRegistry.register(t, com.derevna230.comborush.car.CarEntity.createAttributes());
+            CARS.put(d.id(), t);
+        }
     }
 }

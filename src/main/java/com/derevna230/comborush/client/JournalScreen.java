@@ -19,12 +19,14 @@ public class JournalScreen extends Screen {
     private static final int DW = 440, DH = 262;
     private static final ItemStack ESSENCE = new ItemStack(Items.AMETHYST_SHARD);
 
-    static final class Ch { String id = "", title = "", sub = "", state = "locked"; }
+    static final class Ch { String id = "", title = "", sub = "", state = "locked", book = "prologue", note = ""; }
+    static final class Book { String id = "", title = "", sub = "", state = "locked"; }
     static final class Q { String id = "", ch = "", state = "locked", title = "", desc = "", hint = "", reward = ""; int prog, max = 1; boolean server; }
-    static final class Data { List<Ch> chapters = new ArrayList<>(); List<Q> quests = new ArrayList<>(); int essence; String current = ""; }
+    static final class Data { List<Book> books = new ArrayList<>(); List<Ch> chapters = new ArrayList<>(); List<Q> quests = new ArrayList<>(); int essence; String current = ""; }
 
     private Data d;
     private String sel;
+    private String book = "prologue";
     private float u = 1, ox, oy, scroll = 0, scrollTarget = 0, contentH = 0;
     private final long openAt = System.nanoTime();
     private final List<float[]> btn = new ArrayList<>();
@@ -34,6 +36,7 @@ public class JournalScreen extends Screen {
         super(Text.literal("Сценарий"));
         this.d = d;
         this.sel = chapterOf(d, d.current);
+        for (Ch c : d.chapters) if (c.id.equals(sel)) book = c.book;
     }
 
     public static void onPacket(String kind, JsonObject o) {
@@ -49,7 +52,7 @@ public class JournalScreen extends Screen {
 
     private static String chapterOf(Data d, String questId) {
         for (Q q : d.quests) if (q.id.equals(questId)) return q.ch;
-        for (Ch c : d.chapters) if (!c.state.equals("locked") && !c.state.equals("soon")) return c.id;
+        for (Ch c : d.chapters) if (c.book.equals("prologue") && !c.state.equals("locked") && !c.state.equals("soon")) return c.id;
         return d.chapters.isEmpty() ? "" : d.chapters.get(0).id;
     }
 
@@ -59,9 +62,15 @@ public class JournalScreen extends Screen {
         Data d = new Data();
         d.essence = o.has("essence") ? o.get("essence").getAsInt() : 0;
         d.current = s(o, "current");
+        if (o.has("books")) for (JsonElement e : o.getAsJsonArray("books")) {
+            JsonObject j = e.getAsJsonObject();
+            Book b = new Book(); b.id = s(j, "id"); b.title = s(j, "title"); b.sub = s(j, "sub"); b.state = s(j, "state");
+            d.books.add(b);
+        }
         for (JsonElement e : o.getAsJsonArray("chapters")) {
             JsonObject j = e.getAsJsonObject();
             Ch c = new Ch(); c.id = s(j, "id"); c.title = s(j, "title"); c.sub = s(j, "sub"); c.state = s(j, "state");
+            c.book = j.has("book") ? s(j, "book") : "prologue"; c.note = s(j, "note");
             d.chapters.add(c);
         }
         for (JsonElement e : o.getAsJsonArray("quests")) {
@@ -92,6 +101,17 @@ public class JournalScreen extends Screen {
                 String id = btnId.get(i);
                 HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.5f);
                 if (id.equals("#close")) { close(); return true; }
+                if (id.startsWith("#book:")) {
+                    String nb = id.substring(6);
+                    if (!nb.equals(book)) {
+                        book = nb; scroll = scrollTarget = 0;
+                        sel = "";
+                        for (Ch c : d.chapters) if (c.book.equals(book) && !c.state.equals("locked") && !c.state.equals("soon")) { sel = c.id; break; }
+                        if (sel.isEmpty()) for (Ch c : d.chapters) if (c.book.equals(book)) { sel = c.id; break; }
+                        HudModel.play(SoundEvents.ITEM_BOOK_PAGE_TURN, 1.2f, 0.6f);
+                    }
+                    return true;
+                }
                 if (!id.equals(sel)) { sel = id; scroll = scrollTarget = 0; HudModel.play(SoundEvents.ITEM_BOOK_PAGE_TURN, 1.2f, 0.6f); }
                 return true;
             }
@@ -131,17 +151,32 @@ public class JournalScreen extends Screen {
             text(c, ch, tx, 6 + wob, 2.2f, 0xFF000000 | hsv((t * 0.12f + i * 0.07f) % 1f), 0);
             tx += textRenderer.getWidth(ch) * 2.2f;
         }
-        text(c, "Шоу «Combo Rush» · сезон идёт", DW / 2f, 28, 0.6f, 0xFFB8B0D0, 1);
+        // вкладки книг: «Пролог» (весь сюжет, что есть сейчас) и «С других сюжетов» (после финала «кресло»)
+        float bw = 150, bx0 = DW / 2f - (d.books.size() * bw + (d.books.size() - 1) * 6) / 2f;
+        for (int i = 0; i < d.books.size(); i++) {
+            Book b = d.books.get(i);
+            float x = bx0 + i * (bw + 6);
+            boolean on = b.id.equals(book), lock = b.state.equals("locked"), hv = in(mx, my, x, 27, bw, 15);
+            int top = on ? (lock ? 0xFF6A6A78 : 0xFFB07AFF) : (hv ? 0xFF4A3480 : 0xFF2E2050);
+            int bot = on ? (lock ? 0xFF383844 : 0xFF5A2AB0) : 0xFF18102C;
+            c.fill((int) x - 1, 26, (int) (x + bw) + 1, 43, 0xFF000000);
+            c.fillGradient((int) x, 27, (int) (x + bw), 42, top, bot);
+            c.fill((int) x + 1, 28, (int) (x + bw) - 1, 29, 0x55FFFFFF);
+            String lbl = (lock ? "✖ " : b.state.equals("done") ? "✔ " : "") + b.title;
+            text(c, lbl, x + bw / 2f, 31.5f, 0.75f, lock ? 0xFFA8A8B4 : 0xFFFFFFFF, 1);
+            btn.add(new float[]{x, 27, bw, 15}); btnId.add("#book:" + b.id);
+        }
 
-        // главы
-        float cy = 44;
+        // главы выбранной книги
+        float cy = 49;
         for (Ch ch : d.chapters) {
+            if (!ch.book.equals(book)) continue;
             boolean selected = ch.id.equals(sel);
             boolean open = !ch.state.equals("locked") && !ch.state.equals("soon");
             boolean hv = in(mx, my, 6, cy, 112, 36);
             drawChapter(c, ch, 6 + (selected ? 4 : hv && open ? 2 : 0), cy, selected, t);
             if (open) { btn.add(new float[]{6, cy, 112, 36}); btnId.add(ch.id); }
-            cy += 41;
+            cy += 38;
         }
         // эссенция и закрыть
         panel(c, 6, DH - 52, 112, 22);
@@ -152,12 +187,18 @@ public class JournalScreen extends Screen {
         btn.add(new float[]{6, DH - 26, 112, 20}); btnId.add("#close");
 
         // сцены выбранной главы (со скроллом)
-        float px = 128, pw = DW - px - 6, top = 44, viewH = DH - top - 6;
+        float px = 128, pw = DW - px - 6, top = 49, viewH = DH - top - 6;
         panel(c, px - 2, top - 2, pw + 4, viewH + 4);
         int sx1 = (int) (ox + (px - 2) * u), sy1 = (int) (oy + (top - 1) * u), sx2 = (int) (ox + (px + pw + 2) * u), sy2 = (int) (oy + (top + viewH + 1) * u);
         c.enableScissor(sx1, sy1, sx2, sy2);
         float y = top + 4 - scroll;
-        for (Q q : d.quests) {
+        Book curBook = null;
+        for (Book b : d.books) if (b.id.equals(book)) curBook = b;
+        Ch curCh = null;
+        for (Ch ch : d.chapters) if (ch.id.equals(sel)) curCh = ch;
+        if (curBook != null && curBook.state.equals("locked")) y += drawLocked(c, px + 4, y, pw - 8, t) + 6;
+        else if (curCh != null && curCh.book.equals("other")) y += drawNote(c, curCh, px + 4, y, pw - 8, t) + 6;
+        else for (Q q : d.quests) {
             if (!q.ch.equals(sel)) continue;
             y += drawQuest(c, q, px + 4, y, pw - 8, t) + 6;
         }
@@ -171,19 +212,64 @@ public class JournalScreen extends Screen {
         super.render(c, mouseX, mouseY, delta);
     }
 
+    /** Кампания «С других сюжетов» закрыта, пока не пройден Пролог и не выбрано «кресло» */
+    private float drawLocked(DrawContext c, float x, float y, float w, float t) {
+        float h = 150;
+        c.fill((int) x - 1, (int) y - 1, (int) (x + w) + 1, (int) (y + h) + 1, 0xFF000000);
+        c.fillGradient((int) x, (int) y, (int) (x + w), (int) (y + h), 0xFF2A1F46, 0xFF141024);
+        MatrixStack m = c.getMatrices();
+        m.push();
+        m.translate(x + w / 2f, y + 34 + (float) Math.sin(t * 2) * 1.5f, 0);
+        m.scale(3.2f, 3.2f, 1f);
+        m.translate(-8, -8, 0);
+        c.drawItem(new ItemStack(Items.BARRIER), 0, 0);
+        m.pop();
+        text(c, "КАМПАНИЯ «С ДРУГИХ СЮЖЕТОВ» ЗАКРЫТА", x + w / 2f, y + 64, 0.85f, 0xFFFFC94A, 1);
+        text(c, "Сейчас доступен только Пролог — сюжет шоу «Combo Rush».", x + w / 2f, y + 80, 0.65f, 0xFFC8C0E0, 1);
+        int yy = 98;
+        for (String l : StoryHud.wrap(textRenderer, "Победи Режиссёра в его студии и выбери финал «Занять кресло» — тогда откроется продолжение и начнётся Глава 1.", (int) ((w - 30) / 0.7f))) {
+            text(c, l, x + w / 2f, y + yy, 0.7f, 0xFFFFFFFF, 1);
+            yy += 9;
+        }
+        text(c, "Финал «Сломать шоу» продолжение не открывает.", x + w / 2f, y + yy + 4, 0.6f, 0xFF8A849E, 1);
+        return h;
+    }
+
+    /** Глава кампании без заданий: короткая заглушка, пока сюжет в разработке */
+    private float drawNote(DrawContext c, Ch ch, float x, float y, float w, float t) {
+        boolean soon = ch.state.equals("soon") || ch.state.equals("locked");
+        List<String> lines = new ArrayList<>();
+        for (String para : ch.note.split("\n")) lines.addAll(StoryHud.wrap(textRenderer, para, (int) ((w - 20) / 0.7f)));
+        float h = 56 + lines.size() * 9.5f + 26;
+        c.fill((int) x - 1, (int) y - 1, (int) (x + w) + 1, (int) (y + h) + 1, 0xFF000000);
+        c.fillGradient((int) x, (int) y, (int) (x + w), (int) (y + h), 0xFF2E2250, 0xFF141024);
+        float glow = 0.5f + 0.5f * (float) Math.sin(t * 2.5);
+        c.fill((int) x, (int) y, (int) (x + w), (int) y + 2, StoryHud.argb(0xFFC94A, 0.5f + 0.4f * glow));
+        text(c, ch.title.toUpperCase(), x + 10, y + 8, 1.5f, 0xFFFFFFFF, 0);
+        text(c, "«" + ch.sub + "»", x + 10, y + 26, 0.85f, 0xFFD9A8FF, 0);
+        text(c, soon ? "СКОРО" : "➜ ОТКРЫТО", x + w - 10, y + 10, 0.75f, soon ? 0xFF8A849E : 0xFFFFC94A, 2);
+        float yy = y + 44;
+        for (String l : lines) { text(c, l, x + 10, yy, 0.7f, 0xFFC8C0E0, 0); yy += 9.5f; }
+        if (!soon) {
+            float dots = (float) ((t * 2) % 4);
+            text(c, "ПРОДОЛЖЕНИЕ СЛЕДУЕТ" + ".".repeat((int) dots), x + w / 2f, y + h - 16, 0.9f, StoryHud.argb(0xFFE08A, 0.6f + 0.4f * glow), 1);
+        }
+        return h;
+    }
+
     private void drawChapter(DrawContext c, Ch ch, float x, float y, boolean selected, float t) {
-        int accent = switch (ch.state) { case "done" -> 0x6FE08A; case "active" -> 0xFFC94A; default -> 0x6A6A78; };
+        int accent = switch (ch.state) { case "done" -> 0x6FE08A; case "active", "open" -> 0xFFC94A; default -> 0x6A6A78; };
         c.fill((int) x - 1, (int) y - 1, (int) x + 113, (int) y + 37, 0xFF000000);
         c.fillGradient((int) x, (int) y, (int) x + 112, (int) y + 36, selected ? 0xFF3A2A5E : 0xFF2A1F46, 0xFF141024);
         c.fill((int) x, (int) y, (int) x + 3, (int) y + 36, 0xFF000000 | accent);
-        if (ch.state.equals("active")) {
+        if (ch.state.equals("active") || ch.state.equals("open")) {
             float p = 0.4f + 0.4f * (float) Math.sin(t * 4);
             c.fill((int) x, (int) y, (int) x + 112, (int) y + 1, StoryHud.argb(accent, p));
         }
         boolean dim = ch.state.equals("locked") || ch.state.equals("soon");
         text(c, ch.title.toUpperCase(), x + 8, y + 6, 1.0f, dim ? 0xFF7A7488 : 0xFFFFFFFF, 0);
         text(c, "«" + ch.sub + "»", x + 8, y + 17, 0.65f, dim ? 0xFF5E5870 : 0xFFB8B0D0, 0);
-        String badge = switch (ch.state) { case "done" -> "✔ СЫГРАНО"; case "active" -> "➜ ИДЁТ"; case "soon" -> "СКОРО"; default -> "ЗАКРЫТО"; };
+        String badge = switch (ch.state) { case "done" -> "✔ СЫГРАНО"; case "active" -> "➜ ИДЁТ"; case "open" -> "➜ ОТКРЫТО"; case "soon" -> "СКОРО"; default -> "ЗАКРЫТО"; };
         text(c, badge, x + 8, y + 26, 0.55f, 0xFF000000 | accent, 0);
     }
 
