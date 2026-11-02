@@ -41,7 +41,7 @@ public class SpeciesGui {
             gui.setSlot(i, new GuiElementBuilder(Items.BLACK_STAINED_GLASS_PANE).setName(Text.literal(" ")));
 
         List<SpeciesDef> list = new ArrayList<>(SpeciesRegistry.all());
-        boolean canChange = p.eventsDone() == 0;
+        boolean canChange = SpeciesService.canChange(p);
 
         for (int i = 0; i < list.size() && i < SLOTS.length; i++) {
             SpeciesDef d = list.get(i);

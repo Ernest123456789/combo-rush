@@ -40,6 +40,8 @@ public class ComboRushCommand {
         d.register(CommandManager.literal("species").executes(c -> {
             SpeciesGui.open(c.getSource().getPlayerOrThrow()); return 1; }));
         d.register(topNode());   // короткая команда /top
+        d.register(CommandManager.literal("workshop").executes(c -> {
+            com.derevna230.comborush.workshop.WorkshopNet.open(c.getSource().getPlayerOrThrow()); return 1; }));
         d.register(CommandManager.literal("essence").executes(c -> {
             EssenceShopNet.open(c.getSource().getPlayerOrThrow()); return 1; }));
         d.register(CommandManager.literal("cosmetics").executes(c -> {
@@ -132,6 +134,10 @@ public class ComboRushCommand {
                         c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "event"))))))
             .then(CommandManager.literal("config").requires(ComboRushCommand::op)
                 .then(CommandManager.literal("reload").executes(c -> story(c.getSource(), com.derevna230.comborush.ModConfig.load()))))
+            .then(CommandManager.literal("ready").executes(c -> {
+                var r = com.derevna230.comborush.species.SpeciesService.start(c.getSource().getPlayerOrThrow());
+                c.getSource().sendFeedback(() -> Text.literal((r.ok() ? "§a" : "§c") + r.msg()), false);
+                return 1; }))
             .then(CommandManager.literal("journal").executes(c -> {
                 com.derevna230.comborush.campaign.Campaign.openJournal(c.getSource().getPlayerOrThrow()); return 1; }))
             .then(CommandManager.literal("story").requires(ComboRushCommand::op)
@@ -149,6 +155,16 @@ public class ComboRushCommand {
             .then(CommandManager.literal("rift").requires(ComboRushCommand::op).executes(c -> {
                 boolean ok = com.derevna230.comborush.rift.RiftManager.open(c.getSource().getPlayerOrThrow());
                 c.getSource().sendFeedback(() -> Text.literal(ok ? "§5Разлом открыт рядом с тобой." : "§cНе нашёл места для разлома."), false);
+                return ok ? 1 : 0; }))
+            .then(CommandManager.literal("golem").requires(ComboRushCommand::op).executes(c -> {
+                var p = c.getSource().getPlayerOrThrow();
+                var at = p.getPos().add(net.minecraft.util.math.Vec3d.fromPolar(0f, p.getYaw()).multiply(7));
+                var g = com.derevna230.comborush.boss.RedstoneGolemEntity.summon(p.getServerWorld(), at, p.getYaw() + 180f);
+                c.getSource().sendFeedback(() -> Text.literal(g != null ? "§cРедстоуновый голем пробуждается." : "§cНе получилось призвать голема."), false);
+                return g != null ? 1 : 0; }))
+            .then(CommandManager.literal("trader").requires(ComboRushCommand::op).executes(c -> {
+                boolean ok = com.derevna230.comborush.boss.TraderSpawner.spawnNear(c.getSource().getPlayerOrThrow().getServerWorld(), c.getSource().getPlayerOrThrow());
+                c.getSource().sendFeedback(() -> Text.literal(ok ? "§cТорговец Редстоуна пришёл." : "§cНе нашёл места для торговца."), false);
                 return ok ? 1 : 0; }))
             .then(eliteCmd("foil", com.derevna230.comborush.rift.EliteMobs.Edition.FOIL))
             .then(eliteCmd("holo", com.derevna230.comborush.rift.EliteMobs.Edition.HOLO))

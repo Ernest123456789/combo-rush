@@ -34,14 +34,6 @@
       "weight": 17
     },
     {
-      "set": "decor_fern_pot",
-      "weight": 10
-    },
-    {
-      "set": "decor_tiny_cactus",
-      "weight": 10
-    },
-    {
       "set": "thief",
       "weight": 80
     },
@@ -64,10 +56,6 @@
     {
       "set": "pet_squirrel",
       "weight": 57
-    },
-    {
-      "set": "decor_glow_shrooms",
-      "weight": 34
     },
     {
       "set": "iron_defender",
@@ -102,10 +90,6 @@
       "weight": 37
     },
     {
-      "set": "decor_moon_lily",
-      "weight": 22
-    },
-    {
       "set": "raider",
       "weight": 13
     },
@@ -115,10 +99,6 @@
     },
     {
       "set": "dreaded_blade",
-      "weight": 9
-    },
-    {
-      "set": "crimson_fang",
       "weight": 9
     },
     {
@@ -172,6 +152,22 @@
     {
       "set": "pet_succubus",
       "weight": 2
+    },
+    {
+      "set": "iron_sword",
+      "weight": 57
+    },
+    {
+      "set": "monkey_sword",
+      "weight": 37
+    },
+    {
+      "set": "kikoku",
+      "weight": 37
+    },
+    {
+      "set": "artillerist",
+      "weight": 52
     }
   ]
 }

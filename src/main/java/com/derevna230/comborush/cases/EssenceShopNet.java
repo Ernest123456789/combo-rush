@@ -51,6 +51,7 @@ public final class EssenceShopNet {
         PlayerProfile pr = PlayerProfile.of(p);
         JsonObject root = new JsonObject();
         root.addProperty("essence", pr.essence());
+        root.addProperty("diamonds", CaseService.countDiamonds(p));
         root.addProperty("resets", pr.resets());
         root.addProperty("msg", msg == null ? "" : msg);
         root.addProperty("ok", ok);
@@ -76,6 +77,7 @@ public final class EssenceShopNet {
             o.addProperty("desc", c.description);
             o.addProperty("rar", c.rarity);
             o.addProperty("price", c.price);
+            o.addProperty("cur", c.paysDiamonds() ? "diamond" : "essence");
             o.addProperty("owned", CaseService.countCases(p, c.id));
             JsonArray drops = new JsonArray();
             for (CaseDef.Drop d : c.dropsSorted()) {

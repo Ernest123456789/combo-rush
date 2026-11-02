@@ -35,6 +35,7 @@ public class SpeciesNet {
         JsonObject root = new JsonObject();
         root.addProperty("current", pr.species());
         root.addProperty("canChange", SpeciesService.canChange(pr));
+        root.addProperty("started", pr.started());
         root.addProperty("events", pr.eventsDone());
         root.addProperty("resets", pr.resets());
         root.addProperty("essence", pr.essence());

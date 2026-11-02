@@ -1,0 +1,23 @@
+{
+  "name": "Обезьяний меч",
+  "description": "Лианы и изумруд джунглей: яд на каждом лезвии.",
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1
+    },
+    {
+      "type": "combo_step",
+      "value": 0.02
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.3,
+      "id": "minecraft:poison",
+      "duration": 4
+    }
+  ]
+}

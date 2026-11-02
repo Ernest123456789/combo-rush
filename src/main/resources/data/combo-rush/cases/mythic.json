@@ -18,10 +18,6 @@
       "weight": 43
     },
     {
-      "set": "crimson_fang",
-      "weight": 43
-    },
-    {
       "set": "thorn_bow",
       "weight": 43
     },
@@ -71,6 +67,50 @@
     },
     {
       "set": "pet_succubus",
+      "weight": 68
+    },
+    {
+      "set": "swept_rapier",
+      "weight": 20
+    },
+    {
+      "set": "soldier",
+      "weight": 20
+    },
+    {
+      "set": "sanguine",
+      "weight": 60
+    },
+    {
+      "set": "anglerfish",
+      "weight": 43
+    },
+    {
+      "set": "forgotten_hero_sword",
+      "weight": 43
+    },
+    {
+      "set": "yoru",
+      "weight": 43
+    },
+    {
+      "set": "daylight_sword",
+      "weight": 43
+    },
+    {
+      "set": "ultrakill_revolver",
+      "weight": 43
+    },
+    {
+      "set": "an94",
+      "weight": 43
+    },
+    {
+      "set": "master_sword",
+      "weight": 68
+    },
+    {
+      "set": "kraber",
       "weight": 68
     }
   ]

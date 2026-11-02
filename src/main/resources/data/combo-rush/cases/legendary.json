@@ -38,10 +38,6 @@
       "weight": 16
     },
     {
-      "set": "decor_moon_lily",
-      "weight": 10
-    },
-    {
       "set": "raider",
       "weight": 74
     },
@@ -51,10 +47,6 @@
     },
     {
       "set": "dreaded_blade",
-      "weight": 53
-    },
-    {
-      "set": "crimson_fang",
       "weight": 53
     },
     {
@@ -107,6 +99,62 @@
     },
     {
       "set": "pet_succubus",
+      "weight": 40
+    },
+    {
+      "set": "swept_rapier",
+      "weight": 30
+    },
+    {
+      "set": "soldier",
+      "weight": 30
+    },
+    {
+      "set": "artillerist",
+      "weight": 22
+    },
+    {
+      "set": "monkey_sword",
+      "weight": 16
+    },
+    {
+      "set": "kikoku",
+      "weight": 16
+    },
+    {
+      "set": "sanguine",
+      "weight": 53
+    },
+    {
+      "set": "anglerfish",
+      "weight": 53
+    },
+    {
+      "set": "forgotten_hero_sword",
+      "weight": 53
+    },
+    {
+      "set": "yoru",
+      "weight": 53
+    },
+    {
+      "set": "daylight_sword",
+      "weight": 53
+    },
+    {
+      "set": "ultrakill_revolver",
+      "weight": 53
+    },
+    {
+      "set": "an94",
+      "weight": 53
+    },
+    {
+      "set": "master_sword",
+      "weight": 40
+    },
+    {
+      "set": "kraber",
       "weight": 40
     }
   ]

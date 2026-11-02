@@ -56,6 +56,7 @@ public class ScoreEngine {
         }
 
         if (CycleManager.phase() != CyclePhase.EVENT) return;
+        if (!prof.started()) { remindStart(player, false); return; }   // забег не начат — очки не идут
 
         EventScore s = get(player.getUuid());
         BoosterEffects fx = BoosterEffects.of(player, prof);
@@ -157,7 +158,7 @@ public class ScoreEngine {
     }
 
     public enum Medal {
-        NONE(0.0, "—"), BRONZE(1.0, "Бронза"), SILVER(1.1, "Серебро"),
+        NONE(0.4, "без медали"), BRONZE(1.0, "Бронза"), SILVER(1.1, "Серебро"),
         GOLD(1.25, "Золото"), PLATINUM(1.5, "Платина");
 
         public final double coinMult; public final String label;
@@ -196,10 +197,33 @@ public class ScoreEngine {
         return def.name;
     }
 
+    private static final java.util.Map<UUID, Integer> LAST_REMIND = new java.util.HashMap<>();
+
+    /** Напомнить, что забег не начат: кнопки в чате (не чаще раза в 20 с) или строка над хотбаром */
+    public static void remindStart(ServerPlayerEntity p, boolean chat) {
+        int now = p.getServer().getTicks();
+        if (!chat) {
+            if (now - LAST_REMIND.getOrDefault(p.getUuid(), -10000) < 100) return;
+            LAST_REMIND.put(p.getUuid(), now);
+            p.sendMessage(Text.literal("§eЗабег не начат — очки не засчитываются. §f/species §eили §f/cr ready"), true);
+            return;
+        }
+        Text pick = Text.literal("§a§l[ВЫБРАТЬ СУЩЕСТВО]").styled(st -> st
+            .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.RUN_COMMAND, "/species")));
+        Text go = Text.literal("§6§l[НАЧАТЬ С ТЕКУЩИМ]").styled(st -> st
+            .withClickEvent(new net.minecraft.text.ClickEvent(net.minecraft.text.ClickEvent.Action.RUN_COMMAND, "/cr ready")));
+        p.sendMessage(Text.literal("§eТвой забег ещё не начат: события тебе не засчитываются. ").append(pick).append(Text.literal(" ")).append(go), false);
+    }
+
     public static void finishEvent(MinecraftServer server) {
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             EventScore s = get(p.getUuid());
             PlayerProfile profile = PlayerProfile.of(p);
+            if (!profile.started()) {                 // опоздал или ещё не выбрал существо — событие не тратится
+                p.sendMessage(Text.literal("§7Событие тебе не засчитано: забег ещё не начат."), false);
+                remindStart(p, true);
+                continue;
+            }
             BoosterEffects fx = BoosterEffects.of(p, profile);
             int eventNumber = profile.eventsDone() + 1;
 

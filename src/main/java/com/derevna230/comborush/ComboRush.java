@@ -17,7 +17,6 @@ import com.derevna230.comborush.promo.PromoManager;
 import com.derevna230.comborush.score.ScoreListeners;
 import com.derevna230.comborush.species.SpeciesApplier;
 import com.derevna230.comborush.species.SpeciesRegistry;
-import net.minecraft.text.Text;
 import com.derevna230.comborush.hud.HudPayload;
 import com.derevna230.comborush.hud.HudSync;
 import com.derevna230.comborush.hud.ShopActionPayload;
@@ -80,6 +79,7 @@ public class ComboRush implements ModInitializer {
         LootBonus.register();
         EliteMobs.register();
         RiftManager.register();
+        com.derevna230.comborush.skate.SkateboardEntity.registerEvents();
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             CycleManager.tick(server);
@@ -93,6 +93,7 @@ public class ComboRush implements ModInitializer {
             WeaponAbilities.tick(server);
             EliteMobs.tick(server);
             RiftManager.tick(server);
+            com.derevna230.comborush.boss.TraderSpawner.tick(server);
             com.derevna230.comborush.campaign.Campaign.tick(server);
             if (server.getTicks() % 100 == 0)
                 server.getPlayerManager().getPlayerList().forEach(p -> { BoosterApplier.sync(p); SpeciesApplier.sync(p); ArmorSetApplier.sync(p); });
@@ -104,8 +105,8 @@ public class ComboRush implements ModInitializer {
             PromoManager.onJoin(handler.player);
             CosmeticManager.refresh(handler.player);
             Leaderboard.update(handler.player);
-            if (PlayerProfile.of(handler.player).eventsDone() == 0)
-                handler.player.sendMessage(Text.literal("§6Выбери существо: §f/species§6, магазин: §f/shop"), false);
+            if (!PlayerProfile.of(handler.player).started())
+                com.derevna230.comborush.score.ScoreEngine.remindStart(handler.player, true);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {

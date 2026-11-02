@@ -62,6 +62,8 @@ public class CycleManager {
         DirectorManager.start(server);
         com.derevna230.comborush.rift.RiftManager.onEventStart(server);
         HudSync.closeShop(server);
+        for (var p : server.getPlayerManager().getPlayerList())
+            if (!com.derevna230.comborush.data.PlayerProfile.of(p).started()) ScoreEngine.remindStart(p, true);
         updateBar(server);
     }
 

@@ -27,16 +27,18 @@ public class EssenceShopScreen extends Screen {
     private static final int LOGO_W = 512, LOGO_H = 364;
     private static final int DW = 420, DH = 250;
     private static final ItemStack ESSENCE = new ItemStack(Items.AMETHYST_SHARD);
+    private static final ItemStack DIAMOND = new ItemStack(Items.DIAMOND);
 
     static final class Drop { String name = "", rar = "common", chance = ""; double p; }
     static final class CaseV {
-        String id = "", name = "", desc = "", rar = "common";
+        String id = "", name = "", desc = "", rar = "common", cur = "essence";
         int price, owned;
+        boolean diamond() { return cur.equals("diamond"); }
         ItemStack stack = ItemStack.EMPTY;
         List<Drop> drops = new ArrayList<>();
     }
     static final class Data {
-        int essence, resets;
+        int essence, resets, diamonds;
         String msg = ""; boolean ok = true;
         String handName = "", handRar = "common"; int handValue = 0;
         List<CaseV> cases = new ArrayList<>();
@@ -79,7 +81,7 @@ public class EssenceShopScreen extends Screen {
 
     private static Data parse(JsonObject o) {
         Data d = new Data();
-        d.essence = num(o, "essence"); d.resets = num(o, "resets");
+        d.essence = num(o, "essence"); d.resets = num(o, "resets"); d.diamonds = num(o, "diamonds");
         d.msg = str(o, "msg", ""); d.ok = !o.has("ok") || o.get("ok").getAsBoolean();
         if (o.has("hand")) {
             JsonObject h = o.getAsJsonObject("hand");
@@ -89,7 +91,7 @@ public class EssenceShopScreen extends Screen {
             JsonObject j = el.getAsJsonObject();
             CaseV c = new CaseV();
             c.id = str(j, "id", ""); c.name = str(j, "name", "?"); c.desc = str(j, "desc", ""); c.rar = str(j, "rar", "common");
-            c.price = num(j, "price"); c.owned = num(j, "owned");
+            c.price = num(j, "price"); c.owned = num(j, "owned"); c.cur = str(j, "cur", "essence");
             Identifier id = Identifier.tryParse(str(j, "item", ""));
             c.stack = id != null && Registries.ITEM.containsId(id) ? new ItemStack(Registries.ITEM.get(id)) : ItemStack.EMPTY;
             if (j.has("drops")) for (JsonElement de : j.getAsJsonArray("drops")) {
@@ -111,7 +113,7 @@ public class EssenceShopScreen extends Screen {
                 HudModel.play(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.1f, 0.4f);
             } else HudModel.play(SoundEvents.ENTITY_VILLAGER_NO, 1.0f, 0.6f);
         }
-        if (n.ok && n.essence < d.essence) buyAt = now;
+        if (n.ok && (n.essence < d.essence || n.diamonds < d.diamonds)) buyAt = now;
         d = n;
         if (sel >= d.cases.size()) sel = -1;
     }
@@ -257,7 +259,7 @@ public class EssenceShopScreen extends Screen {
     private void drawCases(DrawContext c, long now) {
         int n = d.cases.size();
         if (n == 0) { text(c, "Кейсы не загружены", 258, 150, 1f, 0xFFFFFFFF, 1); return; }
-        float cw = 56, gap = 6;
+        float cw = n > 6 ? 42 : n > 5 ? 48 : 56, gap = n > 6 ? 4 : n > 5 ? 5 : 6;
         float total = n * cw + (n - 1) * gap;
         float x0 = 258 - total / 2f + 1, y = 112;
         for (int i = 0; i < n; i++) {
@@ -266,7 +268,7 @@ public class EssenceShopScreen extends Screen {
             String key = "c" + i;
             float ha = hov.getOrDefault(key, 0f);
             boolean selected = sel == i;
-            boolean afford = d.essence >= cv.price;
+            boolean afford = cv.diamond() ? d.diamonds >= cv.price : d.essence >= cv.price;
             float dealT = Math.min(1f, Math.max(0f, ((now - openAt) / 1e6f - 120f * i) / 450f));
             float deal = 1f - (1f - dealT) * (1f - dealT) * (1f - dealT);
             if (deal <= 0.01f) continue;
@@ -325,15 +327,16 @@ public class EssenceShopScreen extends Screen {
             // ценник
             float py = y + 96 + (1f - deal) * 80f;
             c.fill((int) x + 7, (int) py - 1, (int) (x + cw - 7), (int) py + 12, 0xFF000000);
-            c.fillGradient((int) x + 8, (int) py, (int) (x + cw - 8), (int) py + 11, afford ? 0xFFE89AFF : 0xFFB06060, afford ? 0xFF8A2AB0 : 0xFF702020);
-            m.push(); m.translate(x + 10, py + 1.5f, 0); m.scale(0.5f, 0.5f, 1f); c.drawItem(ESSENCE, 0, 0); m.pop();
+            int tagTop = cv.diamond() ? 0xFF7AF0FF : 0xFFE89AFF, tagBot = cv.diamond() ? 0xFF1E8AA8 : 0xFF8A2AB0;
+            c.fillGradient((int) x + 8, (int) py, (int) (x + cw - 8), (int) py + 11, afford ? tagTop : 0xFFB06060, afford ? tagBot : 0xFF702020);
+            m.push(); m.translate(x + 10, py + 1.5f, 0); m.scale(0.5f, 0.5f, 1f); c.drawItem(cv.diamond() ? DIAMOND : ESSENCE, 0, 0); m.pop();
             text(c, Integer.toString(cv.price), x + cw - 11, py + 2, 0.85f, 0xFFFFFFFF, 2);
 
             if (selected) {
                 button(c, "buy" + i, x + 2, py + 15, cw - 4, 12, "КУПИТЬ", 0x6FE08A, 0x1E8A4A, afford,
                     () -> send("eshop_buy", cv.id),
                     () -> List.of(Text.literal("§aКупить «" + cv.name + "»"),
-                        Text.literal((afford ? "§d" : "§c") + cv.price + " эссенции")));
+                        Text.literal((afford ? (cv.diamond() ? "§b" : "§d") : "§c") + cv.price + (cv.diamond() ? " алмазов" : " эссенции"))));
             }
         }
     }
@@ -353,7 +356,10 @@ public class EssenceShopScreen extends Screen {
             t.add(Text.literal(" " + rarCode(r) + "■ " + rarLabel(r) + " §8— §7" + pct));
             for (String l : wrap(String.join(", ", names), 260)) t.add(Text.literal("   §f" + l));
         }
-        t.add(Text.literal("§dЦена: " + cv.price + " эссенции"));
+        if (cv.diamond()) {
+            t.add(Text.literal("§bЦена: " + cv.price + " алмазов"));
+            t.add(Text.literal((d.diamonds >= cv.price ? "§7" : "§c") + "В инвентаре алмазов: " + d.diamonds));
+        } else t.add(Text.literal("§dЦена: " + cv.price + " эссенции"));
         if (cv.owned > 0) t.add(Text.literal("§aВ инвентаре: " + cv.owned));
         return t;
     }

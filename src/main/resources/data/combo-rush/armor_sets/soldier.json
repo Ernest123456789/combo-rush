@@ -1,0 +1,29 @@
+{
+  "name": "Солдат",
+  "description": "Тяжёлый доспех пехоты: держит удар и не сдаёт позиций.",
+  "piece_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 5,
+      "source": "KILL"
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.4
+    },
+    {
+      "type": "attribute",
+      "value": 0.5,
+      "id": "minecraft:generic.knockback_resistance",
+      "operation": "add_value"
+    },
+    {
+      "type": "attribute",
+      "value": 4,
+      "id": "minecraft:generic.max_health",
+      "operation": "add_value"
+    }
+  ]
+}

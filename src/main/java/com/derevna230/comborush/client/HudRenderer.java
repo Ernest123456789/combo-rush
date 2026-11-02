@@ -356,6 +356,8 @@ public final class HudRenderer {
     // ===================================================== подсказки при наведении (когда курсор свободен: чат, инвентарь)
     private static void drawHover(DrawContext c, TextRenderer tr, MinecraftClient mc, int W, int H, float s) {
         if (mc.currentScreen == null) return;
+        // свои экраны мода (магазин, существа, журнал…) рисуют свои подсказки — иначе две накладываются
+        if (mc.currentScreen.getClass().getName().startsWith("com.derevna230.")) return;
         double mx = mc.mouse.getX() * W / mc.getWindow().getWidth();
         double my = mc.mouse.getY() * H / mc.getWindow().getHeight();
         float lx = (float) ((mx - (W - MARGIN)) / s);

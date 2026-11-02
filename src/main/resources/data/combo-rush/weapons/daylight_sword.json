@@ -1,0 +1,25 @@
+{
+  "name": "Меч Дневного света",
+  "description": "Свет, рассекающий тьму: днём бьёт сильнее.",
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.25,
+      "condition": "day"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "ignite",
+      "duration": 3
+    },
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.5,
+      "id": "minecraft:glowing",
+      "duration": 5
+    }
+  ]
+}

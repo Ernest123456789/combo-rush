@@ -1,0 +1,23 @@
+{
+  "name": "Артиллерист",
+  "description": "Снаряжение расчёта: каждое убийство подзаряжает счёт.",
+  "piece_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "KILL"
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.35
+    },
+    {
+      "type": "attribute",
+      "value": 0.25,
+      "id": "minecraft:generic.knockback_resistance",
+      "operation": "add_value"
+    }
+  ]
+}

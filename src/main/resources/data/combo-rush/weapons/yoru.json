@@ -1,0 +1,31 @@
+{
+  "name": "Йору",
+  "description": "Чёрный клинок: ночью он смертоноснее всего.",
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.25,
+      "condition": "night"
+    },
+    {
+      "type": "chips_per_action",
+      "value": 8,
+      "source": "KILL"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.2,
+      "value": 0.7
+    },
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.25,
+      "id": "minecraft:slowness",
+      "duration": 3
+    }
+  ]
+}

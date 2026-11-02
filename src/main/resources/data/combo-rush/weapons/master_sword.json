@@ -1,0 +1,30 @@
+{
+  "name": "Мастер-меч",
+  "description": "Клинок, побеждающий тьму. Подпитывает владельца силой.",
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.2
+    },
+    {
+      "type": "attribute",
+      "value": 2,
+      "id": "minecraft:generic.max_health",
+      "operation": "add_value"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "heal",
+      "chance": 0.25,
+      "value": 2
+    },
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.15,
+      "value": 0.5
+    }
+  ]
+}

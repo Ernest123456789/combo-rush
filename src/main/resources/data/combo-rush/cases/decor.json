@@ -1,0 +1,62 @@
+{
+  "name": "Кейс декора",
+  "description": "Растения, костёр, грибной пень, голем и машины для твоего двора. Только за алмазы.",
+  "rarity": "rare",
+  "price": 12,
+  "currency": "diamond",
+  "order": 6,
+  "drops": [
+    {
+      "set": "decor_camping_campfire",
+      "weight": 90
+    },
+    {
+      "set": "decor_wooden_stump",
+      "weight": 90
+    },
+    {
+      "set": "decor_fern_pot",
+      "weight": 90
+    },
+    {
+      "set": "decor_tiny_cactus",
+      "weight": 90
+    },
+    {
+      "set": "decor_fumeshroom",
+      "weight": 55
+    },
+    {
+      "set": "decor_armor_stand",
+      "weight": 55
+    },
+    {
+      "set": "decor_glow_shrooms",
+      "weight": 55
+    },
+    {
+      "set": "decor_wandering_trader",
+      "weight": 30
+    },
+    {
+      "set": "decor_mustang",
+      "weight": 30
+    },
+    {
+      "set": "decor_moon_lily",
+      "weight": 30
+    },
+    {
+      "set": "decor_redstone_golem",
+      "weight": 12
+    },
+    {
+      "set": "decor_mustang_modified",
+      "weight": 10
+    },
+    {
+      "set": "decor_trueno",
+      "weight": 10
+    }
+  ]
+}

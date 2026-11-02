@@ -12,7 +12,7 @@
 - **Босс-блайнды** каждое 5-е событие — со своим запретом.
 - **78 усилителей** с редкостью и изданиями, расходники, **9 существ** с рангами.
 - **Разломы** с волнами мобов и **элитные мобы** с фольгой, голограммой и полихромом.
-- **Эссенция** за сброс забега и **кейсы** с рулеткой: 7 комплектов брони с 3D-моделями, оружие со способностями, боевые питомцы, декоративные растения.
+- **Эссенция** за сброс забега и **кейсы** с рулеткой: 11 комплектов брони с 3D-моделями, 32 оружия со способностями, боевые питомцы. Отдельный **Кейс декора** за алмазы — растения, костёр, пень, голем и машины для двора.
 - **Зачарованный скейтборд** со следом полихрома, высоким прыжком и планированием.
 
 ## Сюжетная кампания «Сезон»
@@ -33,7 +33,12 @@
 - Ставится на сервер **и** игрокам. Работает и в одиночной игре.
 - Настройки сервера — `config/combo-rush.json`: длительность событий, разломы, элитные мобы, босс-блайнды, монеты, вкл/выкл кампании.
 
+## Авторы моделей
+3D-модели брони, оружия, питомцев и кейсов — авторов [Blockbench Workshop](https://blockbenchworkshop.com): @capellastudio, @eanncrod, @polyjo, @alexander, @megadeker, @hasu0222, @dalviin, @9greenworks, @zackblaze9, @wek0129ww, @xbunnyu, @morderfisch, @yfsiou, @netherlife15, @lucaswang12345, @ziiwplay, @iexogen, @octopusstudio, @logan_kant, @elma_taburlas, @nasser404, @skrappi, @gold3nz, @nyxaris, @monkus, @conczin, @tinyslimestudio, @anolxd. Лицензии (CC BY 4.0, CC BY-NC 4.0, CC0) и ссылки на каждую модель — в CREDITS.md в репозитории и внутри jar.
+
 ---
 
 ### English
-**Combo Rush** turns Minecraft into a Balatro-style score attack. Every few minutes an event starts: mine, fight, farm and trade to score **chips × mult** points, earn medals and coins, and spend them between rounds on joker-like boosters that bend the scoring rules. Reset after 50 events for essence and open cases with 3D armor, weapons and pets. A full story campaign, "Season", adds NPCs, a timed courier run, a skateboard race, a "red light, green light" mini-boss and a three-phase final boss with two server-wide endings. Requires Fabric API, Minecraft 1.21.1. Install on both server and clients. UI and story are in Russian.
+**Combo Rush** turns Minecraft into a Balatro-style score attack. Every few minutes an event starts: mine, fight, farm and trade to score **chips × mult** points, earn medals and coins, and spend them between rounds on joker-like boosters that bend the scoring rules. Reset after 50 events for essence and open cases with 3D armor, weapons and pets. A full story campaign, "Season", adds NPCs, a timed courier run, a skateboard race, a "red light, green light" mini-boss and a three-phase final boss with two server-wide endings. A wandering Redstone Trader visits players now and then and sells the Golem Heart, which summons the Redstone Golem: a huge two-phase boss with shockwaves, an eye beam, lightning barrages and a core nova you have to take cover from. Requires Fabric API, Minecraft 1.21.1. Install on both server and clients. UI and story are in Russian.
+
+3D models by Blockbench Workshop creators (CC BY 4.0 / CC BY-NC 4.0 / CC0) — full credits, links and changes in CREDITS.md (also inside the jar). Mod code is CC0.

@@ -45,7 +45,9 @@ public class PlacedBlocks {
             ItemStack st = player.getStackInHand(hand);
             if (!(st.getItem() instanceof BlockItem bi)) return ActionResult.PASS;
             Block block = bi.getBlock();
-            if (!block.getDefaultState().isIn(ConventionalBlockTags.ORES)) return ActionResult.PASS;
+            // руды и «урожайные» блоки (тыква, арбуз): иначе их можно ставить и ломать ради очков
+            if (!block.getDefaultState().isIn(ConventionalBlockTags.ORES)
+                && block != net.minecraft.block.Blocks.MELON && block != net.minecraft.block.Blocks.PUMPKIN) return ActionResult.PASS;
 
             // куда встанет блок: в заменяемый блок (трава, вода), иначе рядом с кликнутой гранью
             BlockPos clicked = hit.getBlockPos();

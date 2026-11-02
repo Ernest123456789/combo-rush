@@ -1,0 +1,24 @@
+{
+  "name": "Меч забытого героя",
+  "description": "Помнит старые подвиги и учит нового владельца.",
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.1
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.25,
+      "value": 0.8
+    },
+    {
+      "trigger": "kill",
+      "type": "self_effect",
+      "id": "minecraft:strength",
+      "duration": 4
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Сангвин",
+  "description": "Багровый наряд: кровь делает счёт щедрее.",
+  "piece_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.1
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "mult_times",
+      "value": 1.25
+    },
+    {
+      "type": "chips_per_action",
+      "value": 8,
+      "source": "KILL"
+    },
+    {
+      "type": "attribute",
+      "value": 2,
+      "id": "minecraft:generic.max_health",
+      "operation": "add_value"
+    }
+  ]
+}

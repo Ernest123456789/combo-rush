@@ -18,16 +18,26 @@ public final class SpeciesService {
     /** Строка бонуса или штрафа: good = плюс для игрока */
     public record Trait(String text, boolean good) {}
 
-    public static boolean canChange(PlayerProfile p) { return p.eventsDone() == 0; }
+    /** До начала забега или до первого засчитанного события существо можно менять */
+    public static boolean canChange(PlayerProfile p) { return p.eventsDone() == 0 || !p.started(); }
+
+    /** Подтвердить старт забега с текущим существом */
+    public static Res start(ServerPlayerEntity player) {
+        PlayerProfile p = PlayerProfile.of(player);
+        if (p.started()) return Res.err("Забег уже идёт.");
+        player.setAttached(PlayerProfile.TYPE, p.withStarted());
+        com.derevna230.comborush.campaign.Campaign.trigger(player, "species", "", 1);
+        return Res.ok("Забег начат! Существо: " + SpeciesRegistry.get(p.species()).name + ". События теперь засчитываются.");
+    }
 
     public static Res choose(ServerPlayerEntity player, String id) {
         PlayerProfile p = PlayerProfile.of(player);
         if (!SpeciesRegistry.exists(id)) return Res.err("Такого существа нет.");
         SpeciesDef d = SpeciesRegistry.get(id);
-        if (d.id.equals(p.species())) return Res.err("Это существо уже выбрано.");
+        if (d.id.equals(p.species())) return p.started() ? Res.err("Это существо уже выбрано.") : start(player);
         if (!d.unlockedFor(p)) return Res.err("Закрыто: нужно сбросов — " + d.unlock_resets + ".");
         if (!canChange(p)) return Res.err("Сменить существо можно только после сброса.");
-        player.setAttached(PlayerProfile.TYPE, p.withSpecies(d.id));
+        player.setAttached(PlayerProfile.TYPE, p.withSpecies(d.id).withStarted());
         SpeciesApplier.sync(player);
         com.derevna230.comborush.campaign.Campaign.trigger(player, "species", "", 1);
         return Res.ok("Теперь ты: " + d.name);

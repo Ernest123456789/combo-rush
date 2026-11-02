@@ -1,0 +1,28 @@
+{
+  "name": "Крабер",
+  "description": "Один выстрел — один враг. Бьёт издалека.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 15,
+      "source": "KILL"
+    },
+    {
+      "type": "mult_times",
+      "value": 1.2
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.35,
+      "value": 1.0
+    },
+    {
+      "trigger": "hit",
+      "type": "knockback",
+      "value": 0.6
+    }
+  ]
+}

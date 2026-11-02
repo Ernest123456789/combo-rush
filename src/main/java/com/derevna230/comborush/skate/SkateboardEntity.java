@@ -141,11 +141,24 @@ public class SkateboardEntity extends MobEntity implements GeoEntity {
     @Override
     protected float getSaddledSpeed(PlayerEntity player) { return SkateData.speed(speedLevel()); }
 
+    /** Скейты игроков, погибших на них при keepInventory: выдаются после возрождения */
+    private static final java.util.Map<java.util.UUID, ItemStack> PENDING = new java.util.HashMap<>();
+
+    public static void registerEvents() {
+        net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            ItemStack st = PENDING.remove(newPlayer.getUuid());
+            if (st != null) newPlayer.getInventory().offerOrDrop(st);
+        });
+    }
+
     @Override
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
         if (!this.getWorld().isClient && !this.isRemoved()) {
             if (passenger instanceof ServerPlayerEntity sp && sp.isAlive()) sp.getInventory().offerOrDrop(toStack());
+            else if (passenger instanceof ServerPlayerEntity sp
+                    && sp.getServerWorld().getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY))
+                PENDING.put(sp.getUuid(), toStack());          // умер на скейте при сохранении инвентаря — вернём после возрождения
             else this.dropStack(toStack());
             this.discard();
         }

@@ -2,6 +2,8 @@ package com.derevna230.comborush.pet;
 
 import com.derevna230.comborush.item.ModItems;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -58,6 +60,20 @@ public class DecorEntity extends PathAwareEntity implements GeoEntity {
     }
 
     public String decorId() { return this.dataTracker.get(DECOR); }
+
+    /** Хитбокс зависит от вида декора (машина шире растения) */
+    @Override
+    public EntityDimensions getDimensions(EntityPose pose) {
+        if (this.dataTracker == null) return super.getDimensions(pose);
+        DecorSizes.Size s = DecorSizes.of(decorId());
+        return EntityDimensions.fixed(s.width(), s.height());
+    }
+
+    @Override
+    public void onTrackedDataSet(TrackedData<?> data) {
+        super.onTrackedDataSet(data);
+        if (DECOR.equals(data)) this.calculateDimensions();
+    }
     public void setDecorId(String id) { this.dataTracker.set(DECOR, id); }
 
     @Override

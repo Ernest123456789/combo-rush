@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBlockTags;
-import net.minecraft.block.CropBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.mob.HostileEntity;
@@ -27,6 +26,7 @@ public class ScoreListeners {
     private static final double SPAWNER_MULT = 0.25;
 
     public static void register() {
+        Harvest.register();
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, be) -> {
             if (!(player instanceof ServerPlayerEntity sp)) return;
             String id = Registries.BLOCK.getId(state.getBlock()).toString();
@@ -45,8 +45,11 @@ public class ScoreListeners {
                 } else {
                     ScoreEngine.award(sp, ScoreSource.MINE, id);
                 }
-            } else if (state.getBlock() instanceof CropBlock crop && crop.isMature(state)) {
-                ScoreEngine.award(sp, ScoreSource.HARVEST, id);
+            } else if (Harvest.isRipe(state)) {
+                if (placedByPlayer) {                  // поставленные тыквы и арбузы — не урожай
+                    if (CycleManager.phase() == CyclePhase.EVENT)
+                        sp.sendMessage(Text.literal("§7Поставленный блок урожаем не считается."), true);
+                } else ScoreEngine.award(sp, ScoreSource.HARVEST, id);
             }
         });
 

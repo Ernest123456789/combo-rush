@@ -77,6 +77,17 @@ public record PlayerProfile(int coins, int eventsDone, long totalScore,
     public int rankOf(String speciesId) { return ranks.getOrDefault(speciesId, 0); }
     public long statLong(String key) { return stats.getOrDefault(key, 0L); }
 
+    /**
+     * Забег начат: игрок выбрал существо или подтвердил старт (/cr ready). До этого события его не засчитывают,
+     * и существо можно выбрать в любой момент. Флаг сбрасывается вместе с забегом.
+     * Старые профили: уже играли и выбрали не человека — считаются начатыми.
+     */
+    public boolean started() {
+        return stats.getOrDefault("run_started", 0L) > 0
+            || (eventsDone > 0 && !species.equals(SpeciesRegistry.DEFAULT_ID));
+    }
+    public PlayerProfile withStarted() { B b = b(); b.stats.put("run_started", 1L); return b.build(); }
+
     /** Значение для масштабирования усилителей (ключи см. README) */
     public double stat(String key) {
         return switch (key) {

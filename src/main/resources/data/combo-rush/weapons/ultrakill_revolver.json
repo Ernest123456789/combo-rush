@@ -1,0 +1,23 @@
+{
+  "name": "Пробивной револьвер",
+  "description": "Тяжёлый револьвер: каждый выстрел может оказаться критическим.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "source": "KILL"
+    },
+    {
+      "type": "mult_add",
+      "value": 0.15
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "crit",
+      "chance": 0.3,
+      "value": 0.8
+    }
+  ]
+}

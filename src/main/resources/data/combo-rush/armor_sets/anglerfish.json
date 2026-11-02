@@ -1,0 +1,25 @@
+{
+  "name": "Удильщик",
+  "description": "Глубоководный доспех: светит там, где другие слепнут.",
+  "piece_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 3,
+      "source": "KILL"
+    }
+  ],
+  "set_effects": [
+    {
+      "type": "status_effect",
+      "id": "minecraft:night_vision"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:water_breathing"
+    },
+    {
+      "type": "coin_bonus",
+      "value": 0.1
+    }
+  ]
+}

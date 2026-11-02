@@ -18,6 +18,9 @@ public final class ModEntities {
     /** Сюжетные персонажи (Билетёр, адресаты) и предметы сцены (афиши) — один класс, разный размер */
     public static EntityType<com.derevna230.comborush.campaign.StoryEntity> STORY_NPC;
     public static EntityType<com.derevna230.comborush.campaign.StoryEntity> STORY_PROP;
+    /** Босс «Редстоуновый голем» и Торговец Редстоуна, продающий Сердце голема */
+    public static EntityType<com.derevna230.comborush.boss.RedstoneGolemEntity> GOLEM;
+    public static EntityType<com.derevna230.comborush.boss.GolemTraderEntity> TRADER;
 
     public static void init() {
         PET = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "pet"),
@@ -51,5 +54,18 @@ public final class ModEntities {
                 .maxTrackingRange(10)
                 .build("story_prop"));
         FabricDefaultAttributeRegistry.register(STORY_PROP, com.derevna230.comborush.campaign.StoryEntity.createAttributes());
+        GOLEM = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "redstone_golem"),
+            EntityType.Builder.create(com.derevna230.comborush.boss.RedstoneGolemEntity::new, SpawnGroup.MONSTER)
+                .dimensions(2.8f, 4.7f)
+                .maxTrackingRange(16)
+                .makeFireImmune()
+                .build("redstone_golem"));
+        FabricDefaultAttributeRegistry.register(GOLEM, com.derevna230.comborush.boss.RedstoneGolemEntity.createAttributes());
+        TRADER = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "golem_trader"),
+            EntityType.Builder.create(com.derevna230.comborush.boss.GolemTraderEntity::new, SpawnGroup.MISC)
+                .dimensions(0.6f, 1.95f)
+                .maxTrackingRange(10)
+                .build("golem_trader"));
+        FabricDefaultAttributeRegistry.register(TRADER, com.derevna230.comborush.boss.GolemTraderEntity.createAttributes());
     }
 }

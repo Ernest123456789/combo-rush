@@ -37,7 +37,11 @@ public final class ModItems {
         new SetInfo("templar",       "rare",      new int[]{3, 6, 5, 2}, 1f),
         new SetInfo("raider",        "epic",      new int[]{2, 6, 5, 2}, 1f),
         new SetInfo("reverent",      "legendary", new int[]{3, 8, 6, 3}, 2.5f),
-        new SetInfo("heavenly",      "legendary", new int[]{3, 7, 6, 3}, 2f));
+        new SetInfo("heavenly",      "legendary", new int[]{3, 7, 6, 3}, 2f),
+        new SetInfo("soldier",       "epic",      new int[]{3, 7, 6, 3}, 1.5f),
+        new SetInfo("artillerist",   "rare",      new int[]{3, 6, 5, 2}, 1f),
+        new SetInfo("sanguine",      "epic",      new int[]{2, 6, 5, 2}, 1f),
+        new SetInfo("anglerfish",    "epic",      new int[]{2, 5, 4, 2}, 1f));
 
     public static final List<SetInfo> HATS = List.of(
         new SetInfo("straw_hat",  "common",   null, 0f),
@@ -64,15 +68,25 @@ public final class ModItems {
         new WeaponInfo("guardian_shield",  "rare",      "shield", 0, 0, false),
         new WeaponInfo("flame_blade",      "rare",      "sword",  8, 1.6, true),
         new WeaponInfo("dreaded_blade",    "epic",      "sword",  9, 1.5, false),
-        new WeaponInfo("crimson_fang",     "epic",      "sword",  9, 1.4, false),
         new WeaponInfo("thorn_bow",        "epic",      "bow",    0, 0, false),
         new WeaponInfo("angler_trident",   "epic",      "sword",  9, 1.2, true),
         new WeaponInfo("bass_guitar",      "epic",      "sword",  8, 1.0, true),
         new WeaponInfo("flintlock",        "epic",      "gun",    4, 1.0, true),
+        new WeaponInfo("swept_rapier",     "epic",      "sword",  8, 1.9, false),
         new WeaponInfo("polar_soul",       "legendary", "sword", 10, 1.4, true),
         new WeaponInfo("void_claymore",    "legendary", "sword", 13, 0.9, true),
         new WeaponInfo("storm_spear",      "legendary", "sword", 10, 1.2, true),
-        new WeaponInfo("hunting_shotgun",  "legendary", "gun",    5, 1.0, true));
+        new WeaponInfo("hunting_shotgun",  "legendary", "gun",    5, 1.0, true),
+        new WeaponInfo("iron_sword",           "uncommon",  "sword",  6, 1.6, true),
+        new WeaponInfo("monkey_sword",         "rare",      "sword",  8, 1.6, true),
+        new WeaponInfo("kikoku",               "rare",      "sword",  8, 1.8, true),
+        new WeaponInfo("forgotten_hero_sword", "epic",      "sword", 10, 1.3, true),
+        new WeaponInfo("yoru",                 "epic",      "sword", 10, 1.2, true),
+        new WeaponInfo("daylight_sword",       "epic",      "sword",  9, 1.5, true),
+        new WeaponInfo("master_sword",         "legendary", "sword", 11, 1.6, false),
+        new WeaponInfo("ultrakill_revolver",   "epic",      "gun",    4, 1.0, true),
+        new WeaponInfo("an94",                 "epic",      "gun",    4, 1.0, true),
+        new WeaponInfo("kraber",               "legendary", "gun",    5, 1.0, true));
 
     /** Питомцы: предмет combo-rush:pet_<id>, способности в data/<modid>/pets/pet_<id>.json */
     public record PetInfo(String id, String rarity) {}
@@ -90,14 +104,27 @@ public final class ModItems {
         new PetInfo("fern_pot", "common"),
         new PetInfo("tiny_cactus", "common"),
         new PetInfo("glow_shrooms", "uncommon"),
-        new PetInfo("moon_lily", "rare"));
+        new PetInfo("moon_lily", "rare"),
+        new PetInfo("camping_campfire", "common"),
+        new PetInfo("wooden_stump", "common"),
+        new PetInfo("fumeshroom", "uncommon"),
+        new PetInfo("armor_stand", "uncommon"),
+        new PetInfo("wandering_trader", "rare"),
+        new PetInfo("mustang", "rare"),
+        new PetInfo("redstone_golem", "epic"),
+        new PetInfo("mustang_modified", "epic"),
+        new PetInfo("trueno", "epic"));
 
     public static Item WATER_BOTTLE;
     public static Item SKATEBOARD;
     public static Item PASS;
     public static Item LETTER;
+    /** Предмет-призыв босса «Редстоуновый голем» (у Торговца Редстоуна) */
+    public static Item REDSTONE_HEART;
+    /** Карманные станки из Мастерской: id → предмет */
+    public static final Map<String, Item> POCKET = new LinkedHashMap<>();
 
-    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic");
+    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor");
     public static final List<String> PIECES = List.of("helmet", "chestplate", "leggings", "boots");
 
     /** комплект → его предметы (у шляп один предмет) */
@@ -147,9 +174,7 @@ public final class ModItems {
                 case "pick" -> new CRPickaxeItem(w.id(), st.attributeModifiers(attrs(w.damage(), w.speed())));
                 case "bow" -> new CRBowItem(w.id(), st);
                 case "shield" -> new CRShieldItem(w.id(), st);
-                case "gun" -> w.id().equals("hunting_shotgun")
-                    ? new CRGunItem(w.id(), st.attributeModifiers(attrs(w.damage(), w.speed())), 4f, 7, 0.09, 26, 24)
-                    : new CRGunItem(w.id(), st.attributeModifiers(attrs(w.damage(), w.speed())), 18f, 1, 0, 50, 48);
+                case "gun" -> gun(w.id(), st.attributeModifiers(attrs(w.damage(), w.speed())));
                 default -> w.gecko()
                     ? new CRGeoSwordItem(w.id(), st.attributeModifiers(attrs(w.damage(), w.speed())))
                     : new CRSwordItem(w.id(), st.attributeModifiers(attrs(w.damage(), w.speed())));
@@ -181,6 +206,11 @@ public final class ModItems {
         SKATEBOARD = register("skateboard", new SkateboardItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
         PASS = register("pass", new com.derevna230.comborush.campaign.PassItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
         LETTER = register("letter", new com.derevna230.comborush.campaign.LetterItem(new Item.Settings().maxCount(1)));
+        REDSTONE_HEART = register("redstone_heart", new RedstoneHeartItem(new Item.Settings().maxCount(4).rarity(Rarity.EPIC)));
+        POCKET.put("pocket_crafting", register("pocket_crafting", new PocketToolItem(PocketToolItem.Kind.CRAFTING, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));
+        POCKET.put("pocket_furnace", register("pocket_furnace", new PocketToolItem(PocketToolItem.Kind.FURNACE, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));
+        POCKET.put("pocket_anvil", register("pocket_anvil", new PocketToolItem(PocketToolItem.Kind.ANVIL, new Item.Settings().maxCount(1).rarity(Rarity.RARE))));
+        POCKET.put("pocket_enchanting", register("pocket_enchanting", new PocketToolItem(PocketToolItem.Kind.ENCHANTING, new Item.Settings().maxCount(1).rarity(Rarity.RARE))));
         for (String c : CASE_IDS) {
             Item it = register("case_" + c, new CaseItem(c, new Item.Settings().maxCount(16).rarity(mcRarity(c))));
             CASES.put(c, it);
@@ -191,6 +221,17 @@ public final class ModItems {
             .displayName(Text.translatable("itemGroup.combo-rush.main"))
             .entries((ctx, entries) -> ALL.forEach(entries::add))
             .build());
+    }
+
+    /** Огнестрел: урон за выстрел, дробин, разброс, перезарядка (тики), дальность */
+    private static Item gun(String id, Item.Settings st) {
+        return switch (id) {
+            case "hunting_shotgun" -> new CRGunItem(id, st, 4f, 7, 0.09, 26, 24);
+            case "ultrakill_revolver" -> new CRGunItem(id, st, 11f, 1, 0, 24, 56);
+            case "an94" -> new CRGunItem(id, st, 5f, 1, 0.012, 8, 48);
+            case "kraber" -> new CRGunItem(id, st, 40f, 1, 0, 70, 128);
+            default -> new CRGunItem(id, st, 18f, 1, 0, 50, 48);
+        };
     }
 
     private static Item register(String name, Item item) {
@@ -217,8 +258,8 @@ public final class ModItems {
     public static Rarity mcRarity(String r) {
         return switch (r) {
             case "uncommon" -> Rarity.UNCOMMON;
-            case "rare" -> Rarity.RARE;
-            case "epic", "legendary", "mythic" -> Rarity.EPIC;
+            case "rare", "decor" -> Rarity.RARE;
+            case "epic", "legendary", "mythic", "dark" -> Rarity.EPIC;
             default -> Rarity.COMMON;
         };
     }

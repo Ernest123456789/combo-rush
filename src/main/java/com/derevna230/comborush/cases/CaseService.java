@@ -15,7 +15,9 @@ import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.ServerTask;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -39,11 +41,38 @@ public final class CaseService {
         CaseDef def = CaseRegistry.get(caseId);
         Item item = ModItems.CASES.get(caseId);
         if (def == null || item == null) return Res.err("Такого кейса нет.");
-        PlayerProfile pr = PlayerProfile.of(p);
-        if (pr.essence() < def.price) return Res.err("Не хватает эссенции: нужно " + def.price + ".");
-        p.setAttached(PlayerProfile.TYPE, pr.addEssence(-def.price));
+        if (def.paysDiamonds()) {
+            if (countDiamonds(p) < def.price) return Res.err("Не хватает алмазов: нужно " + def.price + ".");
+            takeDiamonds(p, def.price);
+        } else {
+            PlayerProfile pr = PlayerProfile.of(p);
+            if (pr.essence() < def.price) return Res.err("Не хватает эссенции: нужно " + def.price + ".");
+            p.setAttached(PlayerProfile.TYPE, pr.addEssence(-def.price));
+        }
         p.getInventory().offerOrDrop(new ItemStack(item));
         return Res.ok("Куплен " + def.name + ". Он в инвентаре — ПКМ, чтобы открыть.");
+    }
+
+    public static int countDiamonds(ServerPlayerEntity p) {
+        int n = 0;
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) {
+            ItemStack st = inv.getStack(i);
+            if (st.isOf(Items.DIAMOND)) n += st.getCount();
+        }
+        return n;
+    }
+
+    public static void takeDiamonds(ServerPlayerEntity p, int amount) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size() && amount > 0; i++) {
+            ItemStack st = inv.getStack(i);
+            if (!st.isOf(Items.DIAMOND)) continue;
+            int t = Math.min(amount, st.getCount());
+            st.decrement(t);
+            amount -= t;
+        }
+        inv.markDirty();
     }
 
     /** Разобрать предмет в основной руке */
@@ -85,7 +114,7 @@ public final class CaseService {
         // Награду кладём на следующем шаге сервера: в креативе после ПКМ игра возвращает предмет в руку
         // и перезаписала бы слот, куда только что легла награда (из-за этого в креативе «ничего не выпадало»).
         ItemStack give = rewardStack.copy();
-        p.getServer().execute(() -> p.getInventory().offerOrDrop(give));
+        p.getServer().send(new ServerTask(p.getServer().getTicks(), () -> p.getInventory().offerOrDrop(give)));
         String rar = ModItems.rarityOf(win.set);
         ArmorSetDef setDef = ArmorSetRegistry.get(win.set);
 

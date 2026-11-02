@@ -35,7 +35,7 @@ public class SpeciesScreen extends Screen {
     }
     static final class Data {
         String current = "", msg = "";
-        boolean canChange = true, ok = true;
+        boolean canChange = true, ok = true, started = true;
         int events, resets, essence, maxRank = 5;
         List<Sp> list = new ArrayList<>();
     }
@@ -85,7 +85,7 @@ public class SpeciesScreen extends Screen {
     private static Data parse(JsonObject o) {
         Data d = new Data();
         d.current = str(o, "current", ""); d.msg = str(o, "msg", "");
-        d.canChange = bool(o, "canChange", true); d.ok = bool(o, "ok", true);
+        d.canChange = bool(o, "canChange", true); d.ok = bool(o, "ok", true); d.started = bool(o, "started", true);
         d.events = num(o, "events"); d.resets = num(o, "resets"); d.essence = num(o, "essence");
         d.maxRank = Math.max(1, num(o, "maxRank"));
         if (o.has("list")) {
@@ -150,7 +150,7 @@ public class SpeciesScreen extends Screen {
     private void pick() {
         if (d.list.isEmpty()) return;
         Sp s = d.list.get(view);
-        if (s.id.equals(d.current)) { toastMsg("Это существо уже выбрано.", false); return; }
+        if (s.id.equals(d.current) && d.started) { toastMsg("Это существо уже выбрано.", false); return; }
         if (!s.unlocked) { toastMsg("Закрыто: нужно сбросов — " + s.need + ".", false); return; }
         if (!d.canChange) { toastMsg("Сменить существо можно только после сброса.", false); return; }
         send("species_pick", s.id);
@@ -293,8 +293,8 @@ public class SpeciesScreen extends Screen {
 
         Sp v = d.list.isEmpty() ? null : d.list.get(view);
         boolean isCurrent = v != null && v.id.equals(d.current);
-        boolean can = v != null && v.unlocked && d.canChange && !isCurrent;
-        String label = isCurrent ? "ВЫБРАНО" : v != null && !v.unlocked ? "ЗАКРЫТО" : !d.canChange ? "ПОСЛЕ СБРОСА" : "ВЫБРАТЬ";
+        boolean can = v != null && v.unlocked && d.canChange && (!isCurrent || !d.started);
+        String label = isCurrent && !d.started ? "НАЧАТЬ" : isCurrent ? "ВЫБРАНО" : v != null && !v.unlocked ? "ЗАКРЫТО" : !d.canChange ? "ПОСЛЕ СБРОСА" : "ВЫБРАТЬ";
         float pulse = can ? 1f + 0.035f * (0.5f + 0.5f * (float) Math.sin(now / 3e8)) : 1f;
         button(c, "pick", 6, 46, 92, 44, label, 0x6FE08A, 0x1E8A4A, can, pulse, this::pick,
             () -> {

@@ -1,0 +1,61 @@
+{
+  "name": "Тёмный кейс",
+  "description": "Трофеи из тёмных подвалов: рапира, броня солдата и шанс на легенду.",
+  "rarity": "epic",
+  "price": 38,
+  "order": 5,
+  "drops": [
+    {
+      "set": "swept_rapier",
+      "weight": 120
+    },
+    {
+      "set": "soldier",
+      "weight": 120
+    },
+    {
+      "set": "dreaded_blade",
+      "weight": 40
+    },
+    {
+      "set": "raider",
+      "weight": 40
+    },
+    {
+      "set": "pet_creeper_skeleton",
+      "weight": 30
+    },
+    {
+      "set": "flintlock",
+      "weight": 30
+    },
+    {
+      "set": "reverent",
+      "weight": 20
+    },
+    {
+      "set": "void_claymore",
+      "weight": 14
+    },
+    {
+      "set": "pet_succubus",
+      "weight": 10
+    },
+    {
+      "set": "sanguine",
+      "weight": 60
+    },
+    {
+      "set": "yoru",
+      "weight": 40
+    },
+    {
+      "set": "forgotten_hero_sword",
+      "weight": 30
+    },
+    {
+      "set": "kikoku",
+      "weight": 30
+    }
+  ]
+}

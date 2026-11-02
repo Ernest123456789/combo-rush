@@ -33,6 +33,14 @@ public final class ModConfig {
         public int reset_after_events = 50;
         public double coin_multiplier = 1.0;
         public boolean campaign = true;
+        public boolean trader_enabled = true;
+        public int trader_minutes = 30;
+        public int diamond_coins = 2;
+        public int emerald_coins = 1;
+        public int price_pocket_crafting = 3;
+        public int price_pocket_furnace = 5;
+        public int price_pocket_anvil = 8;
+        public int price_pocket_enchanting = 12;
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();

@@ -19,10 +19,12 @@ public class CaseDef {
     public String name = "?";
     public String description = "";
     public String rarity = "common";
-    public int price = 10;          // в эссенции
+    public int price = 10;          // в эссенции (или в алмазах, если currency = "diamond")
+    public String currency = "essence";   // "essence" или "diamond"
     public int order = 0;           // порядок в магазине
     public List<Drop> drops = new ArrayList<>();
 
+    public boolean paysDiamonds() { return "diamond".equals(currency); }
     public int totalWeight() { return Math.max(1, drops.stream().mapToInt(d -> Math.max(0, d.weight)).sum()); }
     public double chance(Drop d) { return Math.max(0, d.weight) / (double) totalWeight(); }
 

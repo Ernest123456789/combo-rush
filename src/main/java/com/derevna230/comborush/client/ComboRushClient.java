@@ -26,11 +26,14 @@ public class ComboRushClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> Hints.tick());
         Hints.register();
         TitleCredits.register();
+        InventoryButtons.register();
         EntityRendererRegistry.register(ModEntities.PET, PetRenderer::new);
         EntityRendererRegistry.register(ModEntities.DECOR, DecorRenderer::new);
         EntityRendererRegistry.register(ModEntities.SKATE, SkateRenderer::new);
         EntityRendererRegistry.register(ModEntities.STORY_NPC, StoryRenderer::new);
         EntityRendererRegistry.register(ModEntities.STORY_PROP, StoryRenderer::new);
+        EntityRendererRegistry.register(ModEntities.GOLEM, GolemRenderer::new);
+        EntityRendererRegistry.register(ModEntities.TRADER, TraderRenderer::new);
         // J — журнал «Сценарий»
         net.minecraft.client.option.KeyBinding journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
             new net.minecraft.client.option.KeyBinding("key.combo-rush.journal", net.minecraft.client.util.InputUtil.Type.KEYSYM,
