@@ -63,8 +63,8 @@ public class DecorEntity extends PathAwareEntity implements GeoEntity {
 
     /** Хитбокс зависит от вида декора (машина шире растения) */
     @Override
-    public EntityDimensions getDimensions(EntityPose pose) {
-        if (this.dataTracker == null) return super.getDimensions(pose);
+    public EntityDimensions getBaseDimensions(EntityPose pose) {
+        if (this.dataTracker == null) return super.getBaseDimensions(pose);
         DecorSizes.Size s = DecorSizes.of(decorId());
         return EntityDimensions.fixed(s.width(), s.height());
     }
