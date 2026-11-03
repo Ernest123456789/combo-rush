@@ -257,5 +257,5 @@ public class NightCityChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void appendDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) { }
+    public void getDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) { }
 }
