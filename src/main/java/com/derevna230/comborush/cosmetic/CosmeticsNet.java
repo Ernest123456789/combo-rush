@@ -37,6 +37,7 @@ public final class CosmeticsNet {
         CosmeticDef d = CosmeticRegistry.get(id);
         if (d == null) return Res.err("Такой косметики нет.");
         PlayerProfile p = PlayerProfile.of(player);
+        if (!p.owns(d.id) && !com.derevna230.comborush.universe.Universes.worldOpen(player, d.world)) return Res.err("Откроется после пролога.");
         Res res;
         if (p.owns(d.id)) {
             if (d.id.equals(p.equippedId(d.type))) {
@@ -66,6 +67,7 @@ public final class CosmeticsNet {
         JsonArray items = new JsonArray();
         for (CosmeticDef d : CosmeticRegistry.all()) {
             boolean owned = p.owns(d.id);
+            if (!owned && !com.derevna230.comborush.universe.Universes.worldOpen(player, d.world)) continue;
             JsonObject o = new JsonObject();
             o.addProperty("id", d.id);
             o.addProperty("name", d.name);

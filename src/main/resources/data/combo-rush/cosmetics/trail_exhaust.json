@@ -1,0 +1,10 @@
+{
+  "name": "След: Выхлоп",
+  "description": "Клубы дыма, как у уличного гонщика.",
+  "icon": "minecraft:coal",
+  "type": "trail",
+  "price": 25,
+  "particle": "minecraft:large_smoke",
+  "count": 2,
+  "world": "night_city"
+}

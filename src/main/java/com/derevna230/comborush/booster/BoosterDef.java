@@ -13,6 +13,8 @@ public class BoosterDef {
     public int min_level = 1;
     public String promo = "";              // если задано — усилитель продаётся только пока идёт эта акция
     public int unlock_resets = 0;          // сколько сбросов нужно, чтобы усилитель попал в магазин
+    /** Мир, открывший усилитель ("" — обычный, "night_city" — после пролога, «Ночной город») */
+    public String world = "";
     public boolean negative_allowed = true;
     public List<EffectDef> effects = new ArrayList<>();
 

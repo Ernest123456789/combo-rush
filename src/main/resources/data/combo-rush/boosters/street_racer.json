@@ -1,0 +1,15 @@
+{
+  "name": "Уличный гонщик",
+  "description": "×1.6 к множителю за рулём машины или на скейте",
+  "icon": "minecraft:minecart",
+  "price": 40,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.6,
+      "condition": "driving"
+    }
+  ],
+  "rarity": "rare"
+}

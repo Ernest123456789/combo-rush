@@ -1,0 +1,15 @@
+{
+  "name": "Неоновый пульс",
+  "description": "×1.35 к множителю в Ночном городе",
+  "icon": "minecraft:glow_berries",
+  "price": 30,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.35,
+      "condition": "night_city"
+    }
+  ],
+  "rarity": "uncommon"
+}

@@ -56,6 +56,8 @@ public class ComboRushClient implements ClientModInitializer {
                 && car.getControllingPassenger() == client.player;
             com.derevna230.comborush.car.CarEntity.CLIENT_HANDBRAKE = driving && client.options.jumpKey.isPressed();
             com.derevna230.comborush.car.CarEntity.CLIENT_NITRO = driving && client.options.sprintKey.isPressed();
+            if (driving)   // камера водителя поворачивается плавно, а не 20 раз в секунду рывками
+                ((com.derevna230.comborush.car.CarEntity) client.player.getVehicle()).smoothDriverCamera(client.player);
             if (driving && client.currentScreen == null)
                 client.inGameHud.setOverlayMessage(net.minecraft.text.Text.literal(
                     ((com.derevna230.comborush.car.CarEntity) client.player.getVehicle()).hudText()), false);

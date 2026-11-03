@@ -165,6 +165,22 @@ public class ComboRushCommand {
                 boolean ok = com.derevna230.comborush.boss.TraderSpawner.spawnNear(c.getSource().getPlayerOrThrow().getServerWorld(), c.getSource().getPlayerOrThrow());
                 c.getSource().sendFeedback(() -> Text.literal(ok ? "§cТорговец Редстоуна пришёл." : "§cНе нашёл места для торговца."), false);
                 return ok ? 1 : 0; }))
+            .then(CommandManager.literal("universe").requires(ComboRushCommand::op)
+                .then(CommandManager.literal("night_city").executes(c -> {
+                    String err = com.derevna230.comborush.universe.Universes.enter(c.getSource().getPlayerOrThrow(), true);
+                    if (err != null) c.getSource().sendFeedback(() -> Text.literal("§c" + err), false);
+                    return err == null ? 1 : 0; }))
+                .then(CommandManager.literal("track")
+                    .then(CommandManager.argument("name", StringArgumentType.word())
+                        .suggests((ctx, b) -> CommandSource.suggestMatching(java.util.List.of("serpentine", "summit", "grandprix", "drift"), b))
+                        .executes(c -> {
+                            String err = com.derevna230.comborush.universe.Universes.toSpot(c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "name"));
+                            if (err != null) c.getSource().sendFeedback(() -> Text.literal("§c" + err), false);
+                            return err == null ? 1 : 0; })))
+                .then(CommandManager.literal("home").executes(c -> {
+                    String err = com.derevna230.comborush.universe.Universes.leave(c.getSource().getPlayerOrThrow());
+                    if (err != null) c.getSource().sendFeedback(() -> Text.literal("§c" + err), false);
+                    return err == null ? 1 : 0; })))
             .then(CommandManager.literal("car").requires(ComboRushCommand::op)
                 .then(CommandManager.argument("id", StringArgumentType.word())
                     .suggests((ctx, b) -> CommandSource.suggestMatching(com.derevna230.comborush.car.CarDefs.ALL.keySet(), b))

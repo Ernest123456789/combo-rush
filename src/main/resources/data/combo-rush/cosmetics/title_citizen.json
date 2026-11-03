@@ -1,0 +1,9 @@
+{
+  "name": "Титул: Житель мегаполиса",
+  "description": "Префикс [Мегаполис] в чате.",
+  "icon": "minecraft:sea_lantern",
+  "type": "title",
+  "price": 45,
+  "prefix": "§d[Мегаполис] ",
+  "world": "night_city"
+}

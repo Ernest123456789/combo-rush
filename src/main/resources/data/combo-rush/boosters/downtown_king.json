@@ -1,0 +1,20 @@
+{
+  "name": "Король даунтауна",
+  "description": "×1.5 к множителю среди небоскрёбов и +2 к приросту множителя",
+  "icon": "minecraft:beacon",
+  "price": 50,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 1.5,
+      "condition": "city_urban"
+    },
+    {
+      "type": "combo_step",
+      "value": 0.02,
+      "condition": "city_urban"
+    }
+  ],
+  "rarity": "epic"
+}

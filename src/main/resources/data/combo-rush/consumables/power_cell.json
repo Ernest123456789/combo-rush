@@ -1,0 +1,9 @@
+{
+  "name": "Силовая ячейка",
+  "description": "Повышает уровень усилителя на 1. Заряжена неоном.",
+  "icon": "minecraft:copper_ingot",
+  "price": 22,
+  "rarity": "uncommon",
+  "action": "level_up",
+  "world": "night_city"
+}

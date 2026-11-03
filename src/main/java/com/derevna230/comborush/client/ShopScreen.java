@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 public class ShopScreen extends Screen {
     // ---------------- данные ----------------
     static final class View {
-        String id = "", name = "", desc = "", icon = "minecraft:paper", rar = "common", cat = "chips", ed = "";
+        String id = "", name = "", desc = "", icon = "minecraft:paper", rar = "common", cat = "chips", ed = "", world = "";
         int price, lvl, sell;
         boolean canNeg, needsTarget, neg;
         ItemStack stack = ItemStack.EMPTY;
@@ -91,7 +91,7 @@ public class ShopScreen extends Screen {
             View v = new View();
             v.id = str(j, "id", ""); v.name = str(j, "name", "?"); v.desc = str(j, "desc", "");
             v.icon = str(j, "icon", "minecraft:paper"); v.rar = str(j, "rar", "common"); v.cat = str(j, "cat", "chips");
-            v.ed = str(j, "ed", ""); v.price = num(j, "price"); v.lvl = num(j, "lvl"); v.sell = num(j, "sell");
+            v.ed = str(j, "ed", ""); v.world = str(j, "world", ""); v.price = num(j, "price"); v.lvl = num(j, "lvl"); v.sell = num(j, "sell");
             v.canNeg = j.has("canNeg") && j.get("canNeg").getAsBoolean();
             v.needsTarget = j.has("needsTarget") && j.get("needsTarget").getAsBoolean();
             v.neg = j.has("neg") && j.get("neg").getAsBoolean();
@@ -491,16 +491,24 @@ public class ShopScreen extends Screen {
         m.scale(scale, scale, 1f);
         m.translate(-w / 2f, -h / 2f, 0);
 
-        c.fill(-1, -1, iw + 1, ih + 1, border);
-        c.fill(0, 0, iw, ih, 0xFF000000);
-        c.fillGradient(1, 1, iw - 1, ih - 1, 0xFF000000 | pal[0], 0xFF000000 | pal[1]);
-        c.fill(2, 2, iw - 2, 3, 0x55FFFFFF);
+        final boolean city = !v.world.isEmpty();
+        final int ci = city ? CityCardFx.CUT : 0;
+        if (city) {
+            int rarLine = v.neg ? 0xFFFFFFFF : rarBorder(v.rar, now);
+            CityCardFx.frame(c, iw, ih, now, seed, rarLine | 0xFF000000, (selected || glow) ? border : 0, pal[0]);
+        } else {
+            c.fill(-1, -1, iw + 1, ih + 1, border);
+            c.fill(0, 0, iw, ih, 0xFF000000);
+            c.fillGradient(1, 1, iw - 1, ih - 1, 0xFF000000 | pal[0], 0xFF000000 | pal[1]);
+            c.fill(2, 2, iw - 2, 3, 0x55FFFFFF);
+        }
 
-        c.fill(1, 1, iw - 1, 7, 0x90000000);
+        c.fill(1, 1, iw - 1 - ci, 7, 0x90000000);
         text(c, rarLabel(v.rar), w / 2f, 2f, 0.4f * Math.min(1.2f, w / 40f), rarText(v.rar), 1);
 
         if (!v.stack.isEmpty()) {
             float is = w * 0.55f / 16f;
+            if (city) CityCardFx.halo(c, (int) (w / 2f), (int) (9f + h * 0.06f + 8f * is), (int) (w * 0.34f), now, seed);
             m.push();
             m.translate((w - 16 * is) / 2f, 9f + (h * 0.06f), 0);
             m.scale(is, is, 1f);
@@ -509,7 +517,7 @@ public class ShopScreen extends Screen {
         }
 
         float rh = h * 0.27f;
-        c.fill(1, (int) (ih - rh), iw - 1, ih - 1, 0xC8000000);
+        c.fill(1 + ci, (int) (ih - rh), iw - 1, ih - 1, 0xC8000000);
         float ns = Math.max(0.36f, Math.min(0.55f, 0.5f * w / 56f * 1.1f));
         List<String> lines = wrapName(v.name, (int) ((w - 4) / ns));
         float ly = ih - rh + 2f;
@@ -524,8 +532,9 @@ public class ShopScreen extends Screen {
         }
         if (v.neg) c.fill(1, 1, iw - 1, ih - 1, 0x55000000);
 
+        if (city) CityCardFx.overlay(c, iw, ih, now, seed);
         double ph = ((now / 1e9) + seed * 0.7) % 4.0 / 4.0;
-        if (ph < 0.28) {
+        if (!city && ph < 0.28) {
             int sx = (int) (-8 + (iw + 16) * (ph / 0.28));
             int x1 = Math.max(1, sx), x2 = Math.min(iw - 1, sx + 6);
             if (x2 > x1) c.fill(x1, 1, x2, ih - 1, 0x30FFFFFF);
@@ -624,6 +633,7 @@ public class ShopScreen extends Screen {
         List<Text> t = new ArrayList<>();
         t.add(Text.literal(rarCode(v.rar) + "§l" + v.name));
         t.add(Text.literal("§7" + rarLongLabel(v.rar) + " · " + catLabel(v)));
+        if (!v.world.isEmpty()) t.add(Text.literal("§b◆ §dНочной город §7— особый"));
         for (String l : wrapPx(v.desc, 170)) t.add(Text.literal("§f" + l));
         if (v.lvl > 0) t.add(Text.literal("§eУровень: " + v.lvl + "/5 §7(+" + v.lvl * 20 + "% к плюсам)"));
         if (!v.ed.isEmpty()) t.add(Text.literal("§bИздание: §f" + edName(v.ed) + " §7(" + edDesc(v.ed) + ")"));

@@ -43,7 +43,7 @@ public final class InventoryButtons {
             new Def("Существа (/species)", new ItemStack(Items.TOTEM_OF_UNDYING), () -> command("species")),
             new Def("Эссенция и кейсы (/essence)", new ItemStack(Items.AMETHYST_SHARD), () -> command("essence")),
             new Def("Мастерская: станки и обмен (/workshop)", new ItemStack(Items.CRAFTING_TABLE), () -> payload("ws_open")),
-            new Def("Вселенные (скоро)", UniversesScreen.icon(), () -> MinecraftClient.getInstance().setScreen(new UniversesScreen())),
+            new Def("Вселенные: Ночной город", UniversesScreen.icon(), () -> MinecraftClient.getInstance().setScreen(new UniversesScreen())),
             new Def("Журнал «Сценарий» (J)", new ItemStack(ModItems.PASS), () -> payload("camp_open")));
     }
 
@@ -53,7 +53,7 @@ public final class InventoryButtons {
     private static List<Pocket> pockets() {
         List<Pocket> all = List.of(
             new Pocket("pocket_crafting", "Карманный верстак", new ItemStack(Items.CRAFTING_TABLE)),
-            new Pocket("pocket_furnace", "Карманная печь: переплавить стопку с курсора или из руки за уголь", new ItemStack(Items.FURNACE)),
+            new Pocket("pocket_furnace", "Карманная печь: переплавить стопку с курсора или из руки (1 уголь за предмет)", new ItemStack(Items.FURNACE)),
             new Pocket("pocket_anvil", "Карманная наковальня", new ItemStack(Items.ANVIL)),
             new Pocket("pocket_enchanting", "Карманная чаровальня", new ItemStack(Items.ENCHANTING_TABLE)));
         List<Pocket> out = new ArrayList<>();

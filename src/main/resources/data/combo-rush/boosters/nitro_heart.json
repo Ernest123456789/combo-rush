@@ -1,0 +1,21 @@
+{
+  "name": "Нитро-сердце",
+  "description": "+18% скорости и ×1.4 к множителю на бегу",
+  "icon": "minecraft:fire_charge",
+  "price": 55,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.18,
+      "operation": "add_multiplied_base"
+    },
+    {
+      "type": "mult_times",
+      "value": 1.4,
+      "condition": "sprinting"
+    }
+  ],
+  "rarity": "epic"
+}

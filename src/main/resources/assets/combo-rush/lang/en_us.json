@@ -135,5 +135,11 @@
   "item.combo-rush.car_mustang_modified": "Green Racing Muscle Car",
   "entity.combo-rush.car_mustang_modified": "Green Racing Muscle Car",
   "item.combo-rush.car_trueno": "White Drift Hatchback",
-  "entity.combo-rush.car_trueno": "White Drift Hatchback"
+  "entity.combo-rush.car_trueno": "White Drift Hatchback",
+  "item.combo-rush.neon_shard": "Neon Shard",
+  "item.combo-rush.data_chip": "Data Chip",
+  "item.combo-rush.energy_drink": "Neon Energy Drink",
+  "item.combo-rush.nitro_canister": "Nitro Canister",
+  "item.combo-rush.stash_scanner": "Stash Scanner",
+  "item.combo-rush.pet_redstone_golem": "Redstone Golem"
 }

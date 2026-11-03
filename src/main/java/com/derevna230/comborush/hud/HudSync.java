@@ -137,6 +137,7 @@ public class HudSync {
             b.addProperty("cat", category(def));
             b.addProperty("neg", o.negative());
             b.addProperty("rar", def.rarity);
+            b.addProperty("world", def.world);
             b.addProperty("lvl", o.level());
             b.addProperty("ed", o.edition());
 

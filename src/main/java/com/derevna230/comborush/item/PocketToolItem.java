@@ -100,7 +100,7 @@ public class PocketToolItem extends Item {
         int want = input.getCount();
         int capacity = fuelCapacity(p);
         int n = Math.min(want, capacity);
-        if (n <= 0) { p.sendMessage(Text.literal("§cНужно топливо: уголь, древесный уголь, огненный стержень или блок угля."), true); return; }
+        if (n <= 0) { p.sendMessage(Text.literal("§cНужен уголь: 1 уголь (или древесный уголь) на каждый предмет."), true); return; }
         burnFuel(p, n);
         input.decrement(n);
         int total = result.getCount() * n;
@@ -115,7 +115,7 @@ public class PocketToolItem extends Item {
         int orbs = (int) Math.floor(xp) + (Math.random() < xp - Math.floor(xp) ? 1 : 0);
         if (orbs > 0) ExperienceOrbEntity.spawn(w, p.getPos(), orbs);
         w.playSound(null, p.getBlockPos(), SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.PLAYERS, 1f, 1f);
-        p.sendMessage(Text.literal("§6Переплавлено: §f" + n + (n < want ? " §7(не хватило топлива на остальное)" : "")), true);
+        p.sendMessage(Text.literal("§6Переплавлено: §f" + n + " §7(уголь: −" + n + ")" + (n < want ? " §c— угля не хватило на остальное" : "")), true);
     }
 
     /** Сколько предметов можно переплавить топливом из инвентаря */
@@ -126,16 +126,15 @@ public class PocketToolItem extends Item {
     }
 
     private static int perItem(ItemStack s) {
-        if (s.isOf(Items.COAL) || s.isOf(Items.CHARCOAL)) return 8;
-        if (s.isOf(Items.BLAZE_ROD)) return 12;
-        if (s.isOf(Items.COAL_BLOCK)) return 80;
+        if (s.isOf(Items.COAL) || s.isOf(Items.CHARCOAL)) return 1;     // 1 уголь — 1 предмет
+        if (s.isOf(Items.COAL_BLOCK)) return 9;                           // блок угля = 9 углей
         return 0;
     }
 
     /** Сжечь топливо на n предметов — начиная с самого «мелкого» топлива */
     private static void burnFuel(ServerPlayerEntity p, int n) {
         int need = n;
-        for (int per : new int[]{8, 12, 80}) {
+        for (int per : new int[]{1, 9}) {
             for (int i = 0; i < p.getInventory().size() && need > 0; i++) {
                 ItemStack s = p.getInventory().getStack(i);
                 if (perItem(s) != per) continue;

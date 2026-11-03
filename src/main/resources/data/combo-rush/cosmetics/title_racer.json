@@ -1,0 +1,9 @@
+{
+  "name": "Титул: Гонщик",
+  "description": "Префикс [Гонщик] в чате.",
+  "icon": "minecraft:minecart",
+  "type": "title",
+  "price": 40,
+  "prefix": "§b[Гонщик] ",
+  "world": "night_city"
+}

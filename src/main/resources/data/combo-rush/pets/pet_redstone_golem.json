@@ -1,0 +1,39 @@
+{
+  "name": "Редстоуновый голем",
+  "description": "Маленький раскалённый голем. Тяжёлые удары, замедляет врагов, а после победы закаляется.",
+  "pet_damage": 6,
+  "set_effects": [
+    {
+      "type": "mult_add",
+      "value": 0.3
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.knockback_resistance",
+      "value": 0.4,
+      "operation": "add_value"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "cleave",
+      "chance": 0.25,
+      "value": 4,
+      "radius": 3.0
+    },
+    {
+      "trigger": "hit",
+      "type": "effect",
+      "chance": 0.3,
+      "id": "minecraft:slowness",
+      "duration": 3
+    },
+    {
+      "trigger": "kill",
+      "type": "self_effect",
+      "id": "minecraft:resistance",
+      "duration": 6
+    }
+  ]
+}

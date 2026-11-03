@@ -7,6 +7,7 @@ import com.derevna230.comborush.booster.Rarity;
 import com.derevna230.comborush.consumable.ConsumableDef;
 import com.derevna230.comborush.consumable.ConsumableLogic;
 import com.derevna230.comborush.consumable.ConsumableRegistry;
+import com.derevna230.comborush.universe.Universes;
 import com.derevna230.comborush.data.OwnedBooster;
 import com.derevna230.comborush.data.PlayerProfile;
 import com.derevna230.comborush.promo.PromoManager;
@@ -89,10 +90,13 @@ public final class ShopService {
         for (BoosterDef d : BoosterRegistry.all()) {
             if (d.min_level > p.level() || d.unlock_resets > p.resets() || p.find(d.id) != null) continue;
             if (!d.promo.isEmpty() && !PromoManager.isActive(d.promo)) continue;
+            if (!Universes.worldOpen(player, d.world)) continue;
             pool.add(d);
         }
         st.offers = pickWeighted(pool, 3, d -> Rarity.weight(d.rarity), d -> d.id);
-        st.cOffers = pickWeighted(new ArrayList<>(ConsumableRegistry.all()), 2, d -> Rarity.weight(d.rarity), d -> d.id);
+        List<ConsumableDef> cPool = new ArrayList<>();
+        for (ConsumableDef c : ConsumableRegistry.all()) if (Universes.worldOpen(player, c.world)) cPool.add(c);
+        st.cOffers = pickWeighted(cPool, 2, d -> Rarity.weight(d.rarity), d -> d.id);
     }
 
     // ---------------- действия ----------------

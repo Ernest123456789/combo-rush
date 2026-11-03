@@ -1,0 +1,9 @@
+{
+  "name": "Ядро-клон",
+  "description": "Создаёт копию усилителя (нужен свободный слот).",
+  "icon": "minecraft:ender_eye",
+  "price": 55,
+  "rarity": "legendary",
+  "action": "duplicate",
+  "world": "night_city"
+}

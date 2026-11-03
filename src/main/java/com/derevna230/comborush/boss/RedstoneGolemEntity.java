@@ -697,7 +697,7 @@ public class RedstoneGolemEntity extends HostileEntity implements GeoEntity {
             if (d > topDmg) { topDmg = d; top = p; }
         }
         Item epic = ModItems.CASES.get("epic"), legendary = ModItems.CASES.get("legendary");
-        Item figurine = Registries.ITEM.get(Identifier.of("combo-rush", "decor_redstone_golem"));
+        Item figurine = Registries.ITEM.get(Identifier.of("combo-rush", "pet_redstone_golem"));
         for (ServerPlayerEntity p : win) {
             PlayerProfile pr = PlayerProfile.of(p);
             p.setAttached(PlayerProfile.TYPE, pr.addCoins(600).addEssence(120));
@@ -709,7 +709,7 @@ public class RedstoneGolemEntity extends HostileEntity implements GeoEntity {
             ScoreEngine.award(p, ScoreSource.KILL, "combo-rush:redstone_golem", 10.0, "Босс");
             Fx.title(p, "§6§lГОЛЕМ ПОВЕРЖЕН", "§fРедстоуновое ядро ваше");
             p.sendMessage(Text.literal("§6[Редстоуновый голем] §fПобеда! §7Награда: §e+600 монет§7, §d+120 эссенции§7, эпический кейс, алмазы и редстоун"
-                + (p == top ? "§7, §6фигурка голема§7 (больше всех урона)" : "") + "§7."), false);
+                + (p == top ? "§7, §6питомец «Редстоуновый голем»§7 (больше всех урона)" : "") + "§7."), false);
         }
     }
 

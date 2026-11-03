@@ -1,0 +1,15 @@
+{
+  "name": "Охотник за хламом",
+  "description": "+10 фишек за действие за чертой города (холмы, леса, трассы)",
+  "icon": "minecraft:iron_nugget",
+  "price": 32,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 10,
+      "condition": "city_wild"
+    }
+  ],
+  "rarity": "uncommon"
+}

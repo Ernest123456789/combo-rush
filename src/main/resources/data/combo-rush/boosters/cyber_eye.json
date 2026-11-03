@@ -1,0 +1,19 @@
+{
+  "name": "Кибер-глаз",
+  "description": "Ночное зрение; ×1.2 к множителю в Ночном городе",
+  "icon": "minecraft:spider_eye",
+  "price": 22,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "status_effect",
+      "id": "minecraft:night_vision"
+    },
+    {
+      "type": "mult_times",
+      "value": 1.2,
+      "condition": "night_city"
+    }
+  ],
+  "rarity": "common"
+}

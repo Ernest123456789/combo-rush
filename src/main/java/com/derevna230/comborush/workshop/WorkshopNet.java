@@ -49,7 +49,7 @@ public final class WorkshopNet {
     private static String desc(String id) {
         return switch (id) {
             case "pocket_crafting" -> "Верстак 3×3: кнопка справа от инвентаря, навсегда";
-            case "pocket_furnace" -> "Мгновенно плавит стопку с курсора или из руки за уголь";
+            case "pocket_furnace" -> "Мгновенно плавит стопку с курсора или из руки: 1 уголь за каждый предмет";
             case "pocket_anvil" -> "Наковальня, которая не ломается: кнопка у инвентаря";
             case "pocket_enchanting" -> "Стол зачарований где угодно: кнопка у инвентаря";
             default -> "";

@@ -1,0 +1,15 @@
+{
+  "name": "Печатная плата",
+  "description": "+6 фишек за каждое действие в Ночном городе",
+  "icon": "minecraft:comparator",
+  "price": 28,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "chips_per_action",
+      "value": 6,
+      "condition": "night_city"
+    }
+  ],
+  "rarity": "common"
+}

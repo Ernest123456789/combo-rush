@@ -43,6 +43,7 @@ public class ShopNet {
     }
 
     private static void handle(ServerPlayerEntity p, ShopActionPayload a) {
+        if (a.action().startsWith("univ")) { com.derevna230.comborush.universe.Universes.handle(p, a); return; }
         if (a.action().startsWith("species")) { SpeciesNet.handle(p, a); return; }
         if (a.action().startsWith("ws_")) { com.derevna230.comborush.workshop.WorkshopNet.handle(p, a); return; }
         if (a.action().equals("camp_open")) { com.derevna230.comborush.campaign.Campaign.openJournal(p); return; }
@@ -109,6 +110,7 @@ public class ShopNet {
             JsonObject o = view(d.id, d.name, d.description, d.icon, d.rarity, HudSync.category(d));
             o.addProperty("price", ShopService.price(pr, d, fx));
             o.addProperty("canNeg", d.canBeNegative());
+            o.addProperty("world", d.world);
             offers.add(o);
         }
         root.add("offers", offers);
@@ -120,6 +122,7 @@ public class ShopNet {
             JsonObject o = view(d.id, d.name, d.description, d.icon, d.rarity, "cons");
             o.addProperty("price", ShopService.cPrice(pr, d, fx));
             o.addProperty("needsTarget", d.needsTarget());
+            o.addProperty("world", d.world);
             cOffers.add(o);
         }
         root.add("cOffers", cOffers);
@@ -133,6 +136,7 @@ public class ShopNet {
             o.addProperty("ed", ob.edition());
             o.addProperty("neg", ob.negative());
             o.addProperty("sell", ShopService.sellValue(ob, fx));
+            o.addProperty("world", d.world);
             owned.add(o);
         }
         root.add("owned", owned);
@@ -144,6 +148,7 @@ public class ShopNet {
             JsonObject o = view(d.id, d.name, d.description, d.icon, d.rarity, "cons");
             o.addProperty("sell", ShopService.cSellValue(d));
             o.addProperty("needsTarget", d.needsTarget());
+            o.addProperty("world", d.world);
             ownedCons.add(o);
         }
         root.add("ownedCons", ownedCons);

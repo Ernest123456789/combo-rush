@@ -5,6 +5,7 @@ import com.derevna230.comborush.booster.BoosterRegistry;
 import com.derevna230.comborush.data.OwnedBooster;
 import com.derevna230.comborush.data.PlayerProfile;
 import com.derevna230.comborush.promo.PromoManager;
+import com.derevna230.comborush.universe.Universes;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.ArrayList;
@@ -57,11 +58,24 @@ public class ConsumableLogic {
                 List<BoosterDef> pool = new ArrayList<>();
                 for (BoosterDef b : BoosterRegistry.all()) {
                     if (!b.rarity.equals(rarity) || b.id.equals(o.id()) || prof.find(b.id) != null) continue;
-                    if (b.unlock_resets > prof.resets()) continue;
+                    if (b.unlock_resets > prof.resets() || !Universes.worldOpen(p, b.world)) continue;
                     if (!b.promo.isEmpty() && !PromoManager.isActive(b.promo)) continue;
                     pool.add(b);
                 }
                 if (pool.isEmpty()) return "Нет подходящих усилителей такой же редкости.";
+                BoosterDef pick = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+                p.setAttached(PlayerProfile.TYPE, prof.replaceBooster(target, o.withId(pick.id)));
+            }
+            case "city_booster" -> {
+                BoosterDef cur = BoosterRegistry.get(o.id());
+                if (cur != null && !cur.world.isEmpty()) return "Это уже усилитель города — выбери другой.";
+                List<BoosterDef> pool = new ArrayList<>();
+                for (BoosterDef b : BoosterRegistry.all()) {
+                    if (!b.world.equals("night_city") || prof.find(b.id) != null) continue;
+                    if (b.unlock_resets > prof.resets() || b.min_level > prof.level()) continue;
+                    pool.add(b);
+                }
+                if (pool.isEmpty()) return "У тебя уже есть все усилители города.";
                 BoosterDef pick = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
                 p.setAttached(PlayerProfile.TYPE, prof.replaceBooster(target, o.withId(pick.id)));
             }

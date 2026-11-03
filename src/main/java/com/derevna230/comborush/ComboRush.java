@@ -55,6 +55,7 @@ public class ComboRush implements ModInitializer {
         com.derevna230.comborush.sound.ModSounds.init();
         ModItems.init();
         ModEntities.init();
+        com.derevna230.comborush.universe.Universes.init();
         PetManager.init();
         PayloadTypeRegistry.playS2C().register(HudPayload.ID, HudPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(ShopActionPayload.ID, ShopActionPayload.CODEC);

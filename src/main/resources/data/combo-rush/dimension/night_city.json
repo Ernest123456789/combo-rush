@@ -1,0 +1,10 @@
+{
+  "type": "combo-rush:night_city",
+  "generator": {
+    "type": "combo-rush:night_city",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "combo-rush:night_city"
+    }
+  }
+}

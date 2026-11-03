@@ -1,0 +1,20 @@
+{
+  "name": "Разгон",
+  "description": "Серия длиннее на 4 секунды и быстрее растёт в Ночном городе",
+  "icon": "minecraft:redstone_torch",
+  "price": 45,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "combo_window",
+      "value": 4,
+      "condition": "night_city"
+    },
+    {
+      "type": "combo_step",
+      "value": 0.04,
+      "condition": "night_city"
+    }
+  ],
+  "rarity": "rare"
+}

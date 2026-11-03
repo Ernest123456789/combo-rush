@@ -1,0 +1,9 @@
+{
+  "name": "Неоновая руна",
+  "description": "Случайное новое издание усилителя (фольга, голограмма или полихром).",
+  "icon": "minecraft:prismarine_crystals",
+  "price": 30,
+  "rarity": "rare",
+  "action": "random_edition",
+  "world": "night_city"
+}

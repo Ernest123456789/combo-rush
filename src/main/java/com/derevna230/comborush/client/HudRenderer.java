@@ -216,21 +216,28 @@ public final class HudRenderer {
         MatrixStack m = c.getMatrices();
         int border = card.neg ? 0xFFFFFFFF : rarityBorder(card, pal[2], now);
 
-        c.fill(-1, -1, CARD_W + 1, CARD_H + 1, border);
-        c.fill(0, 0, CARD_W, CARD_H, 0xFF000000);
-        c.fillGradient(1, 1, CARD_W - 1, CARD_H - 1, 0xFF000000 | pal[0], 0xFF000000 | pal[1]);
-        c.fill(2, 2, CARD_W - 2, 3, 0x55FFFFFF);                      // блик сверху
+        final boolean city = !card.world.isEmpty();
+        if (city) {
+            CityCardFx.frame(c, CARD_W, CARD_H, now, i, border | 0xFF000000, 0, pal[0]);
+        } else {
+            c.fill(-1, -1, CARD_W + 1, CARD_H + 1, border);
+            c.fill(0, 0, CARD_W, CARD_H, 0xFF000000);
+            c.fillGradient(1, 1, CARD_W - 1, CARD_H - 1, 0xFF000000 | pal[0], 0xFF000000 | pal[1]);
+            c.fill(2, 2, CARD_W - 2, 3, 0x55FFFFFF);                  // блик сверху
+        }
         if (card.lvl > 0) {                                           // уровень усилителя
             c.fill(1, 1, 12, 8, 0xC0000000);
             text(c, tr, "Ур" + card.lvl, 2, 2, 0.55f, 0xFFFFE08A, 0);
         }
         if (!card.ed.isEmpty()) {                                     // издание
-            c.fill(CARD_W - 9, 1, CARD_W - 1, 8, 0xC0000000);
-            text(c, tr, edLetter(card.ed), CARD_W - 5, 1.5f, 0.6f, editionColor(card.ed, now), 1);
+            int by = city ? 5 : 1;
+            c.fill(CARD_W - 9, by, CARD_W - 1, by + 7, 0xC0000000);
+            text(c, tr, edLetter(card.ed), CARD_W - 5, by + 0.5f, 0.6f, editionColor(card.ed, now), 1);
         }
 
         // иконка предмета крупнее обычной
         if (!card.stack.isEmpty()) {
+            if (city) CityCardFx.halo(c, 13, 11, 10, now, i);
             m.push();
             m.translate(3, 1, 0);
             m.scale(1.2f, 1.2f, 1f);
@@ -239,7 +246,7 @@ public final class HudRenderer {
         }
 
         // лента с числом
-        c.fill(1, CARD_H - 10, CARD_W - 1, CARD_H - 1, 0xC0000000);
+        c.fill(city ? 3 : 1, CARD_H - 10, CARD_W - 1, CARD_H - 1, 0xC0000000);
         if (!card.tags.isEmpty()) {
             int idx = (int) ((now / 1_200_000_000L) % card.tags.size());
             HudModel.Tag tg = card.tags.get(idx);
@@ -254,7 +261,8 @@ public final class HudRenderer {
         if (!card.active) c.fill(0, 0, CARD_W, CARD_H, 0xA0101014);
 
         // периодический блик-проблеск
-        if (card.active) {
+        if (city) CityCardFx.overlay(c, CARD_W, CARD_H, now, i);
+        if (card.active && !city) {
             double period = card.ed.equals("foil") || card.ed.equals("poly") ? 2.2 : 4.5;
             double ph = ((now / 1e9) + i * 0.8) % period / period;
             if (ph < 0.3) {
@@ -407,6 +415,7 @@ public final class HudRenderer {
         List<Text> t = new ArrayList<>();
         t.add(Text.literal(rarCode(card.rar) + "§l" + card.name));
         t.add(Text.literal("§7" + rarLabel(card.rar) + " · " + catLabel(card)));
+        if (!card.world.isEmpty()) t.add(Text.literal("§b◆ §dНочной город §7— особый"));
         for (String l : wrap(tr, card.desc, 170)) t.add(Text.literal("§f" + l));
         if (card.lvl > 0) t.add(Text.literal("§eУровень: " + card.lvl + "/5 §7(+" + card.lvl * 20 + "% к плюсам)"));
         if (!card.ed.isEmpty()) t.add(Text.literal("§bИздание: §f" + edName(card.ed) + " §7(" + edDesc(card.ed) + ")"));

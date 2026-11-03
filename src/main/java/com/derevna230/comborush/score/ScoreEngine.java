@@ -191,7 +191,7 @@ public class ScoreEngine {
     private static String giveRandomConsumable(ServerPlayerEntity p) {
         PlayerProfile pr = PlayerProfile.of(p);
         if (pr.consumables().size() >= PlayerProfile.CONSUMABLE_SLOTS) return null;
-        String id = ConsumableRegistry.randomId();
+        String id = ConsumableRegistry.randomId(p);
         ConsumableDef def = ConsumableRegistry.get(id);
         if (def == null) return null;
         p.setAttached(PlayerProfile.TYPE, pr.addConsumable(id));

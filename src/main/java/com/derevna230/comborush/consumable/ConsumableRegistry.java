@@ -22,6 +22,14 @@ public class ConsumableRegistry implements SimpleSynchronousResourceReloadListen
         return ids.get(ThreadLocalRandom.current().nextInt(ids.size()));
     }
 
+    /** Случайный расходник из доступных игроку (мировые — только после открытия мира) */
+    public static String randomId(net.minecraft.server.network.ServerPlayerEntity p) {
+        List<String> ids = new ArrayList<>();
+        for (ConsumableDef d : ALL.values())
+            if (com.derevna230.comborush.universe.Universes.worldOpen(p, d.world)) ids.add(d.id);
+        return ids.isEmpty() ? null : ids.get(ThreadLocalRandom.current().nextInt(ids.size()));
+    }
+
     @Override public Identifier getFabricId() { return Identifier.of(ComboRush.MOD_ID, "consumables"); }
 
     @Override

@@ -1,0 +1,10 @@
+{
+  "name": "След: Глитч",
+  "description": "Электрические помехи.",
+  "icon": "minecraft:lightning_rod",
+  "type": "trail",
+  "price": 35,
+  "particle": "minecraft:electric_spark",
+  "count": 4,
+  "world": "night_city"
+}

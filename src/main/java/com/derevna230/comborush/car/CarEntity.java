@@ -77,6 +77,8 @@ public class CarEntity extends MobEntity implements GeoEntity {
     private float nitro = -1;          // остаток нитро, тики (−1 — ещё не заполнено)
     private boolean nitroLock = false; // баллон опустел: ждём, пока наполнится до 30%
     private boolean boosting = false;
+    /** Поворот кузова за последний тик (град.): по нему камере водителя возвращается плавная интерполяция */
+    private float driveDYaw = 0f;
 
     // ---- клиентская подвеска (для отрисовки и посадки пассажиров)
     private float suspY, suspVY, prevSuspY;
@@ -121,6 +123,12 @@ public class CarEntity extends MobEntity implements GeoEntity {
     public void setUpgrades(int packed) {
         dataTracker.set(UPG, packed);
         applyUpgrades();
+    }
+
+    /** Наполнить баллон нитро до краёв (предмет «Нитро-баллон») */
+    public void refillNitro() {
+        nitro = CarUpgrades.nitroCapacity(upgrades());
+        nitroLock = false;
     }
 
     private void applyUpgrades() {
@@ -184,6 +192,19 @@ public class CarEntity extends MobEntity implements GeoEntity {
         super.updatePassengerPosition(passenger, (e, x, y, z) -> positionUpdater.accept(e, x, y + off, z));
     }
 
+    /**
+     * Вызывается клиентом в конце тика. Пока тик шёл, машина (до пассажира) уже повернула водителя, а затем
+     * baseTick игрока записал в prevYaw уже НОВЫЙ угол — камера стояла на месте весь тик и прыгала 20 раз в секунду,
+     * а модель машины в это время плавно доворачивалась. Возвращаем prevYaw на величину поворота — камера и кузов
+     * интерполируются одинаково, дёрганья нет.
+     */
+    public void smoothDriverCamera(PlayerEntity d) {
+        float k = driveDYaw;
+        d.prevYaw = d.getYaw() - k;
+        d.prevBodyYaw = d.bodyYaw - k;
+        d.prevHeadYaw = d.headYaw - k;
+    }
+
     // ---------------------------------------------------------------- езда: физика
     @Override
     public void travel(Vec3d movementInput) {
@@ -245,13 +266,14 @@ public class CarEntity extends MobEntity implements GeoEntity {
         if (water) wTarget *= 0.6;
         yawRate += (wTarget - yawRate) * 0.40;
         float dYaw = (float) -Math.toDegrees(yawRate);               // влево = уменьшение yaw
+        driveDYaw = 0f;
         if (Math.abs(dYaw) > 0.001f) {
             this.setYaw(this.getYaw() + dYaw);
             if (driver != null) {                                     // камера едет вместе с машиной
                 driver.setYaw(driver.getYaw() + dYaw);
-                driver.prevYaw += dYaw;
-                driver.bodyYaw += dYaw; driver.prevBodyYaw += dYaw;
-                driver.headYaw += dYaw; driver.prevHeadYaw += dYaw;
+                driver.bodyYaw += dYaw;
+                driver.headYaw += dYaw;
+                driveDYaw = dYaw;
             }
         }
 

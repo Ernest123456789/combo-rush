@@ -1,0 +1,11 @@
+{
+  "name": "Неон-кот",
+  "description": "Ночной городской кот, который всегда ходит за тобой.",
+  "icon": "minecraft:cod",
+  "type": "pet",
+  "price": 60,
+  "entity": "minecraft:cat",
+  "baby": false,
+  "pet_name": "Неон {player}",
+  "world": "night_city"
+}

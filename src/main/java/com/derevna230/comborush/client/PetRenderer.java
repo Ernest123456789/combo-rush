@@ -22,6 +22,7 @@ public class PetRenderer extends GeoEntityRenderer<CRPetEntity> {
             case "succubus" -> 0.86f;
             case "squirrel" -> 0.9f;
             case "armor_stand" -> 0.9f;
+            case "redstone_golem" -> 0.311f;   // как был декор
             default -> 1.0f;
         };
     }

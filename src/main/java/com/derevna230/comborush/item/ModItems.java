@@ -98,7 +98,8 @@ public final class ModItems {
         new PetInfo("creeper_skeleton", "epic"),
         new PetInfo("traveler_skeleton", "legendary"),
         new PetInfo("succubus", "legendary"),
-        new PetInfo("armor_stand", "uncommon"));
+        new PetInfo("armor_stand", "uncommon"),
+        new PetInfo("redstone_golem", "epic"));
 
     /** Декоративные растения: ПКМ по блоку — посадить (сущность decor с анимацией), удар — забрать обратно */
     public static final List<PetInfo> DECOR = List.of(
@@ -109,8 +110,7 @@ public final class ModItems {
         new PetInfo("camping_campfire", "common"),
         new PetInfo("wooden_stump", "common"),
         new PetInfo("fumeshroom", "uncommon"),
-        new PetInfo("wandering_trader", "rare"),
-        new PetInfo("redstone_golem", "epic"));
+        new PetInfo("wandering_trader", "rare"));
 
     public static Item WATER_BOTTLE;
     public static Item SKATEBOARD;
@@ -118,6 +118,8 @@ public final class ModItems {
     public static Item LETTER;
     /** Предмет-призыв босса «Редстоуновый голем» (у Торговца Редстоуна) */
     public static Item REDSTONE_HEART;
+    /** Предметы Ночного города */
+    public static Item NEON_SHARD, DATA_CHIP, ENERGY_DRINK, NITRO_CANISTER, STASH_SCANNER;
     /** Машины (предметы): id → предмет. Не выпадают из кейсов, ставятся ПКМ по блоку и ездят */
     public static final Map<String, Item> CARS = new LinkedHashMap<>();
     /** Карманные станки из Мастерской: id → предмет */
@@ -201,11 +203,18 @@ public final class ModItems {
             SET_RARITY.put(setId, di.rarity());
             KIND.put(setId, "decor");
         }
+        // старая фигурка голема-декора: из кейсов убрана (голем стал питомцем), но предмет остаётся для старых сохранений
+        registerHidden("decor_redstone_golem", new DecorItem("redstone_golem", new Item.Settings().maxCount(16).rarity(Rarity.EPIC)));
         WATER_BOTTLE = register("water_bottle", new WaterBottleItem(new Item.Settings().maxCount(16)));
         SKATEBOARD = register("skateboard", new SkateboardItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
         PASS = register("pass", new com.derevna230.comborush.campaign.PassItem(new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON)));
         LETTER = register("letter", new com.derevna230.comborush.campaign.LetterItem(new Item.Settings().maxCount(1)));
         REDSTONE_HEART = register("redstone_heart", new RedstoneHeartItem(new Item.Settings().maxCount(4).rarity(Rarity.EPIC)));
+        NEON_SHARD = register("neon_shard", new NeonShardItem(new Item.Settings().maxCount(64).rarity(Rarity.RARE)));
+        DATA_CHIP = register("data_chip", new DataChipItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
+        ENERGY_DRINK = register("energy_drink", new EnergyDrinkItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
+        NITRO_CANISTER = register("nitro_canister", new NitroCanisterItem(new Item.Settings().maxCount(8).rarity(Rarity.RARE)));
+        STASH_SCANNER = register("stash_scanner", new StashScannerItem(new Item.Settings().maxDamage(48).rarity(Rarity.EPIC)));
         for (com.derevna230.comborush.car.CarDefs.Def cd : com.derevna230.comborush.car.CarDefs.ALL.values())
             CARS.put(cd.id(), register("car_" + cd.id(), new CarItem(cd.id(), new Item.Settings().maxCount(1).rarity(Rarity.EPIC))));
         POCKET.put("pocket_crafting", registerHidden("pocket_crafting", new PocketToolItem(PocketToolItem.Kind.CRAFTING, new Item.Settings().maxCount(1).rarity(Rarity.UNCOMMON))));

@@ -130,6 +130,10 @@
       "weight": 9
     },
     {
+      "set": "pet_redstone_golem",
+      "weight": 8
+    },
+    {
       "set": "swept_rapier",
       "weight": 30
     },

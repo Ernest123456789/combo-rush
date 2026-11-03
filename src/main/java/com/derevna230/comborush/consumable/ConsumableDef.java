@@ -7,13 +7,14 @@ public class ConsumableDef {
     public String icon = "minecraft:paper";
     public String rarity = "common";
     public int price = 10;
-    /** level_up | level_up_all | edition | random_edition | duplicate | reroll_booster | add_slot | free_reroll */
+    /** level_up | level_up_all | edition | random_edition | duplicate | reroll_booster | city_booster | add_slot | free_reroll */
     public String action = "level_up";
+    public String world = "";             // "" — всегда, "night_city" — после пролога
     public String edition = "";           // для action = edition
 
     public boolean needsTarget() {
         return switch (action) {
-            case "level_up", "edition", "random_edition", "duplicate", "reroll_booster" -> true;
+            case "level_up", "edition", "random_edition", "duplicate", "reroll_booster", "city_booster" -> true;
             default -> false;
         };
     }

@@ -691,6 +691,11 @@ public final class Campaign {
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) { refresh(p); LAST_TRACK.remove(p.getUuid()); }
     }
 
+    /** Пролог пройден: выполнены все задания сюжета (открывает вход во вселенные) */
+    public static boolean prologueDone(ServerPlayerEntity p) {
+        return QuestRegistry.all().stream().allMatch(q -> status(p, q) == St.DONE);
+    }
+
     private static JsonObject journalJson(ServerPlayerEntity p) {
         JsonObject root = new JsonObject();
         boolean chair = Finale.CHAIR.equals(Finale.ending(p.getServer()));

@@ -34,7 +34,7 @@ public final class HudModel {
     public static final class Tag { public String kind = ""; public String text = ""; }
     public static final class Card {
         public String id = "", name = "", desc = "", icon = "minecraft:paper", cat = "chips";
-        public String rar = "common", ed = "";
+        public String rar = "common", ed = "", world = "";
         public int lvl = 0;
         public boolean neg, active = true;
         public List<Tag> tags = new ArrayList<>();
@@ -220,6 +220,7 @@ public final class HudModel {
                 case "ws_open", "ws" -> WorkshopScreen.onPacket(p.kind(), o);
                 case "trader_open", "trader" -> TraderScreen.onPacket(p.kind(), o);
                 case "cosm_open", "cosm" -> CosmeticsScreen.onPacket(p.kind(), o);
+                case "univ" -> UniversesScreen.onPacket(o);
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }
@@ -238,7 +239,7 @@ public final class HudModel {
             c.id = str(b, "id", ""); c.name = str(b, "name", "?"); c.desc = str(b, "desc", "");
             c.icon = str(b, "icon", "minecraft:paper"); c.cat = str(b, "cat", "chips");
             c.neg = b.has("neg") && b.get("neg").getAsBoolean();
-            c.rar = str(b, "rar", "common"); c.ed = str(b, "ed", "");
+            c.rar = str(b, "rar", "common"); c.ed = str(b, "ed", ""); c.world = str(b, "world", "");
             c.lvl = b.has("lvl") ? b.get("lvl").getAsInt() : 0;
             c.active = !b.has("active") || b.get("active").getAsBoolean();
             for (JsonElement te : b.getAsJsonArray("tags")) {

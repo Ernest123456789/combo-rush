@@ -43,7 +43,9 @@ public class CosmeticsGui {
             .setLore(List.of(Text.literal("§7Даётся за сброс прогресса."),
                              Text.literal("§7Косметика не пропадает при сбросе."))));
 
-        List<CosmeticDef> list = new ArrayList<>(CosmeticRegistry.all());
+        List<CosmeticDef> list = new ArrayList<>();
+        for (CosmeticDef c : CosmeticRegistry.all())
+            if (p.owns(c.id) || com.derevna230.comborush.universe.Universes.worldOpen(player, c.world)) list.add(c);
         for (int i = 0; i < list.size() && i < SLOTS.length; i++) {
             CosmeticDef d = list.get(i);
             boolean owned = p.owns(d.id);

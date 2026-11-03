@@ -1,0 +1,9 @@
+{
+  "name": "Хакерский чип",
+  "description": "Заменяет выбранный обычный усилитель случайным усилителем города.",
+  "icon": "minecraft:echo_shard",
+  "price": 40,
+  "rarity": "epic",
+  "action": "city_booster",
+  "world": "night_city"
+}

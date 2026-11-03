@@ -1,0 +1,23 @@
+{
+  "name": "Легенда мегаполиса",
+  "description": "×2.2 к множителю в Ночном городе, регенерация и сопротивление огню",
+  "icon": "minecraft:nether_star",
+  "price": 90,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "mult_times",
+      "value": 2.2,
+      "condition": "night_city"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:regeneration"
+    },
+    {
+      "type": "status_effect",
+      "id": "minecraft:fire_resistance"
+    }
+  ],
+  "rarity": "legendary"
+}

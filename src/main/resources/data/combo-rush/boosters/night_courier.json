@@ -1,0 +1,21 @@
+{
+  "name": "Ночной курьер",
+  "description": "×1.25 к множителю в Ночном городе и +12% скорости",
+  "icon": "minecraft:clock",
+  "price": 35,
+  "world": "night_city",
+  "effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.movement_speed",
+      "value": 0.12,
+      "operation": "add_multiplied_base"
+    },
+    {
+      "type": "mult_times",
+      "value": 1.25,
+      "condition": "night_city"
+    }
+  ],
+  "rarity": "uncommon"
+}

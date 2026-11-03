@@ -7,6 +7,7 @@ public class CosmeticDef {
     public String icon = "minecraft:paper";
     /** pet | title | trail — в каждый тип можно надеть один предмет */
     public String type = "title";
+    public String world = "";         // "" — всегда, "night_city" — после пролога
     public int price = 20;            // в эссенции
 
     // pet

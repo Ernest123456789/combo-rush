@@ -1,0 +1,10 @@
+{
+  "name": "След: Неон",
+  "description": "Светящиеся огоньки за спиной.",
+  "icon": "minecraft:glow_berries",
+  "type": "trail",
+  "price": 30,
+  "particle": "minecraft:glow",
+  "count": 3,
+  "world": "night_city"
+}

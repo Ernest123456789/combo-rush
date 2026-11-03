@@ -135,5 +135,11 @@
   "item.combo-rush.car_mustang_modified": "Зелёный гоночный масл-кар",
   "entity.combo-rush.car_mustang_modified": "Зелёный гоночный масл-кар",
   "item.combo-rush.car_trueno": "Белый дрифт-хэтчбек",
-  "entity.combo-rush.car_trueno": "Белый дрифт-хэтчбек"
+  "entity.combo-rush.car_trueno": "Белый дрифт-хэтчбек",
+  "item.combo-rush.neon_shard": "Неоновый осколок",
+  "item.combo-rush.data_chip": "Чип данных",
+  "item.combo-rush.energy_drink": "Энергетик «Неон»",
+  "item.combo-rush.nitro_canister": "Нитро-баллон",
+  "item.combo-rush.stash_scanner": "Сканер тайников",
+  "item.combo-rush.pet_redstone_golem": "Редстоуновый голем"
 }

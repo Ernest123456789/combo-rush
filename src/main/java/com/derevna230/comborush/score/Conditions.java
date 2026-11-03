@@ -1,5 +1,9 @@
 package com.derevna230.comborush.score;
 
+import com.derevna230.comborush.car.CarEntity;
+import com.derevna230.comborush.skate.SkateboardEntity;
+import com.derevna230.comborush.universe.NightCity;
+import com.derevna230.comborush.universe.Universes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
@@ -24,6 +28,17 @@ public class Conditions {
             case "hungry"      -> p.getHungerManager().getFoodLevel() <= 6;
             case "no_armor"    -> p.getArmor() == 0;
             case "dark"        -> w.getLightLevel(p.getBlockPos()) <= 7;
+            case "night_city"  -> w.getRegistryKey().equals(Universes.NIGHT_CITY);
+            // за чертой города: холмы, леса, трассы
+            case "city_wild"   -> w.getRegistryKey().equals(Universes.NIGHT_CITY)
+                && (p.getBlockX() < NightCity.CITY_MIN || p.getBlockX() > NightCity.CITY_MAX
+                 || p.getBlockZ() < NightCity.CITY_MIN || p.getBlockZ() > NightCity.CITY_MAX);
+            // внутри городских кварталов
+            case "city_urban"  -> w.getRegistryKey().equals(Universes.NIGHT_CITY)
+                && p.getBlockX() >= NightCity.CITY_MIN && p.getBlockX() <= NightCity.CITY_MAX
+                && p.getBlockZ() >= NightCity.CITY_MIN && p.getBlockZ() <= NightCity.CITY_MAX;
+            // за рулём машины или на скейте
+            case "driving"     -> p.getVehicle() instanceof CarEntity || p.getVehicle() instanceof SkateboardEntity;
             default            -> true;
         };
     }
