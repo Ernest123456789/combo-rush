@@ -6,12 +6,23 @@ import net.minecraft.registry.Registry;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 
-/** Свои звуки мода: музыка события и босс-блайнда, стингеры, медали, очки, голос персонажей (assets/combo-rush/sounds) */
+/** Свои звуки мода: музыка события, босс-блайнда и магазинов, стингеры, медали, очки, голос персонажей (assets/combo-rush/sounds) */
 public final class ModSounds {
     private ModSounds() {}
 
     public static final SoundEvent MUSIC_EVENT = reg("music_event");
     public static final SoundEvent MUSIC_BOSS = reg("music_boss");
+    public static final SoundEvent MUSIC_EVENT2 = reg("music_event2");
+    public static final SoundEvent MUSIC_EVENT3 = reg("music_event3");
+    public static final SoundEvent MUSIC_EVENT4 = reg("music_event4");
+    public static final SoundEvent MUSIC_BOSS2 = reg("music_boss2");
+    /** Темы события и босс-блайнда: на каждое новое событие играет другая */
+    public static final SoundEvent[] EVENT_THEMES = {MUSIC_EVENT, MUSIC_EVENT2, MUSIC_EVENT3, MUSIC_EVENT4};
+    public static final SoundEvent[] BOSS_THEMES = {MUSIC_BOSS, MUSIC_BOSS2};
+    public static final SoundEvent MUSIC_SHOP1 = reg("music_shop1");
+    public static final SoundEvent MUSIC_SHOP2 = reg("music_shop2");
+    /** Спокойные темы магазинов: играют, пока открыт экран магазина вне события */
+    public static final SoundEvent[] SHOP_THEMES = {MUSIC_SHOP1, MUSIC_SHOP2};
     public static final SoundEvent EVENT_START = reg("event_start");
     public static final SoundEvent EVENT_END = reg("event_end");
     public static final SoundEvent BOSS_START = reg("boss_start");

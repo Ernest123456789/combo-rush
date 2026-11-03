@@ -10,16 +10,18 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public class PetRenderer extends GeoEntityRenderer<CRPetEntity> {
     public PetRenderer(EntityRendererFactory.Context ctx) {
         super(ctx, new PetModel());
-        this.shadowRadius = 0.35f;
+        this.shadowRadius = 0.45f;
     }
 
     private static float scaleOf(String id) {
         return switch (id) {
             case "sailor_crab" -> 0.55f;
-            case "creeper_skeleton" -> 0.75f;
-            case "traveler_skeleton" -> 0.8f;
-            case "succubus" -> 0.6f;
+            // «взрослые» питомцы — размером с игрока (1,8 блока)
+            case "creeper_skeleton" -> 1.1f;
+            case "traveler_skeleton" -> 0.9f;
+            case "succubus" -> 0.86f;
             case "squirrel" -> 0.9f;
+            case "armor_stand" -> 0.9f;
             default -> 1.0f;
         };
     }

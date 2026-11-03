@@ -38,10 +38,11 @@ public class CarItem extends Item {
             if (e == null) return ActionResult.FAIL;
             float yaw = ctx.getPlayer() != null ? ctx.getPlayer().getYaw() : 0f;
             e.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, yaw, 0);
+            e.setUpgrades(com.derevna230.comborush.car.CarUpgrades.read(ctx.getStack()));
             e.setHeadYaw(yaw);
             e.setBodyYaw(yaw);
             if (!sw.isSpaceEmpty(e)) {
-                if (ctx.getPlayer() != null) ctx.getPlayer().sendMessage(Text.literal("§cЗдесь тесно: машине нужно место 2×2 блока."), true);
+                if (ctx.getPlayer() != null) ctx.getPlayer().sendMessage(Text.literal("§cЗдесь тесно: машине нужно место 3×3 блока."), true);
                 return ActionResult.FAIL;
             }
             sw.spawnEntity(e);
@@ -58,6 +59,9 @@ public class CarItem extends Item {
         tooltip.add(Text.literal("§eПКМ по блоку — поставить"));
         tooltip.add(Text.literal("§7ПКМ по машине — сесть (первый садится за руль)"));
         tooltip.add(Text.literal("§7W/S — газ и тормоз, A/D — руль, Shift — выйти"));
-        tooltip.add(Text.literal("§7Shift+ПКМ по пустой машине — убрать в инвентарь"));
+        tooltip.add(Text.literal("§7Пробел — ручник (занос), Ctrl — нитро"));
+        tooltip.add(Text.literal("§7Shift+ПКМ по пустой машине — §bгараж§7: прокачка и «забрать»"));
+        int total = com.derevna230.comborush.car.CarUpgrades.total(com.derevna230.comborush.car.CarUpgrades.read(stack));
+        if (total > 0) tooltip.add(Text.literal("§dУлучшений: " + total + " из " + (com.derevna230.comborush.car.CarUpgrades.MAX * com.derevna230.comborush.car.CarUpgrades.KEYS.length)));
     }
 }

@@ -327,7 +327,7 @@ public final class HudModel {
         return switch (s) {
             case "KILL" -> "Убийство"; case "MINE" -> "Руда"; case "HARVEST" -> "Урожай";
             case "SHOOT" -> "Выстрел"; case "BREW" -> "Зелье"; case "ENCHANT" -> "Зачарование";
-            case "BREED" -> "Разведение"; case "TRADE" -> "Сделка"; case "FISH" -> "Улов";
+            case "BREED" -> "Разведение"; case "TRADE" -> "Сделка"; case "FISH" -> "Улов"; case "DRIFT" -> "Вождение";
             default -> s;
         };
     }

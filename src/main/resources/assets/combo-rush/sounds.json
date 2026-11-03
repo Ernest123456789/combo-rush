@@ -129,5 +129,53 @@
         "name": "combo-rush:coin"
       }
     ]
+  },
+  "music_event2": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event2",
+        "stream": true
+      }
+    ]
+  },
+  "music_event3": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event3",
+        "stream": true
+      }
+    ]
+  },
+  "music_event4": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event4",
+        "stream": true
+      }
+    ]
+  },
+  "music_boss2": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_boss2",
+        "stream": true
+      }
+    ]
+  },
+  "music_shop1": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_shop1",
+        "stream": true
+      }
+    ]
+  },
+  "music_shop2": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_shop2",
+        "stream": true
+      }
+    ]
   }
 }

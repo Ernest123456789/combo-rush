@@ -170,6 +170,7 @@ public class ScoreEngine {
             case "BONUS" -> "Бонусы";
             case "SHARE" -> "Командный дух";
             case "RIFT" -> "Разломы";
+            case "DRIFT" -> "Вождение";
             default -> {
                 try { yield ScoreSource.valueOf(key).label; } catch (IllegalArgumentException e) { yield key; }
             }

@@ -97,7 +97,8 @@ public final class ModItems {
         new PetInfo("sailor_crab", "rare"),
         new PetInfo("creeper_skeleton", "epic"),
         new PetInfo("traveler_skeleton", "legendary"),
-        new PetInfo("succubus", "legendary"));
+        new PetInfo("succubus", "legendary"),
+        new PetInfo("armor_stand", "uncommon"));
 
     /** Декоративные растения: ПКМ по блоку — посадить (сущность decor с анимацией), удар — забрать обратно */
     public static final List<PetInfo> DECOR = List.of(
@@ -108,7 +109,6 @@ public final class ModItems {
         new PetInfo("camping_campfire", "common"),
         new PetInfo("wooden_stump", "common"),
         new PetInfo("fumeshroom", "uncommon"),
-        new PetInfo("armor_stand", "uncommon"),
         new PetInfo("wandering_trader", "rare"),
         new PetInfo("redstone_golem", "epic"));
 

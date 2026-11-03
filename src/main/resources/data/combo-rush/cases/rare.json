@@ -58,6 +58,10 @@
       "weight": 57
     },
     {
+      "set": "pet_armor_stand",
+      "weight": 45
+    },
+    {
       "set": "iron_defender",
       "weight": 52
     },

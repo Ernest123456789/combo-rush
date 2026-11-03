@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ряд кнопок над инвентарём: магазин, существа, эссенция, мастерская, журнал.
+ * Ряд кнопок над инвентарём: магазин, существа, эссенция, мастерская, вселенные, журнал.
  * Следует за окном инвентаря, когда открывается книга рецептов.
  */
 public final class InventoryButtons {
@@ -43,6 +43,7 @@ public final class InventoryButtons {
             new Def("Существа (/species)", new ItemStack(Items.TOTEM_OF_UNDYING), () -> command("species")),
             new Def("Эссенция и кейсы (/essence)", new ItemStack(Items.AMETHYST_SHARD), () -> command("essence")),
             new Def("Мастерская: станки и обмен (/workshop)", new ItemStack(Items.CRAFTING_TABLE), () -> payload("ws_open")),
+            new Def("Вселенные (скоро)", UniversesScreen.icon(), () -> MinecraftClient.getInstance().setScreen(new UniversesScreen())),
             new Def("Журнал «Сценарий» (J)", new ItemStack(ModItems.PASS), () -> payload("camp_open")));
     }
 

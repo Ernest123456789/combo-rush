@@ -1,0 +1,25 @@
+{
+  "name": "Манекен",
+  "description": "Деревянный страж: ходит за тобой и принимает удар на себя.",
+  "pet_damage": 0,
+  "set_effects": [
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.armor",
+      "value": 3,
+      "operation": "add_value"
+    },
+    {
+      "type": "attribute",
+      "id": "minecraft:generic.knockback_resistance",
+      "value": 0.1,
+      "operation": "add_value"
+    },
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "ALL"
+    }
+  ],
+  "abilities": []
+}

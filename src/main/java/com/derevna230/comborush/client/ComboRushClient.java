@@ -49,6 +49,17 @@ public class ComboRushClient implements ClientModInitializer {
         // скейт: клиент сам считает прыжок и планирование, ему нужно знать, зажат ли пробел
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client ->
             com.derevna230.comborush.skate.SkateboardEntity.CLIENT_JUMP = client.player != null && client.options.jumpKey.isPressed());
+        // машины: ручник (пробел), нитро (Ctrl) и надпись со скоростью над хотбаром
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            boolean driving = client.player != null
+                && client.player.getVehicle() instanceof com.derevna230.comborush.car.CarEntity car
+                && car.getControllingPassenger() == client.player;
+            com.derevna230.comborush.car.CarEntity.CLIENT_HANDBRAKE = driving && client.options.jumpKey.isPressed();
+            com.derevna230.comborush.car.CarEntity.CLIENT_NITRO = driving && client.options.sprintKey.isPressed();
+            if (driving && client.currentScreen == null)
+                client.inGameHud.setOverlayMessage(net.minecraft.text.Text.literal(
+                    ((com.derevna230.comborush.car.CarEntity) client.player.getVehicle()).hudText()), false);
+        });
         // щиты из кейсов: при блоке — модель <id>_blocking
         for (Item shield : ModItems.SHIELDS)
             ModelPredicateProviderRegistry.register(shield, Identifier.ofVanilla("blocking"), (stack, world, entity, seed) ->
