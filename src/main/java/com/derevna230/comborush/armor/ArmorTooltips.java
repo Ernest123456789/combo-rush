@@ -171,6 +171,8 @@ public final class ArmorTooltips {
         for (CaseDef c : CaseRegistry.all()) {
             JsonArray a = new JsonArray();
             if (!c.description.isEmpty()) a.add("§7" + c.description);
+            if (c.needsKey()) a.add("§dНужен ключ: §f" + c.keyPrice + " эссенции §7(покупается при открытии)");
+            if (c.noShop) a.add("§7Не продаётся: выпадает после матчей");
             a.add("§8Может выпасть:");
             for (String line : groupedDrops(c)) a.add(line);
             cases.add(c.id, a);

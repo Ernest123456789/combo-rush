@@ -1,0 +1,12 @@
+{
+  "name": "Нож (КТ)",
+  "description": "Стандартный боевой нож.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 3,
+      "source": "KILL"
+    }
+  ],
+  "abilities": []
+}

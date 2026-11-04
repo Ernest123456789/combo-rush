@@ -320,6 +320,7 @@ public final class Campaign {
         String kind = e.kind();
         if (kind.equals("ticketer")) { talkTicketer(p); return; }
         if (kind.startsWith("poster_")) { readPoster(p, e); return; }
+        if (kind.startsWith(com.derevna230.comborush.lobby.Lobby.KIND_PREFIX)) { com.derevna230.comborush.lobby.Lobby.talk(p, e); return; }
         if (kind.equals("prompter") || kind.equals("director")) {
             for (QuestDef q : QuestRegistry.all()) {
                 if (!q.goal.type.equals("talk") || !q.goal.target.equals(kind) || status(p, q) != St.ACTIVE) continue;

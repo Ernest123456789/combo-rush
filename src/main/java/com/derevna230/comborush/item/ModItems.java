@@ -125,7 +125,7 @@ public final class ModItems {
     /** Карманные станки из Мастерской: id → предмет */
     public static final Map<String, Item> POCKET = new LinkedHashMap<>();
 
-    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor");
+    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor", "arsenal");
     public static final List<String> PIECES = List.of("helmet", "chestplate", "leggings", "boots");
 
     /** комплект → его предметы (у шляп один предмет) */
@@ -187,6 +187,7 @@ public final class ModItems {
             SET_RARITY.put(w.id(), w.rarity());
             KIND.put(w.id(), w.kind());
         }
+        registerArsenal();
         for (PetInfo pi : PETS) {
             String setId = "pet_" + pi.id();
             Item it = register(setId, new PetItem(pi.id(), settings(pi.rarity()).fireproof()));
@@ -231,6 +232,33 @@ public final class ModItems {
             .displayName(Text.translatable("itemGroup.combo-rush.main"))
             .entries((ctx, entries) -> ALL.forEach(entries::add))
             .build());
+    }
+
+    /** Стволы, нож-коготь и все скины «Арсенала» (GunDefs): отдельные предметы, из кейса выпадают только скины */
+    private static void registerArsenal() {
+        for (GunDefs.Gun g : GunDefs.GUNS) addGun(g.id(), "rare", g);
+        addKnife(GunDefs.KNIFE, "mythic");
+        for (GunDefs.Skin sk : GunDefs.SKINS) {
+            if (GunDefs.isKnifeBase(sk.base())) addKnife(sk.id(), sk.rarity());
+            else addGun(sk.id(), sk.rarity(), GunDefs.gun(sk.base()));
+        }
+    }
+
+    private static void addGun(String id, String rarity, GunDefs.Gun g) {
+        Item it = register(id, new CRGunItem(id, settings(rarity).fireproof().attributeModifiers(attrs(3, 1.0)), g));
+        track(id, it, rarity, "gun");
+    }
+
+    private static void addKnife(String id, String rarity) {
+        Item it = register(id, new CRKnifeItem(id, settings(rarity).fireproof().attributeModifiers(rarity.equals("common") ? attrs(6, 2.0) : attrs(7, 2.2))));
+        track(id, it, rarity, "sword");
+    }
+
+    private static void track(String id, Item it, String rarity, String kind) {
+        SET_ITEMS.put(id, List.of(it));
+        ITEM_SET.put(it, id);
+        SET_RARITY.put(id, rarity);
+        KIND.put(id, kind);
     }
 
     /** Огнестрел: урон за выстрел, дробин, разброс, перезарядка (тики), дальность */

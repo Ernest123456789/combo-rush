@@ -22,6 +22,10 @@ public class CaseDef {
     public int price = 10;          // в эссенции (или в алмазах, если currency = "diamond")
     public String currency = "essence";   // "essence" или "diamond"
     public int order = 0;           // порядок в магазине
+    public int keyPrice = 0;        // > 0: для открытия нужен ключ, он покупается за эссенцию при открытии
+    public boolean noShop = false;  // не продаётся в магазинах: кейс только выпадает
+
+    public boolean needsKey() { return keyPrice > 0; }
     public List<Drop> drops = new ArrayList<>();
 
     public boolean paysDiamonds() { return "diamond".equals(currency); }

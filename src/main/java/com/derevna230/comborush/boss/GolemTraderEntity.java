@@ -60,6 +60,7 @@ public class GolemTraderEntity extends PathAwareEntity implements GeoEntity {
     /** Каждый торговец привозит свои 3 кейса со скидкой — от визита к визиту набор другой */
     private void rollOffers() {
         java.util.List<String> all = new java.util.ArrayList<>(com.derevna230.comborush.item.ModItems.CASE_IDS);
+        all.removeIf(id -> { var d = com.derevna230.comborush.cases.CaseRegistry.get(id); return d != null && d.noShop; });
         java.util.Collections.shuffle(all, new java.util.Random(this.getRandom().nextLong()));
         offers.clear();
         for (int i = 0; i < OFFERS && i < all.size(); i++) { offers.add(all.get(i)); stock[i] = STOCK; }

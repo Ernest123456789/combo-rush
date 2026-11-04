@@ -30,13 +30,16 @@ public final class Universes {
 
     public static final RegistryKey<World> NIGHT_CITY = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "night_city"));
 
+    public static final RegistryKey<World> LOBBY = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "lobby"));
+    public static final RegistryKey<World> STANDOFF = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "standoff"));
+
     /** Откуда игрок вошёл: «мир|x|y|z|yaw|pitch» — туда он вернётся при выходе */
     private static final AttachmentType<String> RETURN = AttachmentRegistry.create(
         Identifier.of(ComboRush.MOD_ID, "universe_return"),
         b -> b.persistent(Codec.STRING));
 
     /** Загрузить класс при старте, чтобы тип данных игрока был зарегистрирован до загрузки мира */
-    public static void init() { NightCityChunkGenerator.register(); }
+    public static void init() { NightCityChunkGenerator.register(); SkyChunkGenerator.register(); }
 
     /** Мир «Ночной город» открыт: пролог пройден (или оператор) */
     public static boolean unlocked(ServerPlayerEntity p) { return p.hasPermissionLevel(2) || Campaign.prologueDone(p); }
@@ -48,6 +51,37 @@ public final class Universes {
     }
 
     public static boolean inCity(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(NIGHT_CITY); }
+    public static boolean inLobby(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(LOBBY); }
+    public static boolean inStandoff(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(STANDOFF); }
+    /** В любой вселенной: Ночной город, Лобби или комната «Противостояния» */
+    public static boolean inUniverse(ServerPlayerEntity p) { return inCity(p) || inLobby(p) || inStandoff(p); }
+    public static boolean lobbyWorld(net.minecraft.world.World w) { return w.getRegistryKey().equals(LOBBY) || w.getRegistryKey().equals(STANDOFF); }
+
+    public static String where(ServerPlayerEntity p) { return inCity(p) ? "city" : inLobby(p) ? "lobby" : inStandoff(p) ? "standoff" : "home"; }
+
+    /** Запомнить точку возврата домой — только если игрок ещё не во вселенной (переход между вселенными её не затирает) */
+    private static void rememberHome(ServerPlayerEntity p) {
+        if (inUniverse(p)) return;
+        ServerWorld from = p.getServerWorld();
+        p.setAttached(RETURN, from.getRegistryKey().getValue() + "|" + p.getX() + "|" + p.getY() + "|" + p.getZ() + "|" + p.getYaw() + "|" + p.getPitch());
+    }
+
+    /** Вход в Лобби: небесный остров. @return null или причина отказа */
+    public static String enterLobby(ServerPlayerEntity p, boolean force) {
+        MinecraftServer server = p.getServer();
+        ServerWorld w = server == null ? null : server.getWorld(LOBBY);
+        if (w == null) return "Лобби ещё не загрузилось. Попробуйте позже.";
+        if (inLobby(p)) return "Вы уже в Лобби.";
+        if (!force && !unlocked(p)) return "Лобби откроется после окончания пролога.";
+        if (!p.isAlive() || p.isSpectator()) return "Сейчас войти нельзя.";
+        rememberHome(p);
+        w.getChunk(new BlockPos(0, SkyWorlds.TOP, 6));
+        p.stopRiding();
+        p.teleport(w, 0.5, SkyWorlds.TOP + 1, 6.5, 180f, 6f);
+        p.fallDistance = 0;
+        p.sendMessage(Text.literal("§b§lЛобби §7— остров в небе. Четыре лавки: у каждой своя игра."), false);
+        return null;
+    }
 
     // ---------------------------------------------------------------- вход и выход
     /** @return null, если всё получилось, иначе причина отказа */
@@ -58,8 +92,7 @@ public final class Universes {
         if (inCity(p)) return "Вы уже в «Ночном городе».";
         if (!force && !p.hasPermissionLevel(2) && !Campaign.prologueDone(p)) return "Вход откроется после окончания пролога.";
         if (!p.isAlive() || p.isSpectator()) return "Сейчас войти нельзя.";
-        ServerWorld from = p.getServerWorld();
-        p.setAttached(RETURN, from.getRegistryKey().getValue() + "|" + p.getX() + "|" + p.getY() + "|" + p.getZ() + "|" + p.getYaw() + "|" + p.getPitch());
+        rememberHome(p);
         city.getChunk(new BlockPos(NightCity.SPAWN_X, NightCity.GROUND, NightCity.SPAWN_Z));   // прогрузить чанк под ногами
         p.stopRiding();
         p.teleport(city, NightCity.SPAWN_X + 0.5, NightCity.GROUND + 1, NightCity.SPAWN_Z + 0.5, 180f, 8f);
@@ -72,7 +105,8 @@ public final class Universes {
     public static String leave(ServerPlayerEntity p) {
         MinecraftServer server = p.getServer();
         if (server == null) return "Сервер недоступен.";
-        if (!inCity(p)) return "Вы не во вселенной.";
+        if (!inUniverse(p)) return "Вы не во вселенной.";
+        com.derevna230.comborush.lobby.Party.leave(p, false);
         ServerWorld to = server.getOverworld();
         Vec3d at = null; float yaw = p.getYaw(), pitch = p.getPitch();
         String saved = p.getAttached(RETURN);
@@ -114,6 +148,7 @@ public final class Universes {
         switch (a.action()) {
             case "univ_enter" -> msg = enter(p, false);
             case "univ_leave" -> msg = leave(p);
+            case "univ_lobby" -> msg = enterLobby(p, false);
             default -> { }
         }
         if (msg != null) p.sendMessage(Text.literal("§c" + msg), true);
@@ -124,6 +159,7 @@ public final class Universes {
         JsonObject o = new JsonObject();
         o.addProperty("open", unlocked(p));
         o.addProperty("inside", inCity(p));
+        o.addProperty("where", where(p));
         o.addProperty("msg", msg);
         ServerPlayNetworking.send(p, new HudPayload("univ", o.toString()));
     }

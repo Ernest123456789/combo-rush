@@ -1,0 +1,163 @@
+{
+  "name": "Кейс «Арсенал»",
+  "description": "33 скина на 11 стволов: от армейских до тайных. И крошечный шанс на Нож-коготь.",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 7,
+  "drops": [
+    {
+      "set": "ak47_jungle",
+      "weight": 726
+    },
+    {
+      "set": "ak47_redline",
+      "weight": 145
+    },
+    {
+      "set": "ak47_dragon",
+      "weight": 16
+    },
+    {
+      "set": "awp_dune",
+      "weight": 726
+    },
+    {
+      "set": "awp_arctic",
+      "weight": 145
+    },
+    {
+      "set": "awp_aurora",
+      "weight": 16
+    },
+    {
+      "set": "deagle_rust",
+      "weight": 726
+    },
+    {
+      "set": "deagle_hazard",
+      "weight": 145
+    },
+    {
+      "set": "deagle_goldage",
+      "weight": 16
+    },
+    {
+      "set": "m4a4_urban",
+      "weight": 726
+    },
+    {
+      "set": "m4a4_carbon",
+      "weight": 145
+    },
+    {
+      "set": "m4a4_bloodmoon",
+      "weight": 16
+    },
+    {
+      "set": "glock18_slate",
+      "weight": 726
+    },
+    {
+      "set": "glock18_hazefade",
+      "weight": 45
+    },
+    {
+      "set": "glock18_ember",
+      "weight": 145
+    },
+    {
+      "set": "usp_khaki",
+      "weight": 726
+    },
+    {
+      "set": "usp_toxic",
+      "weight": 45
+    },
+    {
+      "set": "usp_midnight",
+      "weight": 145
+    },
+    {
+      "set": "galil_sandstorm",
+      "weight": 726
+    },
+    {
+      "set": "galil_crystal",
+      "weight": 45
+    },
+    {
+      "set": "galil_plum",
+      "weight": 145
+    },
+    {
+      "set": "p90_olivedrab",
+      "weight": 726
+    },
+    {
+      "set": "p90_cosmos",
+      "weight": 45
+    },
+    {
+      "set": "p90_sky",
+      "weight": 145
+    },
+    {
+      "set": "fiveseven_olivegrid",
+      "weight": 726
+    },
+    {
+      "set": "fiveseven_cyber",
+      "weight": 45
+    },
+    {
+      "set": "fiveseven_coral",
+      "weight": 145
+    },
+    {
+      "set": "revolver_copper",
+      "weight": 726
+    },
+    {
+      "set": "revolver_pirategold",
+      "weight": 45
+    },
+    {
+      "set": "revolver_abyss",
+      "weight": 145
+    },
+    {
+      "set": "m4a1s_graphite",
+      "weight": 726
+    },
+    {
+      "set": "m4a1s_goldsteel",
+      "weight": 45
+    },
+    {
+      "set": "m4a1s_mint",
+      "weight": 145
+    },
+    {
+      "set": "claw_fade",
+      "weight": 5
+    },
+    {
+      "set": "claw_doppler",
+      "weight": 5
+    },
+    {
+      "set": "claw_tiger",
+      "weight": 5
+    },
+    {
+      "set": "claw_crimsonweb",
+      "weight": 5
+    },
+    {
+      "set": "claw_heat",
+      "weight": 5
+    }
+  ],
+  "keyPrice": 250,
+  "noShop": true
+}

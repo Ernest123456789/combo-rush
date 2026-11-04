@@ -28,6 +28,11 @@ public final class EssenceShopNet {
     public static void handle(ServerPlayerEntity p, ShopActionPayload a) {
         switch (a.action()) {
             case "eshop_cosmetics" -> { CosmeticsNet.open(p); return; }
+            case "case_key_buy" -> {
+                Res r = CaseService.buyKeyAndOpen(p, a.c());
+                if (!r.ok()) p.sendMessage(net.minecraft.text.Text.literal("§c" + r.msg()), true);
+                return;
+            }
             case "case_again" -> {
                 Res r = CaseService.openAgain(p, a.c());
                 if (!r.ok()) send(p, "eshop_open", r.msg(), false);
@@ -69,7 +74,7 @@ public final class EssenceShopNet {
         JsonArray cases = new JsonArray();
         for (CaseDef c : CaseRegistry.all()) {
             Item item = ModItems.CASES.get(c.id);
-            if (item == null) continue;
+            if (item == null || c.noShop) continue;
             JsonObject o = new JsonObject();
             o.addProperty("id", c.id);
             o.addProperty("item", Registries.ITEM.getId(item).toString());

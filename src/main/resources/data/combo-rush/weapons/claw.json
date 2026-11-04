@@ -1,0 +1,12 @@
+{
+  "name": "Нож-коготь",
+  "description": "Лёгкий нож-керамбит с кольцом. V — осмотр.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "KILL"
+    }
+  ],
+  "abilities": []
+}

@@ -221,6 +221,9 @@ public final class HudModel {
                 case "trader_open", "trader" -> TraderScreen.onPacket(p.kind(), o);
                 case "cosm_open", "cosm" -> CosmeticsScreen.onPacket(p.kind(), o);
                 case "univ" -> UniversesScreen.onPacket(o);
+                case "lobby_game" -> PromptScreen.lobbyGame(o);
+                case "case_key" -> PromptScreen.caseKey(o);
+                case "so" -> StandoffScreen.onPacket(o);
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }

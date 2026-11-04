@@ -1,0 +1,12 @@
+{
+  "name": "AK-47 | Джунгли",
+  "description": "Обычный скин: красиво, но без особых свойств.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 3,
+      "source": "KILL"
+    }
+  ],
+  "abilities": []
+}

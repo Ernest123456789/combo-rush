@@ -44,8 +44,10 @@ public class ShopNet {
 
     private static void handle(ServerPlayerEntity p, ShopActionPayload a) {
         if (a.action().startsWith("univ")) { com.derevna230.comborush.universe.Universes.handle(p, a); return; }
+        if (a.action().startsWith("so_") || a.action().startsWith("lobby_")) { com.derevna230.comborush.lobby.StandoffNet.handle(p, a); return; }
         if (a.action().startsWith("species")) { SpeciesNet.handle(p, a); return; }
         if (a.action().startsWith("ws_")) { com.derevna230.comborush.workshop.WorkshopNet.handle(p, a); return; }
+        if (a.action().startsWith("gun_")) { com.derevna230.comborush.item.WeaponKeys.handle(p, a.action()); return; }
         if (a.action().equals("camp_open")) { com.derevna230.comborush.campaign.Campaign.openJournal(p); return; }
         if (a.action().equals("camp_choose")) {
             p.sendMessage(net.minecraft.text.Text.literal("§6[Сценарий] §f" + com.derevna230.comborush.campaign.Finale.choose(p, a.c())), false);
@@ -55,7 +57,7 @@ public class ShopNet {
         if (a.action().startsWith("cosm")) { com.derevna230.comborush.cosmetic.CosmeticsNet.handle(p, a); return; }
         if (a.action().startsWith("pocket")) { com.derevna230.comborush.workshop.PocketTools.handle(p, a); return; }
         if (a.action().startsWith("skate")) { com.derevna230.comborush.skate.SkateNet.handle(p, a); return; }
-        if (a.action().startsWith("eshop") || a.action().equals("case_again")) { EssenceShopNet.handle(p, a); return; }
+        if (a.action().startsWith("eshop") || a.action().equals("case_again") || a.action().equals("case_key_buy")) { EssenceShopNet.handle(p, a); return; }
         if (CycleManager.phase() != CyclePhase.NORMAL) {
             ServerPlayNetworking.send(p, new HudPayload("shop_close", "{}"));
             return;

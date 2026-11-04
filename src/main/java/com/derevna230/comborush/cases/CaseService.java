@@ -34,7 +34,7 @@ public final class CaseService {
     public static final int STRIP = 52, WIN = 45;
 
     public static int scrapValue(String rarity) {
-        return switch (rarity) { case "uncommon" -> 4; case "rare" -> 7; case "epic" -> 12; case "legendary" -> 20; default -> 2; };
+        return switch (rarity) { case "uncommon" -> 4; case "rare" -> 7; case "epic" -> 12; case "legendary" -> 20; case "mythic" -> 60; default -> 2; };
     }
 
     public static Res buy(ServerPlayerEntity p, String caseId) {
@@ -47,6 +47,7 @@ public final class CaseService {
         CaseDef def = CaseRegistry.get(caseId);
         Item item = ModItems.CASES.get(caseId);
         if (def == null || item == null) return Res.err("Такого кейса нет.");
+        if (def.noShop) return Res.err("Этот кейс не продаётся: он выпадает за матчи.");
         if (def.paysDiamonds()) {
             if (countDiamonds(p) < price) return Res.err("Не хватает алмазов: нужно " + price + ".");
             takeDiamonds(p, price);
@@ -105,8 +106,46 @@ public final class CaseService {
         return l.get(ThreadLocalRandom.current().nextInt(l.size()));
     }
 
-    /** ПКМ кейсом в руке */
+    /** ПКМ кейсом в руке: если нужен ключ — сначала запрос на его покупку */
     public static void open(ServerPlayerEntity p, ItemStack stack, String caseId) {
+        CaseDef def = CaseRegistry.get(caseId);
+        if (def != null && def.needsKey() && !def.drops.isEmpty()) { askKey(p, def); return; }
+        openNow(p, stack, caseId);
+    }
+
+    /** Экран подтверждения: «Купить ключ за N эссенции и открыть кейс» */
+    private static void askKey(ServerPlayerEntity p, CaseDef def) {
+        PlayerProfile pr = PlayerProfile.of(p);
+        JsonObject o = new JsonObject();
+        o.addProperty("case", def.id);
+        o.addProperty("name", def.name);
+        o.addProperty("rar", def.rarity);
+        o.addProperty("price", def.keyPrice);
+        o.addProperty("essence", pr.essence());
+        if (HudSync.has(p)) ServerPlayNetworking.send(p, new HudPayload("case_key", GSON.toJson(o)));
+        else p.sendMessage(Text.literal("§eДля «" + def.name + "» нужен ключ: " + def.keyPrice + " эссенции. Установите мод на клиенте, чтобы купить его."), false);
+    }
+
+    /** Подтверждение с экрана: списать эссенцию за ключ и открыть кейс из инвентаря */
+    public static Res buyKeyAndOpen(ServerPlayerEntity p, String caseId) {
+        CaseDef def = CaseRegistry.get(caseId);
+        if (def == null || !def.needsKey()) return Res.err("Этому кейсу ключ не нужен.");
+        var inv = p.getInventory();
+        ItemStack found = null;
+        for (int i = 0; i < inv.size() && found == null; i++) {
+            ItemStack st = inv.getStack(i);
+            if (st.getItem() instanceof CaseItem ci && ci.caseId().equals(caseId)) found = st;
+        }
+        if (found == null) return Res.err("Кейса уже нет в инвентаре.");
+        PlayerProfile pr = PlayerProfile.of(p);
+        if (pr.essence() < def.keyPrice) return Res.err("Не хватает эссенции на ключ: нужно " + def.keyPrice + ".");
+        p.setAttached(PlayerProfile.TYPE, pr.addEssence(-def.keyPrice));
+        p.sendMessage(Text.literal("§7Ключ куплен: §d-" + def.keyPrice + " эссенции§7."), false);
+        openNow(p, found, caseId);
+        return Res.ok("");
+    }
+
+    private static void openNow(ServerPlayerEntity p, ItemStack stack, String caseId) {
         CaseDef def = CaseRegistry.get(caseId);
         if (def == null || def.drops.isEmpty()) { p.sendMessage(Text.literal("§cЭтот кейс пока нельзя открыть."), true); return; }
 
@@ -163,7 +202,9 @@ public final class CaseService {
         for (int i = 0; i < inv.size(); i++) {
             ItemStack st = inv.getStack(i);
             if (st.getItem() instanceof CaseItem ci && ci.caseId().equals(caseId)) {
-                open(p, st, caseId);
+                CaseDef d = CaseRegistry.get(caseId);
+                if (d != null && d.needsKey()) { askKey(p, d); return Res.ok(""); }
+                openNow(p, st, caseId);
                 return Res.ok("");
             }
         }

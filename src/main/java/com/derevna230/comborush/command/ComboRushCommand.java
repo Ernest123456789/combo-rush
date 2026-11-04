@@ -33,6 +33,11 @@ public class ComboRushCommand {
     private static final SuggestionProvider<ServerCommandSource> EVENT_IDS =
         (ctx, builder) -> CommandSource.suggestMatching(DirectorManager.ids(), builder);
 
+    private static int partyReply(ServerCommandSource src, String err) {
+        if (err != null) src.sendFeedback(() -> Text.literal("§c" + err), false);
+        return err == null ? 1 : 0;
+    }
+
     public static void register(CommandDispatcher<ServerCommandSource> d) {
         d.register(CommandManager.literal("shop").executes(c -> {
             ShopGui.open(c.getSource().getPlayerOrThrow()); return 1; }));
@@ -151,6 +156,30 @@ public class ComboRushCommand {
                         .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Campaign.debugReset(c.getSource().getPlayerOrThrow(), true)))))
                 .then(CommandManager.literal("booth")
                     .executes(c -> story(c.getSource(), com.derevna230.comborush.campaign.Campaign.debugBooth(c.getSource().getPlayerOrThrow())))))
+            .then(CommandManager.literal("lobby").requires(ComboRushCommand::op).executes(c -> {
+                String err = com.derevna230.comborush.universe.Universes.enterLobby(c.getSource().getPlayerOrThrow(), true);
+                if (err != null) c.getSource().sendFeedback(() -> Text.literal("§c" + err), false);
+                return err == null ? 1 : 0; }))
+            .then(CommandManager.literal("standoff").requires(ComboRushCommand::op).executes(c -> {
+                String err = com.derevna230.comborush.lobby.Standoff.enter(c.getSource().getPlayerOrThrow(), true);
+                if (err != null) c.getSource().sendFeedback(() -> Text.literal("§c" + err), false);
+                return err == null ? 1 : 0; }))
+            .then(CommandManager.literal("matchreward").requires(ComboRushCommand::op)
+                .then(CommandManager.literal("force").executes(c -> {
+                    boolean ok = com.derevna230.comborush.lobby.Standoff.giveCase(c.getSource().getPlayerOrThrow());
+                    return ok ? 1 : 0; }))
+                .then(CommandManager.literal("roll").executes(c -> {
+                    boolean got = com.derevna230.comborush.lobby.Standoff.finishMatch(c.getSource().getPlayerOrThrow(), false);
+                    c.getSource().sendFeedback(() -> Text.literal(got ? "§aКейс выпал." : "§7Не повезло (шанс " + (int) (com.derevna230.comborush.lobby.Standoff.CASE_CHANCE * 100) + "%)."), false);
+                    return got ? 1 : 0; })))
+            .then(CommandManager.literal("party")
+                .then(CommandManager.literal("accept").executes(c -> partyReply(c.getSource(), com.derevna230.comborush.lobby.Party.accept(c.getSource().getPlayerOrThrow()))))
+                .then(CommandManager.literal("decline").executes(c -> partyReply(c.getSource(), com.derevna230.comborush.lobby.Party.decline(c.getSource().getPlayerOrThrow()))))
+                .then(CommandManager.literal("leave").executes(c -> { com.derevna230.comborush.lobby.Party.leave(c.getSource().getPlayerOrThrow(), true); return 1; }))
+                .then(CommandManager.literal("invite").then(CommandManager.argument("name", StringArgumentType.word()).executes(c ->
+                    partyReply(c.getSource(), com.derevna230.comborush.lobby.Party.invite(c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "name"))))))
+                .then(CommandManager.literal("kick").then(CommandManager.argument("name", StringArgumentType.word()).executes(c ->
+                    partyReply(c.getSource(), com.derevna230.comborush.lobby.Party.kick(c.getSource().getPlayerOrThrow(), StringArgumentType.getString(c, "name")))))))
             .then(CommandManager.literal("rift").requires(ComboRushCommand::op).executes(c -> {
                 boolean ok = com.derevna230.comborush.rift.RiftManager.open(c.getSource().getPlayerOrThrow());
                 c.getSource().sendFeedback(() -> Text.literal(ok ? "§5Разлом открыт рядом с тобой." : "§cНе нашёл места для разлома."), false);

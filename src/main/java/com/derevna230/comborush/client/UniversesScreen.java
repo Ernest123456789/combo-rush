@@ -33,6 +33,9 @@ public class UniversesScreen extends Screen {
 
     /** Состояние от сервера: вход открыт (пролог пройден), игрок уже внутри */
     private static volatile boolean open = false, inside = false;
+    /** где игрок сейчас: home, city, lobby, standoff */
+    private static volatile String where = "home";
+    private int page = 0;                // 0 — Ночной город, 1 — Лобби
     private static volatile String serverMsg = "";
 
     private float u = 1, ox, oy, mx, my;
@@ -49,7 +52,8 @@ public class UniversesScreen extends Screen {
     @Override
     protected void init() {
         HudModel.play(SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 1.0f, 0.6f);
-        inside = isCityClient();
+        where = worldPath();
+        inside = where.equals("city");
         if (ClientPlayNetworking.canSend(ShopActionPayload.ID)) ClientPlayNetworking.send(new ShopActionPayload("univ_state", 0, 0, ""));
     }
 
@@ -58,9 +62,21 @@ public class UniversesScreen extends Screen {
         return mc.world != null && mc.world.getRegistryKey().getValue().getPath().equals("night_city");
     }
 
+    /** home, city, lobby или standoff — по измерению клиента */
+    private static String worldPath() {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.world == null) return "home";
+        String path = mc.world.getRegistryKey().getValue().getPath();
+        return switch (path) { case "night_city" -> "city"; case "lobby" -> "lobby"; case "standoff" -> "standoff"; default -> "home"; };
+    }
+
+    /** Игрок сейчас именно в той вселенной, карточка которой открыта */
+    private boolean here() { return page == 0 ? where.equals("city") : where.equals("lobby") || where.equals("standoff"); }
+
     public static void onPacket(JsonObject o) {
         open = o.has("open") && o.get("open").getAsBoolean();
         inside = o.has("inside") ? o.get("inside").getAsBoolean() : isCityClient();
+        where = o.has("where") ? o.get("where").getAsString() : worldPath();
         serverMsg = o.has("msg") ? o.get("msg").getAsString() : "";
     }
 
@@ -94,7 +110,7 @@ public class UniversesScreen extends Screen {
 
         hoverKey = "";
         for (int i = hits.size() - 1; i >= 0; i--) if (hits.get(i).contains(mx, my)) { hoverKey = hits.get(i).key; break; }
-        for (String k : List.of("card", "enter", "close")) {
+        for (String k : List.of("card", "enter", "close", "pg")) {
             float cur = hov.getOrDefault(k, 0f);
             hov.put(k, cur + ((k.equals(hoverKey) ? 1f : 0f) - cur) * Math.min(1f, dt * 12f));
         }
@@ -108,6 +124,7 @@ public class UniversesScreen extends Screen {
         float appear = Math.min(1f, (now - openAt) / 1e6f / 450f);
         drawTitle(c, appear);
         drawCard(c, now, appear);
+        drawPager(c);
         drawClose(c);
         m.pop();
     }
@@ -167,24 +184,30 @@ public class UniversesScreen extends Screen {
         c.fill(CX - 3, CY - 3, CX + CW + 3, CY + CH + 3, (glow << 24) | 0xB070FF);
         panel(c, CX, CY, CW, CH);
 
-        drawPortal(c, now);
+        if (page == 0) drawPortal(c, now); else drawSkyPortal(c, now);
 
         // текст справа
         int tx = PX + PW + 14;
-        text(c, "НОЧНОЙ ГОРОД", tx, CY + 12, 1.35f, 0xFF7AF0FF, 0);
-        text(c, "Вселенная I · продолжение сюжета", tx, CY + 29, 0.78f, 0xFFB9A8F0, 0);
+        text(c, page == 0 ? "НОЧНОЙ ГОРОД" : "ЛОББИ", tx, CY + 12, 1.35f, page == 0 ? 0xFF7AF0FF : 0xFFFFE08A, 0);
+        text(c, page == 0 ? "Вселенная I · продолжение сюжета" : "Вселенная II · игры и друзья", tx, CY + 29, 0.78f, 0xFFB9A8F0, 0);
         c.fill(tx, CY + 41, tx + 150, CY + 42, 0x40FFFFFF);
-        String[] lines = {
+        String[] lines = page == 0 ? new String[]{
             "Город, где всегда ночь, а небоскрёбы",
             "светят ярче звёзд. За чертой города —",
             "холмы, горы и гоночные трассы.",
             "Цикл событий идёт и здесь; питомцев",
             "и машины можно взять с собой.",
+            "Выход открыт всегда."} : new String[]{
+            "Небольшой остров в небе, где день",
+            "сменяет ночь. Четыре лавки, и в каждой",
+            "NPC зовёт в свою мини-игру.",
+            "Пока открыта «Противостояние»:",
+            "меню, скины, группа друзей.",
             "Выход открыт всегда."};
         for (int i = 0; i < lines.length; i++) text(c, lines[i], tx, CY + 48 + i * 10.5f, 0.78f, 0xFFD6D0EE, 0);
 
         // статус
-        boolean here = inside;
+        boolean here = here();
         String badge = here ? "ВЫ ЗДЕСЬ" : open ? "ОТКРЫТО" : "ЗАКРЫТО";
         int top = here ? 0x3CD8E8 : open ? 0x58D68D : 0xE05A5A, bot = here ? 0x1890A8 : open ? 0x2E8B57 : 0xA02A2A;
         float bw = 62, bh = 14, bx = CX + CW - bw - 8, by = CY + 8;
@@ -197,7 +220,7 @@ public class UniversesScreen extends Screen {
 
         // кнопка действия; хит карточки добавляем раньше, чтобы кнопка была выше по приоритету
         hit(CX, CY, CW, CH, "card", null);
-        button(c, "enter", tx, CY + CH - 26, 150, 18, here ? "Вернуться домой" : open ? "Войти в город" : "Откроется после пролога");
+        button(c, "enter", tx, CY + CH - 26, 150, 18, here ? "Вернуться домой" : open ? (page == 0 ? "Войти в город" : "Войти в Лобби") : "Откроется после пролога");
         if (!serverMsg.isEmpty() && !open) text(c, "Пройдите все задания пролога", tx + 75, CY + CH - 6, 0.7f, 0xFFB9A8F0, 1);
         m.pop();
     }
@@ -266,6 +289,70 @@ public class UniversesScreen extends Screen {
         }
     }
 
+    /** Небесный остров: облака, солнце и плавающий остров с лавками */
+    private void drawSkyPortal(DrawContext c, long now) {
+        c.fill(PX - 1, PY - 1, PX + PW + 1, PY + PH + 1, 0xFF000000);
+        double t = now / 1e9;
+        double cycle = (t / 14.0) % 1.0;                       // быстрый показ смены дня и ночи
+        float day = (float) (0.5 + 0.5 * Math.sin(cycle * Math.PI * 2));
+        int top = lerpRgb(0x0B1030, 0x4C9BF0, day), bot = lerpRgb(0x2A1E58, 0xBFE4FF, day);
+        c.fillGradient(PX, PY, PX + PW, PY + PH, 0xFF000000 | top, 0xFF000000 | bot);
+        // звёзды ночью
+        if (day < 0.6f) for (int i = 0; i < 30; i++) {
+            int h = i * 9973 + 5;
+            int x = PX + 2 + Math.abs(h * 31) % (PW - 4), y = PY + 2 + Math.abs(h * 17 + i * 53) % (PH / 2);
+            float tw = 0.5f + 0.5f * (float) Math.sin(t * 1.4 + i);
+            c.fill(x, y, x + 1, y + 1, ((int) ((60 + 120 * tw) * (0.6f - day) / 0.6f) << 24) | 0xFFFFFF);
+        }
+        // солнце или луна по дуге
+        double ang = cycle * Math.PI * 2;
+        int sx = PX + PW / 2 + (int) (Math.cos(ang) * 46), sy = PY + 46 - (int) (Math.sin(ang) * 34);
+        discClip(c, sx, sy, 9, 0x40FFE9A0);
+        discClip(c, sx, sy, 6, 0xFFFFE08A);
+        // облака
+        for (int i = 0; i < 4; i++) {
+            int cx = PX + (int) (((t * (3 + i) + i * 40) % (PW + 40)) - 20), cy = PY + 14 + i * 14;
+            discClip(c, cx, cy, 5, 0x60FFFFFF); discClip(c, cx + 7, cy + 1, 4, 0x60FFFFFF); discClip(c, cx - 6, cy + 2, 3, 0x60FFFFFF);
+        }
+        // остров: трава, камень книзу, лавки по сторонам
+        int bob = (int) (Math.sin(t * 1.2) * 2);
+        int cx = PX + PW / 2, gy = PY + PH - 44 + bob;
+        for (int i = 0; i < 26; i++) {
+            int hw = (int) (52 * Math.pow(1 - i / 26.0, 0.75));
+            c.fill(cx - hw, gy + 5 + i, cx + hw, gy + 6 + i, i < 3 ? 0xFF5A3A24 : i % 4 == 0 ? 0xFF6C6C78 : 0xFF565662);
+        }
+        c.fill(cx - 52, gy, cx + 52, gy + 5, 0xFF58B84A);
+        c.fill(cx - 52, gy, cx + 52, gy + 1, 0xFF7ADA62);
+        int[] roofs = {0xE04A4A, 0x4A7CE0, 0x5ACB4A, 0xE8C83A};
+        for (int i = 0; i < 4; i++) {
+            int bx = cx - 44 + i * 24;
+            c.fill(bx, gy - 12, bx + 14, gy, 0xFF6A4A2E);
+            c.fill(bx - 2, gy - 17, bx + 16, gy - 12, 0xFF000000 | roofs[i]);
+            c.fill(bx + 5, gy - 8, bx + 9, gy, 0xFF2A1A10);
+        }
+        c.fill(cx - 3, gy - 10, cx + 3, gy, 0xFF9AA6C0);       // фонтан
+        c.fill(cx - 1, gy - 16, cx + 1, gy - 10, 0xFF7ADCE8);
+        c.fill(PX, PY, PX + PW, PY + 1, 0x40FFFFFF);
+    }
+
+    private static int lerpRgb(int a, int b, float t) {
+        int r = (int) (((a >> 16) & 255) * (1 - t) + ((b >> 16) & 255) * t), g = (int) (((a >> 8) & 255) * (1 - t) + ((b >> 8) & 255) * t),
+            bl = (int) ((a & 255) * (1 - t) + (b & 255) * t);
+        return (r << 16) | (g << 8) | bl;
+    }
+
+    /** Стрелки между страницами вселенных */
+    private void drawPager(DrawContext c) {
+        float ha = hov.getOrDefault("pg", 0f);
+        String label = page == 0 ? "Лобби  ▶" : "◀  Ночной город";
+        float w = 110, x = (DW - w) / 2f, y = 206;
+        c.fill((int) x - 1, (int) y - 1, (int) (x + w) + 1, (int) (y + 13) + 1, 0xFF000000);
+        c.fillGradient((int) x, (int) y, (int) (x + w), (int) (y + 13), 0xFF3A2C78, 0xFF241A4C);
+        if (ha > 0.05f) c.fill((int) x, (int) y, (int) (x + w), (int) (y + 13), ((int) (40 * ha) << 24) | 0xFFFFFF);
+        text(c, label, DW / 2f, y + 3, 0.85f, 0xFFFFFFFF, 1);
+        hit(x, y, w, 13, "pg", () -> { page = 1 - page; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.6f); });
+    }
+
     // ================= закрыть =================
     private void drawClose(DrawContext c) {
         button(c, "close", 170, 222, 80, 16, "Закрыть");
@@ -279,7 +366,7 @@ public class UniversesScreen extends Screen {
     }
 
     private void button(DrawContext c, String key, float x, float y, float w, float h, String label) {
-        boolean enabled = key.equals("close") || (key.equals("enter") && (inside || open));
+        boolean enabled = key.equals("close") || (key.equals("enter") && (here() || open));
         boolean accent = key.equals("enter") && enabled;
         float ha = hov.getOrDefault(key, 0f);
         MatrixStack m = c.getMatrices();
@@ -288,15 +375,15 @@ public class UniversesScreen extends Screen {
         m.scale(1f + 0.04f * ha, 1f + 0.04f * ha, 1f);
         m.translate(-w / 2f, -h / 2f, 0);
         int iw = (int) w, ih = (int) h;
-        int top = accent ? (inside ? 0xE0883C : 0x28C8E8) : enabled ? 0x7A5CFF : 0x5A5A66;
-        int bot = accent ? (inside ? 0xA04C1C : 0x1470B8) : enabled ? 0x4A2CC0 : 0x2E2E36;
+        int top = accent ? (here() ? 0xE0883C : 0x28C8E8) : enabled ? 0x7A5CFF : 0x5A5A66;
+        int bot = accent ? (here() ? 0xA04C1C : 0x1470B8) : enabled ? 0x4A2CC0 : 0x2E2E36;
         c.fill(-1, -1, iw + 1, ih + 3, 0xFF000000);
         c.fillGradient(0, 0, iw, ih, 0xFF000000 | top, 0xFF000000 | bot);
         c.fill(1, 1, iw - 1, 2, 0x55FFFFFF);
         if (ha > 0.05f) c.fill(0, 0, iw, ih, ((int) (40 * ha) << 24) | 0xFFFFFF);
         text(c, label, w / 2f, (h - 9f) / 2f, 1.0f, enabled ? 0xFFFFFFFF : 0xFF9A9AA6, 1);
         m.pop();
-        Runnable click = key.equals("close") ? this::close : () -> act(inside ? "univ_leave" : "univ_enter");
+        Runnable click = key.equals("close") ? this::close : () -> act(here() ? "univ_leave" : page == 0 ? "univ_enter" : "univ_lobby");
         hit(x, y, w, h + 2, key, enabled ? click : () -> HudModel.play(SoundEvents.ENTITY_VILLAGER_NO, 1.2f, 0.3f));
     }
 
