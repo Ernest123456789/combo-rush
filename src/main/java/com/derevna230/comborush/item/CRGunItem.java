@@ -308,7 +308,9 @@ public class CRGunItem extends Item implements GeoItem {
         String n = name.startsWith("sil_") ? name : variant(stack, name);
         try {
             var mgr = getAnimatableInstanceCache().getManagerForId(id);
-            return mgr != null && mgr.tryTriggerAnimation("main", n);
+            if (mgr == null) return false;
+            mgr.tryTriggerAnimation("main", n);
+            return true;
         } catch (RuntimeException e) { return false; }
     }
 

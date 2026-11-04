@@ -92,7 +92,9 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
         if (id == 0L) return false;
         try {
             var mgr = getAnimatableInstanceCache().getManagerForId(id);
-            return mgr != null && mgr.tryTriggerAnimation("main", name);
+            if (mgr == null) return false;
+            mgr.tryTriggerAnimation("main", name);
+            return true;
         } catch (RuntimeException e) { return false; }
     }
 
