@@ -26,6 +26,6 @@ public class GunGeoModel<T extends GeoAnimatable> extends GeoModel<T> {
     @Override public Identifier getTextureResource(T animatable) { return texture; }
     @Override public Identifier getAnimationResource(T animatable) { return animation; }
 
-    @Override public Identifier getModelResource(T animatable, GeoRenderer<T> renderer) { return model; }
-    @Override public Identifier getTextureResource(T animatable, GeoRenderer<T> renderer) { return texture; }
+    public Identifier getModelResource(T animatable, GeoRenderer<T> renderer) { return model; }
+    public Identifier getTextureResource(T animatable, GeoRenderer<T> renderer) { return texture; }
 }
