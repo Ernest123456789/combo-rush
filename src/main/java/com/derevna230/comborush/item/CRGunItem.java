@@ -43,6 +43,7 @@ import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.model.DefaultedItemGeoModel;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
+import software.bernie.geckolib.util.Color;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashMap;
@@ -136,8 +137,7 @@ public class CRGunItem extends Item implements GeoItem {
     private void setAmmo(ItemStack stack, int v) { NbtComponent.set(DataComponentTypes.CUSTOM_DATA, stack, n -> n.putInt("ammo", v)); }
 
     private static long idOf(ItemStack stack) {
-        NbtComponent c = stack.get(DataComponentTypes.CUSTOM_DATA);
-        return c == null ? 0L : c.copyNbt().getLong("GeckoLibID");
+        return GeoItem.getId(stack);          // у GeckoLib номер лежит в собственном компоненте предмета, а не в CUSTOM_DATA
     }
 
     /** Выстрел: клиент прислал gun_fire (scoped — игрок смотрит в прицел) */
@@ -258,8 +258,12 @@ public class CRGunItem extends Item implements GeoItem {
         if (GunDefs.isSkin(setId)) {
             for (GunDefs.Skin sk : GunDefs.SKINS) if (sk.id().equals(setId)) { tooltip.add(Text.literal(GunDefs.rarityName(sk.rarity()))); break; }
         }
+        SkinData.tooltip(stack, tooltip);
         ArmorTooltips.append(setId, tooltip);
     }
+
+    @Override
+    public Text getName(ItemStack stack) { return SkinData.name(stack, super.getName(stack)); }
 
     private static String fmt(float v) {
         return v == Math.floor(v) ? String.valueOf((int) v) : String.format(Locale.ROOT, "%.1f", v);
@@ -277,7 +281,12 @@ public class CRGunItem extends Item implements GeoItem {
                     GeoModel<CRGunItem> model = def != null
                         ? new GunGeoModel<>(base, id)
                         : new DefaultedItemGeoModel<>(Identifier.of(ComboRush.MOD_ID, "weapon/" + id));
-                    this.renderer = new GeoItemRenderer<>(model);
+                    this.renderer = new GeoItemRenderer<CRGunItem>(model) {
+                        @Override
+                        public Color getRenderColor(CRGunItem animatable, float partialTick, int packedLight) {
+                            return Color.ofOpaque(SkinData.tint(getCurrentItemStack()));       // износ темнит скин
+                        }
+                    };
                 }
                 return this.renderer;
             }
@@ -303,8 +312,7 @@ public class CRGunItem extends Item implements GeoItem {
      */
     public boolean playLocal(ItemStack stack, String name) {
         if (def == null) return false;
-        long id = idOf(stack);
-        if (id == 0L) return false;
+        long id = idOf(stack);          // тот же номер, что и у рендерера (Long.MAX_VALUE, пока сервер не назначил)
         String n = name.startsWith("sil_") ? name : variant(stack, name);
         try {
             var mgr = getAnimatableInstanceCache().getManagerForId(id);
@@ -344,6 +352,7 @@ public class CRGunItem extends Item implements GeoItem {
         super.inventoryTick(stack, world, entity, slot, selected);
         if (def == null || world.isClient || !(entity instanceof ServerPlayerEntity p) || !(world instanceof ServerWorld sw)) return;
         long id = GeoItem.getOrAssignId(stack, sw);
+        SkinData.ensure(stack);                                      // износ, паттерн и шанс StatTrak™ — один раз
         St s = STATE.get(p.getUuid());
         if (s != null && s.reloadUntil > 0 && s.reloadId == id) {
             if (!selected) s.reloadUntil = 0;                           // убрали ствол — перезарядка сорвана

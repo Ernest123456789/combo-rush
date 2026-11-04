@@ -34,6 +34,7 @@ public final class StandoffNet {
                 err = !Universes.inStandoff(p) || i < 0 ? "Снаряжение меняется в меню «Противостояния»."
                     : Loadout.equip(p, a.c().substring(0, i), a.c().substring(i + 1));
             }
+            case "so_trade" -> err = !Universes.inStandoff(p) ? "Контракты подписывают в меню «Противостояния»." : SkinTrade.execute(p, a.c());
             case "lobby_play" -> err = Lobby.play(p, a.a());
             default -> { }
         }
@@ -88,6 +89,9 @@ public final class StandoffNet {
         JsonArray owned = new JsonArray();
         for (String id : Loadout.owned(p)) owned.add(id);
         o.add("owned", owned);
+        o.add("stacks", SkinTrade.stacksJson(p));
+        JsonObject traded = SkinTrade.takeResult(p.getUuid());
+        if (traded != null) o.add("traded", traded);
         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new HudPayload("so", o.toString()));
     }
 }

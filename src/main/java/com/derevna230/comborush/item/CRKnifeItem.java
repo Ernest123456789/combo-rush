@@ -19,6 +19,7 @@ import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
+import software.bernie.geckolib.util.Color;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashMap;
@@ -53,7 +54,12 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
 
             @Override
             public BuiltinModelItemRenderer getGeoItemRenderer() {
-                if (this.renderer == null) this.renderer = new GeoItemRenderer<>(new GunGeoModel<>(base, id));
+                if (this.renderer == null) this.renderer = new GeoItemRenderer<CRKnifeItem>(new GunGeoModel<CRKnifeItem>(base, id)) {
+                    @Override
+                    public Color getRenderColor(CRKnifeItem animatable, float partialTick, int packedLight) {
+                        return Color.ofOpaque(SkinData.tint(getCurrentItemStack()));       // износ темнит скин
+                    }
+                };
                 return this.renderer;
             }
         });
@@ -83,13 +89,12 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
         }
         if (!(entity instanceof ServerPlayerEntity p) || !(world instanceof ServerWorld sw)) return;
         GeoItem.getOrAssignId(stack, sw);          // номер GeckoLib нужен клиенту; анимации он запускает сам
+        SkinData.ensure(stack);
     }
 
     /** Проиграть анимацию у владельца (клиент) по менеджеру этого предмета */
     public boolean playLocal(ItemStack stack, String name) {
-        net.minecraft.component.type.NbtComponent c = stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
-        long id = c == null ? 0L : c.copyNbt().getLong("GeckoLibID");
-        if (id == 0L) return false;
+        long id = GeoItem.getId(stack);          // номер лежит в собственном компоненте GeckoLib
         try {
             var mgr = getAnimatableInstanceCache().getManagerForId(id);
             if (mgr == null) return false;
@@ -103,9 +108,16 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
         for (GunDefs.Skin sk : GunDefs.SKINS)
             if (sk.id().equals(setId())) { String rn = GunDefs.rarityName(sk.rarity()); if (!rn.isEmpty()) tooltip.add(Text.literal(rn)); break; }
         if (setId().equals(GunDefs.KNIFE)) tooltip.add(Text.literal(GunDefs.rarityName("mythic")));
+        SkinData.tooltip(stack, tooltip);
         tooltip.add(Text.literal("§8V — осмотр"));
         ArmorTooltips.append(setId(), tooltip);
     }
+
+    @Override
+    public Text getName(ItemStack stack) { return SkinData.name(stack, super.getName(stack)); }
+
+    /** Счётчик убийств и другие правки данных не должны давать анимацию «достаёт заново» */
+    public boolean allowComponentsUpdateAnimation(net.minecraft.entity.player.PlayerEntity player, Hand hand, ItemStack oldStack, ItemStack newStack) { return false; }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }

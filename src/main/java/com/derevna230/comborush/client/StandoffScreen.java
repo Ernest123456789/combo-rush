@@ -39,7 +39,7 @@ import java.util.*;
  */
 public class StandoffScreen extends Screen {
     private static final int DW = 420, DH = 250;
-    private static final String[] TABS = {"ГЛАВНАЯ", "СНАРЯЖЕНИЕ", "КАРТЫ", "НАСТРОЙКИ"};
+    private static final String[] TABS = {"ГЛАВНАЯ", "СНАРЯЖЕНИЕ", "ОБМЕН", "КАРТЫ", "НАСТРОЙКИ"};
     private static final int GOLD = 0xE8B33A, DARK = 0x10131A;
 
     // ---- состояние с сервера
@@ -51,6 +51,11 @@ public class StandoffScreen extends Screen {
     private static volatile Map<String, String> loadout = Map.of();
     private static volatile Set<String> owned = Set.of();
     private static volatile int essence = 0, partyMax = 5;
+    private record TStack(String id, String loc, float wf, boolean st) {}
+    private static volatile List<TStack> tstacks = List.of();                  // скины, которые можно положить в контракт
+    private static volatile JsonObject tradedRes = null;                       // итог последнего контракта
+    private static volatile long tradedAt = 0;
+    private static volatile boolean clearSel = false;
 
     private static String featured = LoadoutDefs.candidates("ak47").get(0);      // что в руке на главной (id слота)
     private static boolean listening = false;
@@ -80,6 +85,16 @@ public class StandoffScreen extends Screen {
         if (o.has("owned")) for (JsonElement e : o.getAsJsonArray("owned")) ow.add(e.getAsString());
         owned = ow;
         essence = o.has("essence") ? o.get("essence").getAsInt() : 0;
+        List<TStack> ts = new ArrayList<>();
+        if (o.has("stacks")) for (JsonElement e : o.getAsJsonArray("stacks")) {
+            JsonObject t = e.getAsJsonObject();
+            ts.add(new TStack(t.get("id").getAsString(), t.get("loc").getAsString(), t.get("wf").getAsFloat(), t.get("st").getAsInt() == 1));
+        }
+        tstacks = ts;
+        if (o.has("traded")) {
+            tradedRes = o.getAsJsonObject("traded"); tradedAt = System.currentTimeMillis(); clearSel = true;
+            HudModel.play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0f, 0.9f);
+        }
     }
 
     /** Вызывать каждый тик клиента: пока игрок в комнате меню и других экранов нет — открыть меню */
@@ -177,16 +192,12 @@ public class StandoffScreen extends Screen {
     private static ItemStack stackOf(String id) {
         return STACKS.computeIfAbsent(id, k -> {
             Item it = Registries.ITEM.get(Identifier.of(ComboRush.MOD_ID, k));
-            ItemStack st = new ItemStack(it);
-            long gid = 4_000_000_000L + Math.abs((long) k.hashCode());
-            NbtComponent.set(DataComponentTypes.CUSTOM_DATA, st, nbt -> nbt.putLong("GeckoLibID", gid));
-            return st;
+            return new ItemStack(it);          // без номера GeckoLib: рендерер и «play» используют один и тот же менеджер предмета
         });
     }
 
     private static long gid(ItemStack st) {
-        NbtComponent c = st.get(DataComponentTypes.CUSTOM_DATA);
-        return c == null ? -1L : c.copyNbt().getLong("GeckoLibID");
+        return GeoItem.getId(st);
     }
 
     private static String itemName(String id) { return stackOf(id).getName().getString(); }
@@ -229,6 +240,7 @@ public class StandoffScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         float px = (float) ((mouseX - ox) / u), py = (float) ((mouseY - oy) / u);
+        if (tradedRes != null && System.currentTimeMillis() - tradedAt > 300) { tradedRes = null; return true; }
         if (button == 1 && tab == 1 && inViewer(px, py)) { dragging = true; lastMouseX = mouseX; return true; }
         if (button != 0) return true;
         for (int i = hits.size() - 1; i >= 0; i--) {
@@ -260,6 +272,7 @@ public class StandoffScreen extends Screen {
         float px = (float) ((mouseX - ox) / u);
         int d = vertical > 0 ? -1 : 1;
         if (tab == 1 && px < 298) gridScroll += d;
+        if (tab == 2 && px < 298) tScroll += d;
         if (tab == 0 && px > 296) onlineScroll = Math.max(0, Math.min(Math.max(0, online.size() - 5), onlineScroll + d));
         return true;
     }
@@ -299,7 +312,8 @@ public class StandoffScreen extends Screen {
         switch (tab) {
             case 0 -> drawHome(c, now);
             case 1 -> drawEquipment(c, now, dt);
-            case 2 -> drawMaps(c, now);
+            case 2 -> drawTrade(c, now);
+            case 3 -> drawMaps(c, now);
             default -> drawSettings(c);
         }
         drawTopBar(c, now);
@@ -328,13 +342,11 @@ public class StandoffScreen extends Screen {
 
     // ---- верхняя панель
     private void drawTopBar(DrawContext c, long now) {
-        c.fill(-200, 0, DW + 200, 26, 0xF0090C12);
-        c.fill(-200, 26, DW + 200, 27, 0xFF000000 | GOLD);
-        c.fill(-200, 27, DW + 200, 28, 0x30000000 | GOLD);
+        c.fillGradient(-200, 0, DW + 200, 30, 0xB0090C12, 0x00090C12);          // мягкая подложка без жёсткой границы
         // выход
         button(c, "exit", 6, 5, 62, 16, "◀  ЛОББИ", 0x3A4256, () -> { send("so_exit", ""); close(); });
         // вкладки
-        int tw = 74, x0 = (DW - tw * TABS.length) / 2;
+        int tw = 58, x0 = 74;
         for (int i = 0; i < TABS.length; i++) {
             final int idx = i;
             float x = x0 + i * tw;
@@ -470,11 +482,11 @@ public class StandoffScreen extends Screen {
             c.fill((int) cx - rw, fy - i, (int) cx + rw, fy - i + 1, ((int) (22 + i * 6) << 24) | 0x5A7CBF);
         }
         float lift = (1f - appear) * 12f;
-        // персонаж повёрнут на три четверти — ствол в руках виден сбоку; поворот делаем матрицей, а не мышью, чтобы тело не крутило
+        // персонаж повёрнут вправо (лицом к центру), правая рука со стволом ближе к зрителю — ствол в руках виден сбоку; поворот делаем матрицей, а не мышью, чтобы тело не крутило
         MatrixStack m = c.getMatrices();
         m.push();
         m.translate(cx, 0, 0);
-        m.multiply(new Quaternionf().rotationY(-0.62f + (float) Math.sin(now / 1.6e9) * 0.05f));
+        m.multiply(new Quaternionf().rotationY(0.95f + (float) Math.sin(now / 1.6e9) * 0.05f));
         m.translate(-cx, 0, 0);
         InventoryScreen.drawEntity(c, (int) cx - half, (int) (top + lift), (int) cx + half, (int) bottom, (int) (78 * u), 0.0625f, lookX, lookY, p);
         m.pop();
@@ -651,6 +663,144 @@ public class StandoffScreen extends Screen {
         m.translate(0, 0, -150);
         c.drawItem(st, -8, -8);
         m.pop();
+    }
+
+    // ================= ОБМЕН (контракт, как в CS2) =================
+    private final Set<String> tsel = new LinkedHashSet<>();
+    private int tScroll = 0;
+
+    private static String nextRar(String r) {
+        return switch (r) { case "uncommon" -> "rare"; case "rare" -> "epic"; case "epic" -> "legendary"; case "legendary" -> "mythic"; default -> ""; };
+    }
+
+    private void drawTrade(DrawContext c, long now) {
+        if (clearSel) { tsel.clear(); clearSel = false; }
+        List<TStack> all = new ArrayList<>(tstacks);
+        all.sort(Comparator.<TStack>comparingInt(t -> -rarRank(rarityOf(t.id()))).thenComparing(TStack::id).thenComparingDouble(TStack::wf));
+        Map<String, TStack> byLoc = new HashMap<>();
+        for (TStack t : all) byLoc.put(t.loc(), t);
+        tsel.removeIf(l -> !byLoc.containsKey(l));
+        String selRar = null; boolean selSt = false;
+        for (String l : tsel) { TStack t = byLoc.get(l); selRar = rarityOf(t.id()); selSt = t.st(); break; }
+        int need = selRar != null && selRar.equals("legendary") ? 5 : 10;
+
+        final int cols = 5, cw = 54, ch = 58, gap = 4, gx = 8, gy = 40, vrows = 3;
+        int totalRows = (all.size() + cols - 1) / cols;
+        tScroll = Math.max(0, Math.min(tScroll, Math.max(0, totalRows - vrows)));
+        MatrixStack m = c.getMatrices();
+        text(c, "Выберите скины одной редкости — обмен даст один скин редкостью выше", gx + 143, 241, 0.58f, 0xFF6F7A90, 1);
+        for (int r = 0; r < vrows; r++) for (int k = 0; k < cols; k++) {
+            int idx = (r + tScroll) * cols + k;
+            float x = gx + k * (cw + gap), y = gy + r * (ch + gap);
+            if (idx >= all.size()) { c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch), 0x300C1018); continue; }
+            TStack t = all.get(idx);
+            String rar = rarityOf(t.id());
+            int rc = rarColor(rar);
+            boolean on = tsel.contains(t.loc());
+            boolean ok = on || (selRar == null || (rar.equals(selRar) && t.st() == selSt));
+            float h = hoverAmt("tr" + t.loc(), hitOver(x, y, cw, ch));
+            c.fill((int) x - 1, (int) y - 1, (int) (x + cw) + 1, (int) (y + ch) + 1, on ? 0xFF000000 | GOLD : 0xFF000000);
+            c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch), 0xFF000000 | (0x151A24 + ((int) (h * 0x0A) * 0x010101)));
+            c.fillGradient((int) x, (int) y, (int) (x + cw), (int) (y + ch - 14), 0x00000000, 0x40000000 | rc);
+            c.fill((int) x, (int) (y + ch - 3), (int) (x + cw), (int) (y + ch), 0xFF000000 | rc);
+            m.push();
+            m.translate(x + cw / 2f, y + 24, 0);
+            m.scale(2.3f, 2.3f, 1f);
+            c.drawItem(stackOf(t.id()), -8, -8);
+            m.pop();
+            m.push();
+            m.translate(0, 0, 200);
+            String[] nm = splitName(itemName(t.id()));
+            text(c, trim(nm[0], 18), x + cw / 2f, y + ch - 23, 0.56f, 0xFFB8C2D6, 1);
+            if (!nm[1].isEmpty()) text(c, trim(nm[1], 16), x + cw / 2f, y + ch - 14, 0.62f, 0xFF000000 | rc, 1);
+            text(c, com.derevna230.comborush.item.SkinData.condShort(t.wf()), x + 3, y + 3, 0.62f, 0xFFE6EAF2, 0);
+            text(c, String.format(Locale.ROOT, "%.3f", t.wf()), x + 3, y + 11, 0.5f, 0xFF8A94A8, 0);
+            if (t.st()) text(c, "ST™", x + cw - 3, y + 3, 0.62f, 0xFFFFB02E, 2);
+            if (on) { c.fill((int) x + cw - 12, (int) y + ch - 18, (int) x + cw - 2, (int) y + ch - 8, 0xFF2F7D4A); text(c, "✔", x + cw - 7, y + ch - 17, 0.7f, 0xFFFFFFFF, 1); }
+            if (!ok) c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch - 3), 0x99000000);
+            m.pop();
+            final TStack pick = t;
+            final boolean can = ok;
+            final int needF = need;
+            hit(x, y, cw, ch, () -> {
+                if (tsel.contains(pick.loc())) tsel.remove(pick.loc());
+                else if (can && tsel.size() < needF) tsel.add(pick.loc());
+                else { HudModel.play(SoundEvents.ENTITY_VILLAGER_NO, 1.3f, 0.3f); return; }
+                HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.4f, 0.4f);
+            });
+        }
+        if (all.isEmpty()) {
+            text(c, "Нет скинов для обмена", gx + 143, gy + 70, 0.95f, 0xFF6F7A90, 1);
+            text(c, "Нужны скины из кейса «Арсенал» (кроме ножей)", gx + 143, gy + 84, 0.68f, 0xFF59627A, 1);
+        }
+        if (totalRows > vrows) {
+            int trackH = vrows * (ch + gap) - gap;
+            c.fill(296, gy, 298, gy + trackH, 0x33FFFFFF);
+            int thumb = Math.max(14, trackH * vrows / totalRows);
+            int ty = gy + (trackH - thumb) * tScroll / Math.max(1, totalRows - vrows);
+            c.fill(296, ty, 298, ty + thumb, 0xFF000000 | GOLD);
+        }
+
+        // ---- контракт справа
+        panel(c, VX, VY, VW, VH);
+        text(c, "КОНТРАКТ ОБМЕНА", VX + VW / 2f, VY + 6, 0.85f, 0xFF000000 | GOLD, 1);
+        List<String> sel = new ArrayList<>(tsel);
+        for (int i = 0; i < need; i++) {
+            float x = VX + 7 + (i % 5) * 20, y = VY + 20 + (i / 5) * 20;
+            boolean filled = i < sel.size();
+            TStack t = filled ? byLoc.get(sel.get(i)) : null;
+            int rc = t == null ? 0x303848 : rarColor(rarityOf(t.id()));
+            c.fill((int) x - 1, (int) y - 1, (int) x + 19, (int) y + 19, 0xFF000000 | rc);
+            c.fill((int) x, (int) y, (int) x + 18, (int) y + 18, 0xFF10131A);
+            if (t != null) {
+                c.drawItem(stackOf(t.id()), (int) x + 1, (int) y + 1);
+                final String loc = sel.get(i);
+                hit(x, y, 18, 18, () -> { tsel.remove(loc); HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.4f); });
+            }
+        }
+        float ry = VY + (need > 5 ? 62 : 42);
+        text(c, sel.size() + " / " + need, VX + VW / 2f, ry, 0.95f, sel.size() == need ? 0xFF55FF55 : 0xFFFFFFFF, 1);
+        String[] rule = {"10 скинов одной редкости →", "1 скин редкостью выше.", "5 «Тайных» → Нож-коготь.", "Износ — средний из вложенных.", "StatTrak™ с обычными не смешать."};
+        for (int i = 0; i < rule.length; i++) text(c, rule[i], VX + VW / 2f, ry + 14 + i * 9, 0.6f, 0xFF9AA5BB, 1);
+        float by = VY + 138;
+        if (selRar != null) {
+            String nr = nextRar(selRar);
+            text(c, "Результат:", VX + VW / 2f, by, 0.66f, 0xFF7C879D, 1);
+            text(c, nr.equals("mythic") ? "Скин Ножа-когтя" : rarLabel(nr), VX + VW / 2f, by + 9, 0.85f, 0xFF000000 | rarColor(nr), 1);
+        } else text(c, "Положите скины в контракт", VX + VW / 2f, by + 4, 0.66f, 0xFF59627A, 1);
+        boolean ready = sel.size() == need;
+        final String locs = String.join(",", sel);
+        button(c, "sign", VX + 8, VY + 168, VW - 16, 16, "Подписать контракт", ready ? 0x2F7D4A : 0x3A4050,
+            ready ? () -> send("so_trade", locs) : null);
+        button(c, "clr", VX + 8, VY + 188, VW - 16, 14, "Очистить", 0x3A4256, tsel.isEmpty() ? null : () -> tsel.clear());
+
+        // ---- результат: поверх всего
+        JsonObject res = tradedRes;
+        if (res != null) {
+            if (System.currentTimeMillis() - tradedAt > 7000) { tradedRes = null; return; }
+            String rid = res.get("id").getAsString();
+            int rc = rarColor(res.get("rar").getAsString());
+            float wf = res.get("wf").getAsFloat();
+            m.push();
+            m.translate(0, 0, 400);
+            c.fill(-300, -200, DW + 300, DH + 200, 0xB0000000);
+            c.fill(115, 62, 305, 188, 0xFF000000 | rc);
+            c.fill(116, 63, 304, 187, 0xFF0C1018);
+            c.fillGradient(116, 63, 304, 187, 0x00000000, 0x40000000 | rc);
+            text(c, "КОНТРАКТ ВЫПОЛНЕН", 210, 70, 0.95f, 0xFF000000 | GOLD, 1);
+            m.push();
+            m.translate(210, 112, 0);
+            m.scale(3.6f, 3.6f, 1f);
+            c.drawItem(stackOf(rid), -8, -8);
+            m.pop();
+            m.translate(0, 0, 200);
+            String[] nm = splitName(res.get("name").getAsString());
+            text(c, (res.get("st").getAsInt() == 1 ? "StatTrak™ " : "") + nm[0], 210, 144, 0.9f, 0xFFFFFFFF, 1);
+            if (!nm[1].isEmpty()) text(c, nm[1], 210, 155, 0.9f, 0xFF000000 | rc, 1);
+            text(c, com.derevna230.comborush.item.SkinData.condition(wf) + "  (" + com.derevna230.comborush.item.SkinData.floatText(wf) + ")", 210, 168, 0.68f, 0xFFB8C2D6, 1);
+            text(c, "клик — закрыть", 210, 177, 0.55f, 0xFF6F7A90, 1);
+            m.pop();
+        }
     }
 
     // ================= КАРТЫ / НАСТРОЙКИ =================

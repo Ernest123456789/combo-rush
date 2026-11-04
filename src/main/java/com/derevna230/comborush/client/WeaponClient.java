@@ -65,8 +65,7 @@ public final class WeaponClient {
     }
 
     private static long idOf(ItemStack st) {
-        NbtComponent c = st.get(DataComponentTypes.CUSTOM_DATA);
-        return c == null ? 0L : c.copyNbt().getLong("GeckoLibID");
+        return software.bernie.geckolib.animatable.GeoItem.getId(st);       // Long.MAX_VALUE — сервер ещё не назначил номер
     }
 
     private static boolean silencerOff(ItemStack st) {
@@ -103,8 +102,12 @@ public final class WeaponClient {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null || mc.currentScreen != null) return;
         ItemStack st = mc.player.getMainHandStack();
-        if (st.getItem() instanceof CRGunItem g && g.modern()) { if (!reloading()) g.playLocal(st, "inspect"); }
-        else if (st.getItem() instanceof CRKnifeItem k) k.playLocal(st, "inspect");
+        boolean ok = false;
+        if (st.getItem() instanceof CRGunItem g && g.modern()) { if (!reloading()) { g.playLocal(st, "inspect"); ok = true; } }
+        else if (st.getItem() instanceof CRKnifeItem k) { k.playLocal(st, "inspect"); ok = true; }
+        // как в CS: при осмотре показываем износ, паттерн и счётчик StatTrak™
+        String info = ok ? com.derevna230.comborush.item.SkinData.inspectLine(st) : "";
+        if (!info.isEmpty()) mc.inGameHud.setOverlayMessage(net.minecraft.text.Text.literal("§f" + st.getName().getString() + "  " + info), false);
     }
 
     private static void secondary(CRGunItem g, ItemStack st) {
@@ -130,7 +133,7 @@ public final class WeaponClient {
 
         // доставание: номер GeckoLib сменился — в руке другой ствол
         long id = idOf(st);
-        if (id != 0 && id != lastWeaponId) {
+        if (id != Long.MAX_VALUE && id != lastWeaponId) {
             lastWeaponId = id;
             scopeLevel = 0;
             reloadUntil = 0;

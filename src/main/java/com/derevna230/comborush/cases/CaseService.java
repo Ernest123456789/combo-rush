@@ -155,7 +155,8 @@ public final class CaseService {
 
         stack.decrement(1);
         ItemStack rewardStack = new ItemStack(reward);
-        String rewardName = rewardStack.getName().getString();
+        com.derevna230.comborush.item.SkinData.roll(rewardStack, ThreadLocalRandom.current());       // износ, паттерн, шанс StatTrak™ (скины «Арсенала»)
+        String rewardName = rewardStack.getName().getString() + com.derevna230.comborush.item.SkinData.suffix(rewardStack);
         // Награду кладём на следующем шаге сервера: в креативе после ПКМ игра возвращает предмет в руку
         // и перезаписала бы слот, куда только что легла награда (из-за этого в креативе «ничего не выпадало»).
         ItemStack give = rewardStack.copy();
