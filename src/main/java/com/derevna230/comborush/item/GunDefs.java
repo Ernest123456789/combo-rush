@@ -5,23 +5,29 @@ import java.util.*;
 /** Огнестрел, ножи и скины (генерируется tools/weapon_gen). Скин — отдельный предмет со своей текстурой и теми же геометрией/анимациями. */
 public final class GunDefs {
     private GunDefs() {}
-    /** id, название, урон, дробин, разброс, перезарядка выстрела (тики), дальность, перезарядка-анимация (тики), глушитель */
-    public record Gun(String id, String name, float damage, int pellets, double spread, int cooldown, double range, int reloadTicks, boolean silenceable) {}
+    /**
+     * Ствол. damage — урон за пулю (в ванильных HP, по CS: урон CS ÷ 6); cooldown — тиков между выстрелами (дробное: у P90 1,4);
+     * spread — разброс стоя на месте; bloom — на сколько расходится прицел при длинной очереди; recoil — подброс камеры за выстрел (градусы);
+     * mag — патронов в магазине (запас бесконечный); auto — зажатая ЛКМ стреляет очередью; scope — есть оптический прицел (ПКМ).
+     */
+    public record Gun(String id, String name, float damage, int pellets, double spread, double cooldown, double range, int reloadTicks,
+                      boolean silenceable, int mag, boolean auto, boolean scope, float recoil, double bloom) {}
     /** id предмета, id базовой модели (ствол или claw), редкость */
     public record Skin(String id, String base, String rarity) {}
 
     public static final List<Gun> GUNS = List.of(
-        new Gun("ak47", "AK-47", 6.0f, 1, 0.014, 9, 48, 50, false),
-        new Gun("awp", "AWP", 38.0f, 1, 0.0, 60, 128, 80, false),
-        new Gun("glock18", "Glock-18", 3.5f, 1, 0.016, 5, 32, 36, false),
-        new Gun("galil", "Galil AR", 4.5f, 1, 0.016, 7, 44, 46, false),
-        new Gun("deagle", "Desert Eagle", 12.0f, 1, 0.004, 22, 48, 44, false),
-        new Gun("fiveseven", "Five-SeveN", 3.5f, 1, 0.012, 6, 36, 36, false),
-        new Gun("p90", "P90", 3.0f, 1, 0.024, 3, 32, 56, false),
-        new Gun("usp", "USP-S", 4.5f, 1, 0.008, 8, 40, 34, true),
-        new Gun("revolver", "Револьвер", 14.0f, 1, 0.0, 30, 56, 60, false),
-        new Gun("m4a4", "M4A4", 5.0f, 1, 0.01, 6, 48, 48, false),
-        new Gun("m4a1s", "M4A1-S", 4.5f, 1, 0.008, 6, 52, 48, true));
+        //        id          имя           урон  дробь разброс  такты  дальн. перезар. глуш.   маг.  авто   прицел отдача bloom
+        new Gun("ak47",      "AK-47",       6.0f, 1, 0.0035, 2.0,   64,  54, false, 30, true,  false, 1.15f, 0.030),
+        new Gun("awp",       "AWP",        20.0f, 1, 0.0,    29.0, 160,  80, false,  5, false, true,  3.2f,  0.0),
+        new Gun("glock18",   "Glock-18",    5.0f, 1, 0.0045, 3.0,   40,  44, false, 20, false, false, 0.8f,  0.020),
+        new Gun("galil",     "Galil AR",    5.0f, 1, 0.0040, 2.0,   60,  56, false, 35, true,  false, 0.95f, 0.028),
+        new Gun("deagle",    "Desert Eagle",10.5f,1, 0.0020, 5.0,   72,  50, false,  7, false, false, 2.6f,  0.035),
+        new Gun("fiveseven", "Five-SeveN",  5.3f, 1, 0.0040, 3.0,   44,  44, false, 20, false, false, 0.8f,  0.020),
+        new Gun("p90",       "P90",         4.3f, 1, 0.0050, 1.4,   40,  62, false, 50, true,  false, 0.65f, 0.032),
+        new Gun("usp",       "USP-S",       5.8f, 1, 0.0025, 3.0,   52,  40, true,  12, false, false, 0.85f, 0.018),
+        new Gun("revolver",  "Револьвер",  14.0f, 1, 0.0010, 9.0,   80,  66, false,  8, false, false, 2.4f,  0.025),
+        new Gun("m4a4",      "M4A4",        5.5f, 1, 0.0030, 2.0,   64,  54, false, 30, true,  false, 0.95f, 0.026),
+        new Gun("m4a1s",     "M4A1-S",      5.5f, 1, 0.0025, 2.0,   68,  54, true,  25, true,  false, 0.75f, 0.022));
 
     public static final List<Skin> SKINS = List.of(
         new Skin("ak47_jungle", "ak47", "uncommon"),

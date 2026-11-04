@@ -224,6 +224,7 @@ public final class HudModel {
                 case "lobby_game" -> PromptScreen.lobbyGame(o);
                 case "case_key" -> PromptScreen.caseKey(o);
                 case "so" -> StandoffScreen.onPacket(o);
+                case "gun_hit" -> WeaponClient.onHit(o);
                 case "armor_info" -> ArmorTooltips.read(o);
                 default -> { }
             }

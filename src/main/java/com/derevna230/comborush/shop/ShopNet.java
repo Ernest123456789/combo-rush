@@ -47,7 +47,7 @@ public class ShopNet {
         if (a.action().startsWith("so_") || a.action().startsWith("lobby_")) { com.derevna230.comborush.lobby.StandoffNet.handle(p, a); return; }
         if (a.action().startsWith("species")) { SpeciesNet.handle(p, a); return; }
         if (a.action().startsWith("ws_")) { com.derevna230.comborush.workshop.WorkshopNet.handle(p, a); return; }
-        if (a.action().startsWith("gun_")) { com.derevna230.comborush.item.WeaponKeys.handle(p, a.action()); return; }
+        if (a.action().startsWith("gun_")) { com.derevna230.comborush.item.WeaponKeys.handle(p, a); return; }
         if (a.action().equals("camp_open")) { com.derevna230.comborush.campaign.Campaign.openJournal(p); return; }
         if (a.action().equals("camp_choose")) {
             p.sendMessage(net.minecraft.text.Text.literal("§6[Сценарий] §f" + com.derevna230.comborush.campaign.Finale.choose(p, a.c())), false);

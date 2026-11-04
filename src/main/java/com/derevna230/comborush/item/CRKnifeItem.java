@@ -33,7 +33,6 @@ import java.util.function.Consumer;
  */
 public class CRKnifeItem extends CRSwordItem implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final Map<UUID, Long> HELD = new HashMap<>();
     private static int lastSwing = -100;
     private static boolean flip;
     private final String base;
@@ -75,31 +74,26 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
             // замах виден только владельцу: GeckoLib сама рассылает серверные триггеры, а замах мы ловим по взмаху руки
             if (selected && entity instanceof PlayerEntity pl && pl.handSwinging && pl.handSwingTicks <= 0
                 && pl.preferredHand == Hand.MAIN_HAND && pl.age - lastSwing > 5) {
-                long id = GeoItem.getId(stack);
-                if (id != -1) {
+                if (playLocal(stack, flip ? "attack2" : "attack")) {
                     lastSwing = pl.age;
                     flip = !flip;
-                    triggerAnim(pl, id, "main", flip ? "attack" : "attack2");
                 }
             }
             return;
         }
         if (!(entity instanceof ServerPlayerEntity p) || !(world instanceof ServerWorld sw)) return;
-        long id = GeoItem.getOrAssignId(stack, sw);
-        if (selected) {
-            Long last = HELD.get(p.getUuid());
-            if (last == null || last != id) {
-                HELD.put(p.getUuid(), id);
-                triggerAnim(p, id, "main", "draw");
-            }
-        } else {
-            HELD.remove(p.getUuid(), id);
-        }
+        GeoItem.getOrAssignId(stack, sw);          // номер GeckoLib нужен клиенту; анимации он запускает сам
     }
 
-    public void keyAction(ServerPlayerEntity p, ItemStack stack, String act) {
-        if (!act.equals("gun_inspect") || !(p.getWorld() instanceof ServerWorld sw)) return;
-        triggerAnim(p, GeoItem.getOrAssignId(stack, sw), "main", "inspect");
+    /** Проиграть анимацию у владельца (клиент) по менеджеру этого предмета */
+    public boolean playLocal(ItemStack stack, String name) {
+        net.minecraft.component.type.NbtComponent c = stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
+        long id = c == null ? 0L : c.copyNbt().getLong("GeckoLibID");
+        if (id == 0L) return false;
+        try {
+            var mgr = getAnimatableInstanceCache().getManagerForId(id);
+            return mgr != null && mgr.tryTriggerAnimation("main", name);
+        } catch (RuntimeException e) { return false; }
     }
 
     @Override

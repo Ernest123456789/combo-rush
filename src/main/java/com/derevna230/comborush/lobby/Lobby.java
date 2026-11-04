@@ -50,7 +50,10 @@ public final class Lobby {
 
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(Lobby::tick);
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> Party.leave(handler.getPlayer(), false));
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            Party.leave(handler.getPlayer(), false);
+            com.derevna230.comborush.item.CRGunItem.forget(handler.getPlayer().getUuid());
+        });
         // остров не ломают и не застраивают (в творческом режиме — можно)
         PlayerBlockBreakEvents.BEFORE.register((w, pl, pos, st, be) -> !(guarded(pl)));
         UseBlockCallback.EVENT.register((pl, w, hand, hit) -> {

@@ -259,6 +259,7 @@ public class StandoffScreen extends Screen {
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         float px = (float) ((mouseX - ox) / u);
         int d = vertical > 0 ? -1 : 1;
+        if (tab == 1 && px < 298) gridScroll += d;
         if (tab == 0 && px > 296) onlineScroll = Math.max(0, Math.min(Math.max(0, online.size() - 5), onlineScroll + d));
         return true;
     }
@@ -272,7 +273,7 @@ public class StandoffScreen extends Screen {
     }
 
     // ================= отрисовка =================
-    private static final int VX = 126, VY = 34, VW = 286, VH = 138;      // окно просмотра ствола
+    private static final int VX = 300, VY = 34, VW = 112, VH = 210;      // окно просмотра ствола
 
     @Override
     public void render(DrawContext c, int mouseX, int mouseY, float delta) {
@@ -439,7 +440,7 @@ public class StandoffScreen extends Screen {
         // расписание анимаций
         double t = (now - animStart) / 1e9;
         if (now >= nextAnimAt) {
-            String[] pool = {"inspect", "draw", "look", "swing", "crouch", "inspect"};
+            String[] pool = {"inspect", "draw", "look", "crouch", "inspect"};
             anim = pool[(int) (Math.random() * pool.length)];
             animStart = now;
             nextAnimAt = now + (long) ((anim.equals("inspect") ? 5.0 : 3.5) * 1e9) + (long) (Math.random() * 3e9);
@@ -455,9 +456,13 @@ public class StandoffScreen extends Screen {
 
         float cx = ox + 210 * u, top = oy + 32 * u, bottom = oy + 232 * u;
         float lookX, lookY;
-        if (anim.equals("look") && t < 3.0) { lookX = cx + (float) Math.sin(t * 2.4) * 170 * u; lookY = top + 70 * u; }
-        else { lookX = (float) (cx + (mouseX - cx) * 0.5); lookY = (float) (top + 70 * u + (mouseY - top - 70 * u) * 0.4); }
-        int half = (int) (70 * u);
+        float eye = top + 70 * u;
+        if (anim.equals("look") && t < 3.0) { lookX = cx + (float) Math.sin(t * 2.4) * 34f; lookY = eye; }
+        else {
+            lookX = cx + Math.max(-34f, Math.min(34f, (mouseX - cx) * 0.12f));
+            lookY = eye + Math.max(-22f, Math.min(22f, (mouseY - eye) * 0.12f));
+        }
+        int half = (int) (115 * u);          // широкое окно: ствол в вытянутых руках не обрезается
         // подиум-свечение
         int fy = (int) (bottom - 14 * u);
         for (int i = 0; i < 6; i++) {
@@ -465,86 +470,174 @@ public class StandoffScreen extends Screen {
             c.fill((int) cx - rw, fy - i, (int) cx + rw, fy - i + 1, ((int) (22 + i * 6) << 24) | 0x5A7CBF);
         }
         float lift = (1f - appear) * 12f;
+        // персонаж повёрнут на три четверти — ствол в руках виден сбоку; поворот делаем матрицей, а не мышью, чтобы тело не крутило
+        MatrixStack m = c.getMatrices();
+        m.push();
+        m.translate(cx, 0, 0);
+        m.multiply(new Quaternionf().rotationY(-0.62f + (float) Math.sin(now / 1.6e9) * 0.05f));
+        m.translate(-cx, 0, 0);
         InventoryScreen.drawEntity(c, (int) cx - half, (int) (top + lift), (int) cx + half, (int) bottom, (int) (78 * u), 0.0625f, lookX, lookY, p);
+        m.pop();
     }
 
     // ================= СНАРЯЖЕНИЕ =================
-    private void drawEquipment(DrawContext c, long now, float dt) {
-        // список слотов
-        panel(c, 8, 34, 112, 206);
-        List<String> slots = LoadoutDefs.slots();
-        int rows = 11, rh = 17;
-        slotScroll = Math.max(0, Math.min(slotScroll, Math.max(0, slots.size() - rows)));
-        for (int i = 0; i < Math.min(rows, slots.size()); i++) {
-            String slot = slots.get(i + slotScroll);
-            String eq = equippedOf(slot);
-            boolean sel = slot.equals(selSlot);
-            float y = 38 + i * rh;
-            float h = hoverAmt("slot" + slot, hitOver(10, y, 108, rh - 1));
-            c.fill(10, (int) y, 118, (int) (y + rh - 1), sel ? 0x55E8B33A : ((int) (28 * h) << 24) | 0xFFFFFF);
-            if (sel) c.fill(10, (int) y, 12, (int) (y + rh - 1), 0xFF000000 | GOLD);
-            text(c, slotLabel(slot), 16, y + 2, 0.82f, sel ? 0xFFFFFFFF : 0xFFC4CCDB, 0);
-            boolean std = LoadoutDefs.isStandard(slot, eq);
-            text(c, std ? "стандартный" : trim(itemName(eq), 18), 16, y + 10, 0.58f, std ? 0xFF6F7A90 : 0xFF000000 | rarColor(rarityOf(eq)), 0);
-            final String s = slot;
-            hit(10, y, 108, rh - 1, () -> { selSlot = s; selItem = equippedOf(s); featured = s; rotY = 0.5f; spin = 0;
-                HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.2f, 0.4f); });
+    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПИСТОЛЕТЫ", "НОЖИ"};
+    private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "p90");
+    private static final Set<String> PISTOLS = Set.of("glock18", "usp", "deagle", "fiveseven", "revolver");
+    private int cat = 0, gridScroll = 0;
+    private boolean onlyOwned = false, sortQuality = false;
+    private long lastCardClick = 0;
+    private String lastCardId = "";
+
+    private static String slotOf(String item) {
+        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw")) return LoadoutDefs.KNIFE_SLOT;
+        for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return s.base().equals("claw") ? LoadoutDefs.KNIFE_SLOT : s.base();
+        return item;
+    }
+
+    private static int rarRank(String r) {
+        return switch (r) { case "uncommon" -> 1; case "rare" -> 2; case "epic" -> 3; case "legendary" -> 4; case "mythic" -> 5; default -> 0; };
+    }
+
+    private List<String> gridItems() {
+        List<String> l = new ArrayList<>();
+        for (String slot : LoadoutDefs.slots()) {
+            boolean ok = switch (cat) {
+                case 1 -> RIFLES.contains(slot);
+                case 2 -> PISTOLS.contains(slot);
+                case 3 -> slot.equals(LoadoutDefs.KNIFE_SLOT);
+                default -> true;
+            };
+            if (!ok) continue;
+            for (String id : LoadoutDefs.candidates(slot)) if (!onlyOwned || has(slot, id)) l.add(id);
         }
-        if (slots.size() > rows) text(c, "колесо — ещё", 64, 229, 0.6f, 0xFF6F7A90, 1);
+        if (sortQuality) l.sort(Comparator.comparingInt((String id) -> -rarRank(rarityOf(id))));
+        return l;
+    }
 
-        // окно просмотра
-        panel(c, VX, VY, VW, VH);
-        String item = selItem == null ? equippedOf(selSlot) : selItem;
-        String rar = rarityOf(item);
-        int rc = rarColor(rar);
-        for (int i = 0; i < 10; i++) c.fill(VX + 1, VY + VH - 24 + i * 2, VX + VW - 1, VY + VH - 22 + i * 2, ((int) (3 + i) << 24) | rc);
-        // свечение по редкости
-        float pulse = 0.6f + 0.4f * (float) Math.sin(now / 6e8);
-        for (int r = 56; r > 8; r -= 8) discClip(c, VX + VW / 2, VY + 58, r, ((int) (6 * pulse) << 24) | rc);
-        if (!dragging) { rotY += spin; spin *= (float) Math.pow(0.04, dt); if (Math.abs(spin) < 0.002f) spin = 0; }
-        text(c, itemName(item).toUpperCase(Locale.ROOT), VX + VW / 2f, VY + 6, 1.1f, 0xFFFFFFFF, 1);
-        text(c, rarLabel(rar), VX + VW / 2f, VY + 19, 0.78f, 0xFF000000 | rc, 1);
-        boolean ownedNow = has(selSlot, item);
-        boolean worn = item.equals(equippedOf(selSlot));
-        text(c, worn ? "§a● надето" : ownedNow ? "§7в наличии" : "§cнет в инвентаре", VX + VW - 8, VY + 8, 0.72f, 0xFFFFFFFF, 2);
-        text(c, "ПКМ + мышь — вращать", VX + 8, VY + VH - 11, 0.62f, 0xFF7C879D, 0);
-        drawWeapon(c, item);
+    private void select(String id) {
+        selItem = id; selSlot = slotOf(id); featured = selSlot; rotY = 0.5f; spin = 0;
+        HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.4f, 0.4f);
+    }
 
-        // варианты слота
-        List<String> cands = LoadoutDefs.candidates(selSlot);
-        int n = cands.size(), cw = 30, gap = 3;
-        float x0 = VX + (VW - (n * cw + (n - 1) * gap)) / 2f;
-        for (int i = 0; i < n; i++) {
-            String id = cands.get(i);
-            float x = x0 + i * (cw + gap), y = VY + VH + 6;
-            boolean has = has(selSlot, id), cur = id.equals(item);
-            int col = rarColor(rarityOf(id));
-            float h = hoverAmt("chip" + id, hitOver(x, y, cw, 30));
-            c.fill((int) x - 1, (int) y - 1, (int) (x + cw) + 1, (int) (y + 31), cur ? 0xFF000000 | col : 0xFF000000);
-            c.fill((int) x, (int) y, (int) (x + cw), (int) (y + 30), ((int) (0xC0) << 24) | (0x10131A + ((int) (h * 0x08) * 0x010101)));
-            c.fill((int) x, (int) (y + 28), (int) (x + cw), (int) (y + 30), (has ? 0xFF000000 : 0x66000000) | col);
-            MatrixStack m = c.getMatrices();
+    private void wear(String item) {
+        String slot = slotOf(item);
+        send("so_equip", slot + "|" + item);
+        Map<String, String> lo = new HashMap<>(loadout);
+        if (LoadoutDefs.candidates(slot).get(0).equals(item)) lo.remove(slot); else lo.put(slot, item);
+        loadout = lo;
+        HudModel.play(SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE.value(), 1.2f, 0.5f);
+    }
+
+    private static String[] splitName(String full) {
+        int i = full.indexOf(" | ");
+        return i < 0 ? new String[]{full, ""} : new String[]{full.substring(0, i), full.substring(i + 3)};
+    }
+
+    private void drawEquipment(DrawContext c, long now, float dt) {
+        // ---- фильтры
+        float fx = 8;
+        for (int i = 0; i < CATS.length; i++) {
+            float w = textRenderer.getWidth(CATS[i]) * 0.72f + 14;
+            boolean on = cat == i;
+            float h = hoverAmt("cat" + i, hitOver(fx, 34, w, 14));
+            c.fill((int) fx, 34, (int) (fx + w), 48, on ? 0xFF000000 | GOLD : 0xFF000000 | (0x1A1E28 + ((int) (h * 0x0C) * 0x010101)));
+            text(c, CATS[i], fx + w / 2f, 38, 0.72f, on ? 0xFF10131A : 0xFFC4CCDB, 1);
+            final int ci = i;
+            hit(fx, 34, w, 14, () -> { cat = ci; gridScroll = 0; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.5f, 0.35f); });
+            fx += w + 3;
+        }
+        String[] tg = {onlyOwned ? "✔ МОИ" : "☐ МОИ", sortQuality ? "↓ КАЧЕСТВО" : "↓ ОРУЖИЕ"};
+        float tx = 294;
+        for (int i = tg.length - 1; i >= 0; i--) {
+            float w = textRenderer.getWidth(tg[i]) * 0.68f + 12;
+            tx -= w;
+            float h = hoverAmt("tg" + i, hitOver(tx, 34, w, 14));
+            c.fill((int) tx, 34, (int) (tx + w), 48, 0xFF000000 | (0x1A1E28 + ((int) (h * 0x0C) * 0x010101)));
+            text(c, tg[i], tx + w / 2f, 38, 0.68f, 0xFFB8C2D6, 1);
+            final int ti = i;
+            hit(tx, 34, w, 14, () -> { if (ti == 0) onlyOwned = !onlyOwned; else sortQuality = !sortQuality; gridScroll = 0;
+                HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.5f, 0.35f); });
+            tx -= 3;
+        }
+
+        // ---- сетка предметов, как инвентарь CS
+        final int cols = 5, cw = 54, ch = 58, gap = 4, gx = 8, gy = 52, vrows = 3;
+        List<String> items = gridItems();
+        int totalRows = (items.size() + cols - 1) / cols;
+        gridScroll = Math.max(0, Math.min(gridScroll, Math.max(0, totalRows - vrows)));
+        MatrixStack m = c.getMatrices();
+        for (int r = 0; r < vrows; r++) for (int k = 0; k < cols; k++) {
+            int idx = (r + gridScroll) * cols + k;
+            float x = gx + k * (cw + gap), y = gy + r * (ch + gap);
+            if (idx >= items.size()) { c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch), 0x300C1018); continue; }
+            String id = items.get(idx), slot = slotOf(id);
+            boolean owns = has(slot, id), sel = id.equals(selItem), worn = id.equals(equippedOf(slot));
+            int rc = rarColor(rarityOf(id));
+            float h = hoverAmt("card" + id, hitOver(x, y, cw, ch));
+            c.fill((int) x - 1, (int) y - 1, (int) (x + cw) + 1, (int) (y + ch) + 1, sel ? 0xFF000000 | GOLD : 0xFF000000);
+            c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch), 0xFF000000 | (0x151A24 + ((int) (h * 0x0A) * 0x010101)));
+            c.fillGradient((int) x, (int) y, (int) (x + cw), (int) (y + ch - 14), 0x00000000, ((owns ? 0x40 : 0x18) << 24) | rc);
+            c.fill((int) x, (int) (y + ch - 3), (int) (x + cw), (int) (y + ch), (owns ? 0xFF000000 : 0x77000000) | rc);
             m.push();
-            m.translate(x + cw / 2f - 8, y + 6, 0);
-            c.drawItem(stackOf(id), 0, 0);
+            m.translate(x + cw / 2f, y + 22, 0);
+            m.scale(2.3f, 2.3f, 1f);
+            c.drawItem(stackOf(id), -8, -8);
             m.pop();
             m.push();
             m.translate(0, 0, 200);                                         // поверх предмета (он рисуется на z = 150)
-            if (!has) { c.fill((int) x, (int) y, (int) (x + cw), (int) (y + 30), 0xAA000000); drawLock(c, x + cw / 2f, y + 15); }
-            if (equippedOf(selSlot).equals(id)) text(c, "●", x + cw - 6, y + 1, 0.7f, 0xFF55FF55, 1);
+            String[] nm = splitName(itemName(id));
+            if (nm[1].isEmpty()) {
+                text(c, trim(nm[0], 17), x + cw / 2f, y + ch - 17, 0.6f, 0xFFE6EAF2, 1);
+            } else {
+                text(c, trim(nm[0], 18), x + cw / 2f, y + ch - 23, 0.56f, 0xFFB8C2D6, 1);
+                text(c, trim(nm[1], 16), x + cw / 2f, y + ch - 14, 0.62f, 0xFF000000 | rc, 1);
+            }
+            if (!owns) { c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch - 3), 0x99000000); drawLock(c, x + cw / 2f, y + 20); }
+            if (worn) { c.fill((int) x + cw - 12, (int) y + 2, (int) x + cw - 2, (int) y + 12, 0xFF2F7D4A); text(c, "✔", x + cw - 7, y + 3, 0.7f, 0xFFFFFFFF, 1); }
             m.pop();
             final String pick = id;
-            hit(x, y, cw, 30, () -> { selItem = pick; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.4f, 0.4f); });
+            hit(x, y, cw, ch, () -> {
+                long nowMs = System.currentTimeMillis();
+                if (pick.equals(lastCardId) && nowMs - lastCardClick < 350 && has(slotOf(pick), pick) && !pick.equals(equippedOf(slotOf(pick)))) wear(pick);
+                else select(pick);
+                lastCardId = pick; lastCardClick = nowMs;
+            });
         }
-        // кнопки
-        float by = VY + VH + 42;
-        button(c, "inspect", VX + 20, by, 118, 18, "Осмотреть  [V]", 0x3A5A8C, this::inspect);
+        if (items.isEmpty()) text(c, "Здесь пока пусто", gx + 143, gy + 80, 0.9f, 0xFF6F7A90, 1);
+        if (totalRows > vrows) {
+            int trackH = vrows * (ch + gap) - gap;
+            c.fill(296, gy, 298, gy + trackH, 0x33FFFFFF);
+            int thumb = Math.max(14, trackH * vrows / totalRows);
+            int ty = gy + (trackH - thumb) * gridScroll / Math.max(1, totalRows - vrows);
+            c.fill(296, ty, 298, ty + thumb, 0xFF000000 | GOLD);
+            text(c, "колесо — ещё", gx + 143, 241, 0.58f, 0xFF6F7A90, 1);
+        }
+
+        // ---- окно просмотра справа
+        panel(c, VX, VY, VW, VH);
+        String item = selItem == null ? equippedOf(selSlot) : selItem;
+        String slot = slotOf(item);
+        String rar = rarityOf(item);
+        int rc = rarColor(rar);
+        for (int i = 0; i < 12; i++) c.fill(VX + 1, VY + 100 + i * 3, VX + VW - 1, VY + 103 + i * 3, ((int) (2 + i) << 24) | rc);
+        float pulse = 0.6f + 0.4f * (float) Math.sin(now / 6e8);
+        for (int r = 46; r > 6; r -= 8) discClip(c, VX + VW / 2, VY + 66, r, ((int) (6 * pulse) << 24) | rc);
+        if (!dragging) { rotY += spin; spin *= (float) Math.pow(0.04, dt); if (Math.abs(spin) < 0.002f) spin = 0; }
+        String[] nm = splitName(itemName(item));
+        text(c, nm[0].toUpperCase(Locale.ROOT), VX + VW / 2f, VY + 6, nm[0].length() > 12 ? 0.85f : 1.0f, 0xFFFFFFFF, 1);
+        if (!nm[1].isEmpty()) text(c, nm[1], VX + VW / 2f, VY + 17, 0.85f, 0xFF000000 | rc, 1);
+        text(c, rarLabel(rar), VX + VW / 2f, VY + (nm[1].isEmpty() ? 18 : 28), 0.66f, 0xFF000000 | rc, 1);
+        boolean ownedNow = has(slot, item);
+        boolean worn = item.equals(equippedOf(slot));
+        text(c, worn ? "§a● надето" : ownedNow ? "§7в наличии" : "§cнет в инвентаре", VX + VW / 2f, VY + 150, 0.7f, 0xFFFFFFFF, 1);
+        text(c, "ПКМ + мышь — вращать", VX + VW / 2f, VY + 163, 0.58f, 0xFF7C879D, 1);
+        drawWeapon(c, item);
+        button(c, "inspect", VX + 8, VY + 174, VW - 16, 14, "Осмотреть  [V]", 0x3A5A8C, this::inspect);
         boolean can = ownedNow && !worn;
-        button(c, "wear", VX + VW - 138, by, 118, 18, worn ? "Надето" : ownedNow ? "Надеть" : "Нет скина",
-            can ? 0x2F7D4A : 0x3A4050, can ? () -> { send("so_equip", selSlot + "|" + item);
-                Map<String, String> lo = new HashMap<>(loadout);
-                if (LoadoutDefs.candidates(selSlot).get(0).equals(item)) lo.remove(selSlot); else lo.put(selSlot, item);
-                loadout = lo; HudModel.play(SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE.value(), 1.2f, 0.5f); } : null);
+        final String wearItem = item;
+        button(c, "wear", VX + 8, VY + 192, VW - 16, 14, worn ? "Надето" : ownedNow ? "Надеть" : "Нет скина",
+            can ? 0x2F7D4A : 0x3A4050, can ? () -> wear(wearItem) : null);
     }
 
     /** Ствол в окне просмотра, повёрнутый на rotY вокруг вертикальной оси */
@@ -552,9 +645,9 @@ public class StandoffScreen extends Screen {
         ItemStack st = stackOf(item);
         MatrixStack m = c.getMatrices();
         m.push();
-        m.translate(VX + VW / 2f, VY + 62, 0);
-        m.scale(7.5f, 7.5f, 7.5f);
-        m.multiply(new Quaternionf().rotationY(rotY + 0.0f));
+        m.translate(VX + VW / 2f, VY + 66, 0);
+        m.scale(5.2f, 5.2f, 5.2f);
+        m.multiply(new Quaternionf().rotationY(rotY));
         m.translate(0, 0, -150);
         c.drawItem(st, -8, -8);
         m.pop();

@@ -46,23 +46,17 @@ public class ComboRushClient implements ClientModInitializer {
                     ClientPlayNetworking.send(new com.derevna230.comborush.hud.ShopActionPayload("camp_open", 0, 0, ""));
             }
         });
-        // оружие: R — перезарядка, V — осмотр, G — глушитель (анимации ствола и ножа)
-        String[][] wk = {{"gun_reload", "key.combo-rush.gun_reload", "R"}, {"gun_inspect", "key.combo-rush.gun_inspect", "V"}, {"gun_silencer", "key.combo-rush.gun_silencer", "G"}};
-        java.util.List<net.minecraft.client.option.KeyBinding> wkeys = new java.util.ArrayList<>();
-        for (String[] k : wk) wkeys.add(net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
-            new net.minecraft.client.option.KeyBinding(k[1], net.minecraft.client.util.InputUtil.Type.KEYSYM,
-                k[2].equals("R") ? org.lwjgl.glfw.GLFW.GLFW_KEY_R : k[2].equals("V") ? org.lwjgl.glfw.GLFW.GLFW_KEY_V : org.lwjgl.glfw.GLFW.GLFW_KEY_G,
-                "key.categories.combo-rush")));
+        // оружие: ЛКМ — выстрел, ПКМ — прицел/глушитель, R — перезарядка, V — осмотр (всё остальное — в WeaponClient)
+        net.minecraft.client.option.KeyBinding reloadKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
+            new net.minecraft.client.option.KeyBinding("key.combo-rush.gun_reload", net.minecraft.client.util.InputUtil.Type.KEYSYM,
+                org.lwjgl.glfw.GLFW.GLFW_KEY_R, "key.categories.combo-rush"));
+        net.minecraft.client.option.KeyBinding inspectKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
+            new net.minecraft.client.option.KeyBinding("key.combo-rush.gun_inspect", net.minecraft.client.util.InputUtil.Type.KEYSYM,
+                org.lwjgl.glfw.GLFW.GLFW_KEY_V, "key.categories.combo-rush"));
+        WeaponClient.init();
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            for (int i = 0; i < wkeys.size(); i++) {
-                while (wkeys.get(i).wasPressed()) {
-                    if (client.player == null || client.currentScreen != null) continue;
-                    Item held = client.player.getMainHandStack().getItem();
-                    if (!(held instanceof com.derevna230.comborush.item.CRGunItem) && !(held instanceof com.derevna230.comborush.item.CRKnifeItem)) continue;
-                    if (ClientPlayNetworking.canSend(com.derevna230.comborush.hud.ShopActionPayload.ID))
-                        ClientPlayNetworking.send(new com.derevna230.comborush.hud.ShopActionPayload(wk[i][0], 0, 0, ""));
-                }
-            }
+            while (reloadKey.wasPressed()) if (client.player != null && client.currentScreen == null) WeaponClient.keyReload();
+            while (inspectKey.wasPressed()) WeaponClient.keyInspect();
         });
         // комната меню «Противостояния»: пока игрок в ней и нет других экранов — показываем меню
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(StandoffScreen::tickReopen);
