@@ -14,7 +14,7 @@ public record HudPayload(String kind, String json) implements CustomPayload {
 
     public static final PacketCodec<RegistryByteBuf, HudPayload> CODEC = PacketCodec.tuple(
         PacketCodecs.STRING, HudPayload::kind,
-        PacketCodecs.STRING, HudPayload::json,
+        PacketCodecs.string(400_000), HudPayload::json,   // тело может быть большим (подсказки всех комплектов и кейсов); лимит пакета — 1 МиБ
         HudPayload::new);
 
     @Override
