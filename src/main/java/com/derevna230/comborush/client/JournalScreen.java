@@ -197,7 +197,7 @@ public class JournalScreen extends Screen {
         Ch curCh = null;
         for (Ch ch : d.chapters) if (ch.id.equals(sel)) curCh = ch;
         if (curBook != null && curBook.state.equals("locked")) y += drawLocked(c, px + 4, y, pw - 8, t) + 6;
-        else if (curCh != null && curCh.book.equals("other")) y += drawNote(c, curCh, px + 4, y, pw - 8, t) + 6;
+        else if (curCh != null && curCh.book.equals("other") && curCh.state.equals("soon")) y += drawNote(c, curCh, px + 4, y, pw - 8, t) + 6;
         else for (Q q : d.quests) {
             if (!q.ch.equals(sel)) continue;
             y += drawQuest(c, q, px + 4, y, pw - 8, t) + 6;
@@ -212,7 +212,7 @@ public class JournalScreen extends Screen {
         super.render(c, mouseX, mouseY, delta);
     }
 
-    /** Кампания «С других сюжетов» закрыта, пока не пройден Пролог и не выбрано «кресло» */
+    /** Кампания «С других сюжетов» закрыта, пока не пройден Пролог */
     private float drawLocked(DrawContext c, float x, float y, float w, float t) {
         float h = 150;
         c.fill((int) x - 1, (int) y - 1, (int) (x + w) + 1, (int) (y + h) + 1, 0xFF000000);
@@ -227,11 +227,10 @@ public class JournalScreen extends Screen {
         text(c, "КАМПАНИЯ «С ДРУГИХ СЮЖЕТОВ» ЗАКРЫТА", x + w / 2f, y + 64, 0.85f, 0xFFFFC94A, 1);
         text(c, "Сейчас доступен только Пролог — сюжет шоу «Combo Rush».", x + w / 2f, y + 80, 0.65f, 0xFFC8C0E0, 1);
         int yy = 98;
-        for (String l : StoryHud.wrap(textRenderer, "Победи Режиссёра в его студии и выбери финал «Занять кресло» — тогда откроется продолжение и начнётся Глава 1.", (int) ((w - 30) / 0.7f))) {
+        for (String l : StoryHud.wrap(textRenderer, "Пройди Пролог — доведи сюжет шоу «Combo Rush» до финала. Тогда в Ночном городе принимают сигнал бедствия и начинается Глава 1.", (int) ((w - 30) / 0.7f))) {
             text(c, l, x + w / 2f, y + yy, 0.7f, 0xFFFFFFFF, 1);
             yy += 9;
         }
-        text(c, "Финал «Сломать шоу» продолжение не открывает.", x + w / 2f, y + yy + 4, 0.6f, 0xFF8A849E, 1);
         return h;
     }
 

@@ -201,8 +201,6 @@ public class CarEntity extends MobEntity implements GeoEntity {
     public void smoothDriverCamera(PlayerEntity d) {
         float k = driveDYaw;
         d.prevYaw = d.getYaw() - k;
-        d.prevBodyYaw = d.bodyYaw - k;
-        d.prevHeadYaw = d.headYaw - k;
     }
 
     // ---------------------------------------------------------------- езда: физика
@@ -271,8 +269,8 @@ public class CarEntity extends MobEntity implements GeoEntity {
             this.setYaw(this.getYaw() + dYaw);
             if (driver != null) {                                     // камера едет вместе с машиной
                 driver.setYaw(driver.getYaw() + dYaw);
-                driver.bodyYaw += dYaw;
-                driver.headYaw += dYaw;
+                driver.bodyYaw += dYaw; driver.prevBodyYaw += dYaw;       // тело и голова модели игрока поворачиваются вместе с машиной
+                driver.headYaw += dYaw; driver.prevHeadYaw += dYaw;       // (prev сдвигаем — иначе их собственная интерполяция при повороте головы дёргается)
                 driveDYaw = dYaw;
             }
         }

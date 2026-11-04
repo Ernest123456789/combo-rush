@@ -7,6 +7,7 @@ import java.util.List;
  * Задание кампании из data/combo-rush/campaign/quests/*.json.
  * scope: "personal" — у каждого игрока своё; "server" — общее на сервер, награда достаётся всем, кто до него дошёл.
  * goal.type: talk | species | booster | event | courier | poster | splice | stage
+ * Ночной город (см. {@link CityStory}): enter | drive | kill | reach | hold | boss
  */
 public class QuestDef {
     public transient String id = "";
@@ -31,6 +32,21 @@ public class QuestDef {
         public int count = 1;
         /** для talk — роль NPC; для event — минимальная медаль (BRONZE/SILVER/GOLD) */
         public String target = "";
+        /** Ночной город: кого убивать (any | zombie | skeleton | spider | creeper) / набор мобов для волн / id босса */
+        public String mob = "";
+        /** точка на карте города (id из CityStory.SITES): где убивать, держать оборону или биться с боссом */
+        public String site = "";
+        /** reach: список точек; ordered — строго по порядку, иначе в любом */
+        public List<String> sites = new ArrayList<>();
+        public boolean ordered = false;
+        /** reach: время на весь маршрут после первой точки (0 — без таймера); hold: сколько секунд держаться */
+        public int seconds = 0;
+        /** нужно ли быть за рулём машины (reach, kill) */
+        public boolean car = false;
+        /** радиус точки в блоках (0 — по умолчанию) */
+        public int radius = 0;
+        /** reach: сообщения при достижении точек (по порядку списка) */
+        public List<String> msgs = new ArrayList<>();
     }
 
     public static class Reward {

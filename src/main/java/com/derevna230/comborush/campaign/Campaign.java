@@ -63,6 +63,7 @@ public final class Campaign {
         Objects.requireNonNull(PlayerCampaign.TYPE);          // зарегистрировать вложение до загрузки мира
         StageBoss.register();
         DirectorBoss.register();
+        CityStory.init();
         ServerPlayConnectionEvents.JOIN.register((h, s, server) -> {
             LAST_TRACK.remove(h.player.getUuid());
             LAST_JOURNAL.remove(h.player.getUuid());
@@ -108,6 +109,18 @@ public final class Campaign {
     /** Первое активное задание по порядку сюжета (личное или общее) */
     public static QuestDef current(ServerPlayerEntity p) {
         for (QuestDef q : QuestRegistry.all()) if (status(p, q) == St.ACTIVE) return q;
+        return null;
+    }
+
+    /** Кампания «С других сюжетов» (Ночной город) — книга other */
+    static boolean isOther(QuestDef q) {
+        QuestRegistry.ChapterDef c = QuestRegistry.chapter(q.chapter);
+        return c != null && "other".equals(c.book);
+    }
+
+    /** Первое активное задание Пролога (без городской кампании) */
+    public static QuestDef currentMain(ServerPlayerEntity p) {
+        for (QuestDef q : QuestRegistry.all()) if (!isOther(q) && status(p, q) == St.ACTIVE) return q;
         return null;
     }
 
@@ -161,12 +174,13 @@ public final class Campaign {
             claimServer(p);                               // догнать общие задания, если они уже пройдены
         }
         ComboRush.LOGGER.info("Кампания: «{}» выполнено ({})", q.title, p.getName().getString());
+        CityStory.onQuestDone(p, q);
         refreshAll(server);
     }
 
     private static void announce(ServerPlayerEntity p, QuestDef q, String byOther) {
         p.networkHandler.sendPacket(new TitleFadeS2CPacket(5, 50, 15));
-        p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("§6§l✦ СЦЕНА СЫГРАНА ✦")));
+        p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(isOther(q) ? "§b§l✦ МИССИЯ ВЫПОЛНЕНА ✦" : "§6§l✦ СЦЕНА СЫГРАНА ✦")));
         p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal("§f" + q.title)));
         p.getServerWorld().playSound(null, p.getBlockPos(), com.derevna230.comborush.sound.ModSounds.QUEST_DONE, SoundCategory.PLAYERS, 0.9f, 1.0f);
         if (!byOther.isEmpty()) p.sendMessage(Text.literal("§6✦ §f" + byOther + " §7завершил общее задание «§f" + q.title + "§7»"), false);
@@ -248,6 +262,15 @@ public final class Campaign {
             case "director" -> "Режиссёр";
             case "prompter" -> "Суфлёр";
             case "assistant" -> "Помощник режиссёра";
+            case "mia" -> "Диспетчер Мия";
+            case "nail" -> "Гвоздь";
+            case "rita" -> "Рита";
+            case "lis" -> "Лис";
+            case "kodo" -> "Профессор Кодо";
+            case "doc" -> "Доктор Ли";
+            case "gate" -> "Привратник";
+            case "surv" -> "Выжившие";
+            case "term" -> "Терминал";
             default -> kind.startsWith("poster") ? "Афиша" : kind;
         };
     }
@@ -261,6 +284,15 @@ public final class Campaign {
             case "lighter" -> 0x7FD8FF;
             case "makeup" -> 0xFF8AD8;
             case "costumer" -> 0x8EF0A0;
+            case "mia" -> 0x4DE8FF;
+            case "nail" -> 0xFFA94D;
+            case "rita" -> 0xFF7AD9;
+            case "lis" -> 0x7CF08C;
+            case "kodo" -> 0x6FB8FF;
+            case "doc" -> 0xF2F2F2;
+            case "gate" -> 0xFF4D5E;
+            case "surv" -> 0xB8B8C8;
+            case "term" -> 0x4DE8FF;
             default -> 0xD9A8FF;
         };
     }
@@ -326,7 +358,7 @@ public final class Campaign {
             return;
         }
         // 3. подсказка
-        QuestDef cur = current(p);
+        QuestDef cur = currentMain(p);
         if (cur == null) say(p, "ticketer", Finale.ending(p.getServer()).isEmpty()
             ? List.of("Сезон ещё идёт. Загляни в журнал — там видно, что дальше.")
             : List.of(Finale.CHAOS.equals(Finale.ending(p.getServer()))
@@ -599,6 +631,7 @@ public final class Campaign {
         StageBoss.tick(server);
         DirectorBoss.tick(server);
         RaceManager.tick(server);
+        CityStory.tick(server);
         if (server.getTicks() % 20 != 0) return;
         for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
             if (p.isSpectator()) continue;
@@ -693,22 +726,21 @@ public final class Campaign {
 
     /** Пролог пройден: выполнены все задания сюжета (открывает вход во вселенные) */
     public static boolean prologueDone(ServerPlayerEntity p) {
-        return QuestRegistry.all().stream().allMatch(q -> status(p, q) == St.DONE);
+        return QuestRegistry.all().stream().allMatch(q -> isOther(q) || status(p, q) == St.DONE);
     }
 
     private static JsonObject journalJson(ServerPlayerEntity p) {
         JsonObject root = new JsonObject();
-        boolean chair = Finale.CHAIR.equals(Finale.ending(p.getServer()));
-        // две книги журнала: «Пролог» (весь сюжет, что есть сейчас) и кампания «С других сюжетов» (после финала «кресло»)
+        // две книги журнала: «Пролог» (сюжет шоу) и кампания «С других сюжетов» — Ночной город (после Пролога)
         JsonArray books = new JsonArray();
-        boolean prologueDone = QuestRegistry.all().stream().allMatch(q -> status(p, q) == St.DONE);
+        boolean prologueDone = prologueDone(p);
         JsonObject b1 = new JsonObject();
         b1.addProperty("id", "prologue"); b1.addProperty("title", "ПРОЛОГ"); b1.addProperty("sub", "Шоу «Combo Rush»");
         b1.addProperty("state", prologueDone ? "done" : "active");
         books.add(b1);
         JsonObject b2 = new JsonObject();
         b2.addProperty("id", "other"); b2.addProperty("title", "С ДРУГИХ СЮЖЕТОВ"); b2.addProperty("sub", "Кампания");
-        b2.addProperty("state", chair ? "open" : "locked");
+        b2.addProperty("state", !prologueDone ? "locked" : QuestRegistry.of("other_ch1").stream().allMatch(q -> status(p, q) == St.DONE) && QuestRegistry.of("other_ch4").stream().allMatch(q -> status(p, q) == St.DONE) ? "done" : "active");
         books.add(b2);
         root.add("books", books);
         JsonArray chs = new JsonArray();
@@ -721,8 +753,7 @@ public final class Campaign {
             String state;
             o.addProperty("book", c.book);
             o.addProperty("note", c.note);
-            if ("other".equals(c.book)) state = !chair ? "locked" : c.soon ? "soon" : "open";
-            else if (c.soon || qs.isEmpty()) state = "soon";
+            if (c.soon || qs.isEmpty()) state = "soon";
             else if (qs.stream().allMatch(q -> status(p, q) == St.DONE)) state = "done";
             else if (qs.stream().anyMatch(q -> status(p, q) == St.ACTIVE)) state = "active";
             else state = qs.stream().anyMatch(q -> status(p, q) == St.DONE) ? "active" : "locked";
@@ -778,6 +809,8 @@ public final class Campaign {
             if (q.goal.type.equals("race") && RaceManager.timeLeft(p) >= 0) o.addProperty("timer", RaceManager.timeLeft(p));
             if (q.id.equals(COURIER) && dl > 0)
                 o.addProperty("timer", Math.max(0, (dl - p.getServer().getOverworld().getTime()) / 20));
+            int ct = CityStory.timer(p, q);
+            if (ct >= 0) o.addProperty("timer", ct);
         }
         String s = o.toString();
         if (s.equals(LAST_TRACK.get(p.getUuid()))) return;
@@ -789,7 +822,9 @@ public final class Campaign {
         CampaignState st = state(p);
         PlayerCampaign pc = PlayerCampaign.of(p);
         switch (q.goal.type) {
-            case "talk": return q.goal.target.equals("prompter") ? st.backstage : st.booth;
+            case "talk":
+                if (CityStory.isNpc(q.goal.target)) return CityStory.target(p, q);
+                return q.goal.target.equals("prompter") ? st.backstage : st.booth;
             case "race": case "director": case "choice": return Finale.target(p, q);
             case "courier": {
                 if (pc.flag("courier_deadline") <= 0) return st.booth;
@@ -817,7 +852,7 @@ public final class Campaign {
             }
             case "splice": return RiftManager.storyPos();
             case "stage": return st.stage;
-            default: return null;
+            default: return CityStory.target(p, q);
         }
     }
 
@@ -847,6 +882,7 @@ public final class Campaign {
             st.booth = null; st.ticketer = null; st.stage = null;
             st.backstage = null; st.studio = null; st.throne = null; st.ending = ""; st.race.clear();
             st.markDirty();
+            CityStory.reset(p.getServer());
         }
         refreshAll(p.getServer());
         return server ? "Кампания сброшена для всего сервера (постройки остаются в мире)." : "Твой личный прогресс кампании сброшен.";

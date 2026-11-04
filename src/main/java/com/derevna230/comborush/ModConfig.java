@@ -39,8 +39,8 @@ public final class ModConfig {
         public int emerald_coins = 1;
         public int price_pocket_crafting = 3;
         public int price_pocket_furnace = 5;
-        public int price_pocket_anvil = 8;
-        public int price_pocket_enchanting = 12;
+        public int price_pocket_anvil = 40;
+        public int price_pocket_enchanting = 60;
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -58,6 +58,9 @@ public final class ModConfig {
             if (Files.exists(f)) {
                 Values n = GSON.fromJson(Files.readString(f, StandardCharsets.UTF_8), Values.class);
                 v = n == null ? new Values() : n;
+                // старые значения по умолчанию (8 и 12) подтягиваем до новых; свои значения игрока не трогаем
+                if (v.price_pocket_anvil == 8) v.price_pocket_anvil = 40;
+                if (v.price_pocket_enchanting == 12) v.price_pocket_enchanting = 60;
                 msg = "Настройки загружены из " + f.getFileName();
             } else {
                 v = new Values();

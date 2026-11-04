@@ -23,7 +23,26 @@ public final class MusicPlayer {
     /** какая из тем сейчас выбрана; меняется на старте каждого нового события */
     private static int shopTheme = RNG.nextInt(ModSounds.SHOP_THEMES.length), shopHold = 0;
     private static boolean wasShop = false;
-    private static int eventTheme = RNG.nextInt(ModSounds.EVENT_THEMES.length), bossTheme = RNG.nextInt(ModSounds.BOSS_THEMES.length);
+    /** «мешки» тем: пока все не сыграют по разу, повторов нет; новый мешок не начинается с последней сыгранной */
+    private static final Bag EVENT_BAG = new Bag(ModSounds.EVENT_THEMES.length), BOSS_BAG = new Bag(ModSounds.BOSS_THEMES.length),
+        SHOP_BAG = new Bag(ModSounds.SHOP_THEMES.length);
+    private static int eventTheme = EVENT_BAG.next(), bossTheme = BOSS_BAG.next(), eventSince = 0;
+
+    static final class Bag {
+        private final int n;
+        private final java.util.ArrayList<Integer> left = new java.util.ArrayList<>();
+        private int last = -1;
+        Bag(int n) { this.n = n; }
+        int next() {
+            if (left.isEmpty()) {
+                for (int i = 0; i < n; i++) left.add(i);
+                java.util.Collections.shuffle(left, RNG);
+                if (n > 1 && left.get(left.size() - 1) == last) java.util.Collections.swap(left, left.size() - 1, 0);
+            }
+            last = left.remove(left.size() - 1);
+            return last;
+        }
+    }
 
     static final class Loop extends MovingSoundInstance {
         float target = 0.6f, targetPitch = 1f;
@@ -72,9 +91,10 @@ public final class MusicPlayer {
         // стингеры на смену фазы (не при первом пакете после входа)
         if (lastPhase != null && !lastPhase.equals(phase)) {
             if (event) {
-                // новое событие — другая тема, не такая же, как была
-                eventTheme = (eventTheme + 1 + RNG.nextInt(ModSounds.EVENT_THEMES.length - 1)) % ModSounds.EVENT_THEMES.length;
-                bossTheme = (bossTheme + 1) % ModSounds.BOSS_THEMES.length;
+                // новое событие — следующая тема из мешка
+                eventTheme = EVENT_BAG.next();
+                bossTheme = BOSS_BAG.next();
+                eventSince = 0;
             }
             if (event) HudModel.play(HudModel.blind ? ModSounds.BOSS_START : ModSounds.EVENT_START, 1f, 0.8f);
             else HudModel.play(ModSounds.EVENT_END, 1f, 0.7f);
@@ -92,8 +112,16 @@ public final class MusicPlayer {
         // магазин: тихая музыка, пока открыт экран магазина (после закрытия ещё 3 секунды, чтобы не мигала между окнами)
         if (isShopScreen(mc.currentScreen)) shopHold = 60; else if (shopHold > 0) shopHold--;
         boolean shop = !event && shopHold > 0;
-        if (shop && !wasShop) shopTheme = (shopTheme + 1 + RNG.nextInt(ModSounds.SHOP_THEMES.length - 1)) % ModSounds.SHOP_THEMES.length;
+        if (shop && !wasShop) shopTheme = SHOP_BAG.next();
         wasShop = shop;
+
+        // долгое событие: примерно раз в 2,5 минуты тема плавно сменяется на следующую из мешка
+        if (event) {
+            if (++eventSince > 3000) {
+                eventSince = 0;
+                if (HudModel.blind) bossTheme = BOSS_BAG.next(); else eventTheme = EVENT_BAG.next();
+            }
+        } else eventSince = 0;
 
         SoundEvent want = event ? (HudModel.blind ? ModSounds.BOSS_THEMES[bossTheme] : ModSounds.EVENT_THEMES[eventTheme])
                                 : (shop ? ModSounds.SHOP_THEMES[shopTheme] : null);

@@ -177,5 +177,149 @@
         "stream": true
       }
     ]
+  },
+  "music_event5": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event5",
+        "stream": true
+      }
+    ]
+  },
+  "music_event6": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event6",
+        "stream": true
+      }
+    ]
+  },
+  "music_event7": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event7",
+        "stream": true
+      }
+    ]
+  },
+  "music_event8": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event8",
+        "stream": true
+      }
+    ]
+  },
+  "music_event9": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event9",
+        "stream": true
+      }
+    ]
+  },
+  "music_event10": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event10",
+        "stream": true
+      }
+    ]
+  },
+  "music_boss3": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_boss3",
+        "stream": true
+      }
+    ]
+  },
+  "music_boss4": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_boss4",
+        "stream": true
+      }
+    ]
+  },
+  "music_event11": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event11",
+        "stream": true
+      }
+    ]
+  },
+  "music_event12": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event12",
+        "stream": true
+      }
+    ]
+  },
+  "music_event13": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event13",
+        "stream": true
+      }
+    ]
+  },
+  "music_event14": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event14",
+        "stream": true
+      }
+    ]
+  },
+  "music_event15": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event15",
+        "stream": true
+      }
+    ]
+  },
+  "music_event16": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event16",
+        "stream": true
+      }
+    ]
+  },
+  "music_event17": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event17",
+        "stream": true
+      }
+    ]
+  },
+  "music_event18": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event18",
+        "stream": true
+      }
+    ]
+  },
+  "music_event19": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event19",
+        "stream": true
+      }
+    ]
+  },
+  "music_event20": {
+    "sounds": [
+      {
+        "name": "combo-rush:music_event20",
+        "stream": true
+      }
+    ]
   }
 }
