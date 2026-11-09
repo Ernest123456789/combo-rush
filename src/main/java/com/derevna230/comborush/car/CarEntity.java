@@ -86,6 +86,8 @@ public class CarEntity extends MobEntity implements GeoEntity {
     private float rollA, rollV, prevRollA;
     private double obsVLong, aLongS, slopeS;
     private boolean wasOnGround = true;
+    private boolean wheelsRolling = false;
+    private double wheelAnimSpeed = 1.0;
 
     // ---- серверные эффекты
     private int driftTicks = 0;
@@ -467,12 +469,14 @@ public class CarEntity extends MobEntity implements GeoEntity {
         if (hSpeed > 0.03 && this.age % 5 == 0)
             w.playSound(null, this.getBlockPos(), SoundEvents.ENTITY_MINECART_RIDING, SoundCategory.NEUTRAL,
                 0.35f, (float) Math.min(1.4, 0.45 + hSpeed * 1.6));
-        if (hSpeed > 0.02 && this.age % 2 == 0) {                  // выхлоп сзади
+        // Частицы — самое тяжёлое, что делает машина: на слабом ноутбуке сотни живых дымков роняют FPS и дают
+        // рывки. Поэтому редко и только короткоживущие (SMOKE/CLOUD живут доли секунды, у CAMPFIRE_COSY_SMOKE — 10+ с).
+        if (hSpeed > 0.02 && this.age % 4 == 0) {                  // выхлоп сзади
             double bx = this.getX() - fx * 2.4, bz = this.getZ() - fz * 2.4;
             w.spawnParticles(ParticleTypes.SMOKE, bx, this.getY() + 0.35, bz, 1, 0.05, 0.02, 0.05, 0.01);
             if (nitroNow) {
                 w.spawnParticles(nitroLvl >= 3 ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.FLAME,
-                    bx - fx * 0.3, this.getY() + 0.4, bz - fz * 0.3, 3 + nitroLvl, 0.08, 0.05, 0.08, 0.04);
+                    bx - fx * 0.3, this.getY() + 0.4, bz - fz * 0.3, 2 + nitroLvl / 2, 0.08, 0.05, 0.08, 0.04);
                 if (this.age % 6 == 0)
                     w.playSound(null, this.getBlockPos(), SoundEvents.ENTITY_BLAZE_SHOOT, SoundCategory.NEUTRAL, 0.5f, 1.6f);
             }
@@ -480,15 +484,17 @@ public class CarEntity extends MobEntity implements GeoEntity {
         // занос: дым из-под задних колёс и визг
         boolean drifting = slipDeg > 18 && hSpeed > 0.30 && this.isOnGround();
         if (drifting) {
-            double lx = Math.cos(yr), lz = Math.sin(yr);
-            for (int s = -1; s <= 1; s += 2) {
-                double px = this.getX() - fx * 1.5 + lx * 0.95 * s, pz = this.getZ() - fz * 1.5 + lz * 0.95 * s;
-                w.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, px, this.getY() + 0.15, pz, 1, 0.1, 0.02, 0.1, 0.005);
+            if (this.age % 2 == 0) {
+                double lx = Math.cos(yr), lz = Math.sin(yr);
+                for (int s = -1; s <= 1; s += 2) {
+                    double px = this.getX() - fx * 1.5 + lx * 0.95 * s, pz = this.getZ() - fz * 1.5 + lz * 0.95 * s;
+                    w.spawnParticles(ParticleTypes.LARGE_SMOKE, px, this.getY() + 0.15, pz, 1, 0.1, 0.02, 0.1, 0.005);
+                }
             }
             if (this.age % 6 == 0)
                 w.playSound(null, this.getBlockPos(), SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.NEUTRAL, 0.25f, 1.8f);
             driftTicks++;
-        } else if (hSpeed > 0.38 && this.isOnGround() && this.age % 3 == 0) {
+        } else if (hSpeed > 0.38 && this.isOnGround() && this.age % 6 == 0) {
             w.spawnParticles(ParticleTypes.CLOUD, this.getX(), this.getY() + 0.1, this.getZ(), 1, 0.9, 0.02, 0.9, 0.01);
             driftTicks = Math.max(0, driftTicks - 2);
         } else driftTicks = Math.max(0, driftTicks - 2);
@@ -548,8 +554,17 @@ public class CarEntity extends MobEntity implements GeoEntity {
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "drive", 2, state -> {
-            if (hSpeed < 0.012) return state.setAndContinue(IDLE);
-            state.getController().setAnimationSpeed(Math.max(0.12, hSpeed * 10.0 / def.wheelCirc()));
+            // гистерезис: на границе скорости колёса не дёргаются между «стоит» и «едет»
+            if (wheelsRolling) { if (hSpeed < 0.008) wheelsRolling = false; }
+            else if (hSpeed > 0.016) wheelsRolling = true;
+            if (!wheelsRolling) return state.setAndContinue(IDLE);
+            // GeckoLib сдвигает время анимации при каждой смене скорости — меняем её только при заметной разнице,
+            // а не каждый кадр (иначе при низком FPS колёса и кузов «подёргивает»)
+            double want = Math.max(0.12, hSpeed * 10.0 / def.wheelCirc());
+            if (Math.abs(want - wheelAnimSpeed) > 0.10 * wheelAnimSpeed) {
+                wheelAnimSpeed = want;
+                state.getController().setAnimationSpeed(want);
+            }
             return state.setAndContinue(DRIVE);
         }));
     }

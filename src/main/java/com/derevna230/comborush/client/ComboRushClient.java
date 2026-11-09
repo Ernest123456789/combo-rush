@@ -17,6 +17,8 @@ import net.minecraft.util.Identifier;
 
 /** Клиентская часть: HUD справа и анимации подсчёта. Без неё мод работает как раньше (action bar) */
 public class ComboRushClient implements ClientModInitializer {
+    private static String CAR_HUD_LAST = "";
+
     @Override
     public void onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(HudPayload.ID, (payload, context) -> HudModel.receive(payload));
@@ -74,9 +76,15 @@ public class ComboRushClient implements ClientModInitializer {
             com.derevna230.comborush.car.CarEntity.CLIENT_NITRO = driving && client.options.sprintKey.isPressed();
             if (driving)   // камера водителя поворачивается плавно, а не 20 раз в секунду рывками
                 ((com.derevna230.comborush.car.CarEntity) client.player.getVehicle()).smoothDriverCamera(client.player);
-            if (driving && client.currentScreen == null)
-                client.inGameHud.setOverlayMessage(net.minecraft.text.Text.literal(
-                    ((com.derevna230.comborush.car.CarEntity) client.player.getVehicle()).hudText()), false);
+            if (driving && client.currentScreen == null) {
+                // надпись пересоздаём только при изменении (и раз в секунду, чтобы не гасла): 20 новых Text в секунду — лишняя работа
+                com.derevna230.comborush.car.CarEntity car2 = (com.derevna230.comborush.car.CarEntity) client.player.getVehicle();
+                String hud = car2.hudText();
+                if (!hud.equals(CAR_HUD_LAST) || car2.age % 20 == 0) {
+                    CAR_HUD_LAST = hud;
+                    client.inGameHud.setOverlayMessage(net.minecraft.text.Text.literal(hud), false);
+                }
+            }
         });
         // щиты из кейсов: при блоке — модель <id>_blocking
         for (Item shield : ModItems.SHIELDS)
