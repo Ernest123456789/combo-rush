@@ -107,7 +107,7 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         for (GunDefs.Skin sk : GunDefs.SKINS)
             if (sk.id().equals(setId())) { String rn = GunDefs.rarityName(sk.rarity()); if (!rn.isEmpty()) tooltip.add(Text.literal(rn)); break; }
-        if (setId().equals(GunDefs.KNIFE)) tooltip.add(Text.literal(GunDefs.rarityName("mythic")));
+        if (setId().equals(GunDefs.KNIFE) || setId().equals(GunDefs.BAYONET) || setId().equals(GunDefs.SKELETON)) tooltip.add(Text.literal(GunDefs.rarityName("mythic")));
         SkinData.tooltip(stack, tooltip);
         tooltip.add(Text.literal("§8V — осмотр"));
         ArmorTooltips.append(setId(), tooltip);

@@ -1,6 +1,7 @@
 package com.derevna230.comborush.client;
 
 import com.derevna230.comborush.hud.ShopActionPayload;
+import com.derevna230.comborush.item.CRGrenadeItem;
 import com.derevna230.comborush.item.CRGunItem;
 import com.derevna230.comborush.item.CRKnifeItem;
 import com.derevna230.comborush.item.GunDefs;
@@ -37,6 +38,8 @@ public final class WeaponClient {
     private static int shotIdx = 0, lastShotTick = -100;
     private static int hitTicks = 0;
     private static boolean hitHead = false;
+    private static int grenadeBusyUntil = 0;
+    private static int flashLeft = 0, flashTotal = 1;
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(WeaponClient::tick);
@@ -57,6 +60,17 @@ public final class WeaponClient {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player != null) mc.player.playSoundToPlayer(hitHead ? SoundEvents.ENTITY_PLAYER_LEVELUP : SoundEvents.ENTITY_ARROW_HIT_PLAYER,
             net.minecraft.sound.SoundCategory.PLAYERS, hitHead ? 0.35f : 0.5f, hitHead ? 2.0f : 1.4f);
+    }
+
+    /** Светошумовая: белый экран на t тиков (первые ~45% — сплошной, дальше гаснет) */
+    public static void onFlash(JsonObject o) {
+        flashTotal = Math.max(1, o.has("t") ? o.get("t").getAsInt() : 40);
+        flashLeft = flashTotal;
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc.player != null) {
+            mc.player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), net.minecraft.sound.SoundCategory.PLAYERS, 0.7f, 2.0f);
+            mc.player.playSoundToPlayer(SoundEvents.BLOCK_NOTE_BLOCK_BIT.value(), net.minecraft.sound.SoundCategory.PLAYERS, 0.5f, 2.0f);
+        }
     }
 
     // ---------------- помощники ----------------
@@ -105,6 +119,7 @@ public final class WeaponClient {
         boolean ok = false;
         if (st.getItem() instanceof CRGunItem g && g.modern()) { if (!reloading()) { g.playLocal(st, "inspect"); ok = true; } }
         else if (st.getItem() instanceof CRKnifeItem k) { k.playLocal(st, "inspect"); ok = true; }
+        else if (st.getItem() instanceof CRGrenadeItem gr) { if (ticks >= grenadeBusyUntil) gr.playLocal(st, "inspect"); return; }
         // как в CS: при осмотре показываем износ, паттерн и счётчик StatTrak™
         String info = ok ? com.derevna230.comborush.item.SkinData.inspectLine(st) : "";
         if (!info.isEmpty()) mc.inGameHud.setOverlayMessage(net.minecraft.text.Text.literal("§f" + st.getName().getString() + "  " + info), false);
@@ -127,8 +142,9 @@ public final class WeaponClient {
         ClientPlayerEntity p = mc.player;
         if (p == null) { lastWeaponId = -2; scopeLevel = 0; return; }
         if (hitTicks > 0) hitTicks--;
+        if (flashLeft > 0) flashLeft--;
         ItemStack st = p.getMainHandStack();
-        boolean weapon = (st.getItem() instanceof CRGunItem g0 && g0.modern()) || st.getItem() instanceof CRKnifeItem;
+        boolean weapon = (st.getItem() instanceof CRGunItem g0 && g0.modern()) || st.getItem() instanceof CRKnifeItem || st.getItem() instanceof CRGrenadeItem;
         if (!weapon) { lastWeaponId = -2; scopeLevel = 0; prevAttack = mc.options.attackKey.isPressed(); prevUse = mc.options.useKey.isPressed(); return; }
 
         // доставание: номер GeckoLib сменился — в руке другой ствол
@@ -140,6 +156,7 @@ public final class WeaponClient {
             predAmmo = -1; lastStackAmmo = -1;
             if (st.getItem() instanceof CRGunItem g) g.playLocal(st, "draw");
             else if (st.getItem() instanceof CRKnifeItem k) k.playLocal(st, "draw");
+            else if (st.getItem() instanceof CRGrenadeItem gr) { gr.playLocal(st, "draw"); grenadeBusyUntil = 0; }
         }
         boolean attack = mc.options.attackKey.isPressed() && mc.currentScreen == null && !p.isSpectator();
         boolean use = mc.options.useKey.isPressed() && mc.currentScreen == null && !p.isSpectator();
@@ -147,6 +164,15 @@ public final class WeaponClient {
         prevAttack = mc.options.attackKey.isPressed(); prevUse = mc.options.useKey.isPressed();
         if (mc.currentScreen != null) scopeLevel = 0;
 
+        if (st.getItem() instanceof CRGrenadeItem gr) {
+            // ЛКМ — бросок, ПКМ — бросок вполсилы; пока идёт анимация броска, новый не начинается
+            if (ticks >= grenadeBusyUntil && (attackEdge || useEdge)) {
+                send("gun_throw", attackEdge ? 1 : 0);
+                gr.playLocal(st, "throw");
+                grenadeBusyUntil = ticks + 22;
+            }
+            return;
+        }
         if (!(st.getItem() instanceof CRGunItem g) || !g.modern()) return;
         GunDefs.Gun def = g.def();
         int stackAmmo = g.ammo(st);
@@ -185,8 +211,14 @@ public final class WeaponClient {
     // ---------------- интерфейс ----------------
     private static void hud(DrawContext c, net.minecraft.client.render.RenderTickCounter tc) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player == null || mc.options.hudHidden) return;
+        if (mc.player == null) return;
         int w = c.getScaledWindowWidth(), h = c.getScaledWindowHeight();
+        if (flashLeft > 0) {
+            float k = flashLeft / (flashTotal * 0.55f);
+            int a = (int) (255 * Math.min(1f, k));
+            c.fill(0, 0, w, h, (a << 24) | 0xFFFFFF);
+        }
+        if (mc.options.hudHidden) return;
         CRGunItem g = heldGun(mc);
 
         if (g != null && scopeLevel > 0 && mc.options.getPerspective().isFirstPerson()) drawScope(c, w, h);

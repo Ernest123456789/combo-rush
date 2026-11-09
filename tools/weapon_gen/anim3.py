@@ -144,3 +144,14 @@ def knife_anims():
     out[a.key] = a.d
     return out
 ANIMS['knife'] = knife_anims
+
+
+def bayonet_anims():
+    """Штык: те же доставание/осмотр, что у ножа, но выпады колющие"""
+    out = {k.replace('animation.knife.', 'animation.bayonet.'): v for k, v in knife_anims().items()}
+    a = An('bayonet', 'attack', 0.4)
+    a.pos('weapon', [(0, Z), (0.1, (0.5, 0.5, -3)), (0.2, (0, -0.5, 6)), (0.4, Z)])
+    a.rot('weapon', [(0, Z), (0.1, (12, -8, 6)), (0.2, (-8, 6, -4)), (0.4, Z)])
+    out[a.key] = a.d
+    return out
+ANIMS['bayonet'] = bayonet_anims

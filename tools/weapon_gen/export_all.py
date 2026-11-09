@@ -1,12 +1,10 @@
 import sys, os, json; sys.path.insert(0,'.')
-from guns import ALL
-from guns2 import ALL2
-from guns3 import usp, revolver, m4a4, m4a1s, claw, knife
-import anim3
+import hd, hd2
+import anim3, anim4, anim5, anim6
 from anim import anim_file
 import skins as SK
-EXP='/tmp/claude-0/-home-claude/9b4d8123-d2dd-54c5-92d5-c20caffc711b/scratchpad/guns/export'
-ALLG={**ALL, **ALL2, 'usp':usp,'revolver':revolver,'m4a4':m4a4,'m4a1s':m4a1s,'claw':claw,'knife':knife}
+EXP='/tmp/claude-0/-home-claude/9b4d8123-d2dd-54c5-92d5-c20caffc711b/scratchpad/guns/export_hd'
+ALLG=hd.ALLG
 GUNS={}
 def build():
     os.makedirs(EXP,exist_ok=True); os.makedirs('/tmp/sk',exist_ok=True)
@@ -23,10 +21,12 @@ def build():
     # skins
     for gid,lst in SK.SKINS.items():
         for sid,ru,en,tier,m,fu in lst:
-            SK.apply(GUNS[gid],m,fu).save(f'/tmp/sk/{gid}_{sid}.png')
+            SK.apply(GUNS[gid],m,fu,sparkle={'epic':.012,'legendary':.02}.get(tier,0)).save(f'/tmp/sk/{gid}_{sid}.png')
     for sid,ru,en,m,fu in SK.STD:
         SK.apply(GUNS['knife'],m,fu).save(f'/tmp/sk/knife_{sid}.png')
     for sid,ru,en,m,fu in SK.KNIFE:
-        SK.apply(GUNS['claw'],m,fu).save(f'/tmp/sk/claw_{sid}.png')
+        SK.apply(GUNS['claw'],m,fu,sparkle=.025).save(f'/tmp/sk/claw_{sid}.png')
+        SK.apply(GUNS['bayonet'],m,fu,sparkle=.025).save(f'/tmp/sk/bayonet_{sid}.png')
+        SK.apply(GUNS['skeleton'],m,fu,sparkle=.025).save(f'/tmp/sk/skeleton_{sid}.png')
 if __name__=='__main__':
     build(); print({k:(g.tw,g.th,len(g.cubes)) for k,g in GUNS.items()})

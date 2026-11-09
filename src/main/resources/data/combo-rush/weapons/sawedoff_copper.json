@@ -1,0 +1,20 @@
+{
+  "name": "Обрез | Медь",
+  "description": "Скин с шансом вызвать кровотечение.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 5,
+      "source": "KILL"
+    }
+  ],
+  "abilities": [
+    {
+      "trigger": "hit",
+      "type": "bleed",
+      "chance": 0.12,
+      "value": 1,
+      "duration": 3
+    }
+  ]
+}

@@ -1,9 +1,11 @@
 {
   "name": "Кейс «Арсенал»",
-  "description": "33 скина на 11 стволов: от армейских до тайных. И крошечный шанс на Нож-коготь.",
+  "description": "15 скинов на 5 винтовок — от армейских до тайных. И крошечный шанс на Нож-коготь (керамбит).",
   "rarity": "legendary",
   "price": 35,
   "order": 7,
+  "keyPrice": 250,
+  "noShop": true,
   "drops": [
     {
       "set": "ak47_jungle",
@@ -15,30 +17,6 @@
     },
     {
       "set": "ak47_dragon",
-      "weight": 16
-    },
-    {
-      "set": "awp_dune",
-      "weight": 726
-    },
-    {
-      "set": "awp_arctic",
-      "weight": 145
-    },
-    {
-      "set": "awp_aurora",
-      "weight": 16
-    },
-    {
-      "set": "deagle_rust",
-      "weight": 726
-    },
-    {
-      "set": "deagle_hazard",
-      "weight": 145
-    },
-    {
-      "set": "deagle_goldage",
       "weight": 16
     },
     {
@@ -54,30 +32,6 @@
       "weight": 16
     },
     {
-      "set": "glock18_slate",
-      "weight": 726
-    },
-    {
-      "set": "glock18_hazefade",
-      "weight": 45
-    },
-    {
-      "set": "glock18_ember",
-      "weight": 145
-    },
-    {
-      "set": "usp_khaki",
-      "weight": 726
-    },
-    {
-      "set": "usp_toxic",
-      "weight": 45
-    },
-    {
-      "set": "usp_midnight",
-      "weight": 145
-    },
-    {
       "set": "galil_sandstorm",
       "weight": 726
     },
@@ -87,42 +41,6 @@
     },
     {
       "set": "galil_plum",
-      "weight": 145
-    },
-    {
-      "set": "p90_olivedrab",
-      "weight": 726
-    },
-    {
-      "set": "p90_cosmos",
-      "weight": 45
-    },
-    {
-      "set": "p90_sky",
-      "weight": 145
-    },
-    {
-      "set": "fiveseven_olivegrid",
-      "weight": 726
-    },
-    {
-      "set": "fiveseven_cyber",
-      "weight": 45
-    },
-    {
-      "set": "fiveseven_coral",
-      "weight": 145
-    },
-    {
-      "set": "revolver_copper",
-      "weight": 726
-    },
-    {
-      "set": "revolver_pirategold",
-      "weight": 45
-    },
-    {
-      "set": "revolver_abyss",
       "weight": 145
     },
     {
@@ -136,6 +54,18 @@
     {
       "set": "m4a1s_mint",
       "weight": 145
+    },
+    {
+      "set": "famas_tundra",
+      "weight": 726
+    },
+    {
+      "set": "famas_eclipse",
+      "weight": 145
+    },
+    {
+      "set": "famas_sakura",
+      "weight": 45
     },
     {
       "set": "claw_fade",
@@ -157,7 +87,5 @@
       "set": "claw_heat",
       "weight": 5
     }
-  ],
-  "keyPrice": 250,
-  "noShop": true
+  ]
 }

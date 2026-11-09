@@ -156,9 +156,9 @@ public class SkateboardEntity extends MobEntity implements GeoEntity {
         super.removePassenger(passenger);
         if (!this.getWorld().isClient && !this.isRemoved()) {
             if (passenger instanceof ServerPlayerEntity sp && sp.isAlive()) sp.getInventory().offerOrDrop(toStack());
-            else if (passenger instanceof ServerPlayerEntity sp
-                    && sp.getServerWorld().getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY))
-                PENDING.put(sp.getUuid(), toStack());          // умер на скейте при сохранении инвентаря — вернём после возрождения
+            else if (passenger instanceof ServerPlayerEntity dead
+                    && dead.getServerWorld().getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY))
+                PENDING.put(dead.getUuid(), toStack());          // умер на скейте при сохранении инвентаря — вернём после возрождения
             else this.dropStack(toStack());
             this.discard();
         }

@@ -1,0 +1,71 @@
+{
+  "name": "Кейс «Утилиты»",
+  "description": "15 скинов на тайзер и четыре вида гранат — от армейских до засекреченных.",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 10,
+  "keyPrice": 250,
+  "noShop": true,
+  "drops": [
+    {
+      "set": "taser_hazard",
+      "weight": 726
+    },
+    {
+      "set": "taser_storm",
+      "weight": 145
+    },
+    {
+      "set": "taser_plasma",
+      "weight": 45
+    },
+    {
+      "set": "grenade_he_woodland",
+      "weight": 726
+    },
+    {
+      "set": "grenade_he_ember",
+      "weight": 145
+    },
+    {
+      "set": "grenade_he_gilded",
+      "weight": 45
+    },
+    {
+      "set": "grenade_flash_arctic",
+      "weight": 726
+    },
+    {
+      "set": "grenade_flash_neon",
+      "weight": 145
+    },
+    {
+      "set": "grenade_flash_prism",
+      "weight": 45
+    },
+    {
+      "set": "grenade_smoke_urban",
+      "weight": 726
+    },
+    {
+      "set": "grenade_smoke_toxic",
+      "weight": 145
+    },
+    {
+      "set": "grenade_smoke_nebula",
+      "weight": 45
+    },
+    {
+      "set": "grenade_molotov_hazard",
+      "weight": 726
+    },
+    {
+      "set": "grenade_molotov_inferno",
+      "weight": 145
+    },
+    {
+      "set": "grenade_molotov_frostfire",
+      "weight": 45
+    }
+  ]
+}

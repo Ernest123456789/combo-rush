@@ -26,14 +26,24 @@ public final class SkinData {
     public static final String WF = "wf", PS = "ps", ST = "st";
     public static final List<String> RARITIES = List.of("uncommon", "rare", "epic", "legendary", "mythic");
 
-    private static final Map<String, float[]> OWN_WINDOW = Map.of(
-        "ak47_redline", new float[]{0.10f, 0.70f},
-        "claw_fade", new float[]{0.00f, 0.08f},
-        "claw_doppler", new float[]{0.00f, 0.08f},
-        "claw_heat", new float[]{0.00f, 0.75f},
-        "claw_tiger", new float[]{0.00f, 1.00f},
-        "claw_crimsonweb", new float[]{0.00f, 1.00f},
-        "glock18_hazefade", new float[]{0.00f, 0.08f});
+    private static final Map<String, float[]> OWN_WINDOW = Map.ofEntries(
+        Map.entry("ak47_redline", new float[]{0.10f, 0.70f}),
+        Map.entry("claw_fade", new float[]{0.00f, 0.08f}),
+        Map.entry("claw_doppler", new float[]{0.00f, 0.08f}),
+        Map.entry("claw_heat", new float[]{0.00f, 0.75f}),
+        Map.entry("claw_tiger", new float[]{0.00f, 1.00f}),
+        Map.entry("claw_crimsonweb", new float[]{0.00f, 1.00f}),
+        Map.entry("glock18_hazefade", new float[]{0.00f, 0.08f}),
+        Map.entry("bayonet_fade", new float[]{0.00f, 0.08f}),
+        Map.entry("bayonet_doppler", new float[]{0.00f, 0.08f}),
+        Map.entry("bayonet_heat", new float[]{0.00f, 0.75f}),
+        Map.entry("bayonet_tiger", new float[]{0.00f, 1.00f}),
+        Map.entry("bayonet_crimsonweb", new float[]{0.00f, 1.00f}),
+        Map.entry("skeleton_fade", new float[]{0.00f, 0.08f}),
+        Map.entry("skeleton_doppler", new float[]{0.00f, 0.08f}),
+        Map.entry("skeleton_heat", new float[]{0.00f, 0.75f}),
+        Map.entry("skeleton_tiger", new float[]{0.00f, 1.00f}),
+        Map.entry("skeleton_crimsonweb", new float[]{0.00f, 1.00f}));
 
     public static String idOf(ItemStack st) {
         Identifier id = Registries.ITEM.getId(st.getItem());
@@ -43,7 +53,7 @@ public final class SkinData {
     /** Редкость предмета по id ("" — у предмета нет скиновой редкости) */
     public static String rarityOf(String id) {
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(id)) return s.rarity();
-        return id.equals(GunDefs.KNIFE) ? "mythic" : "";
+        return id.equals(GunDefs.KNIFE) || id.equals(GunDefs.BAYONET) || id.equals(GunDefs.SKELETON) ? "mythic" : "";
     }
 
     /** Предметы с износом: скины и Нож-коготь (стандартные стволы и ножи Т/КТ — «без покраски») */

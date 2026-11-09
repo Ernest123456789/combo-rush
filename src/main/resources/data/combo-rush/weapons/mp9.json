@@ -1,0 +1,12 @@
+{
+  "name": "MP9",
+  "description": "Огнестрел: ПКМ — выстрел. Анимации: R — перезарядка, V — осмотр.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "KILL"
+    }
+  ],
+  "abilities": []
+}

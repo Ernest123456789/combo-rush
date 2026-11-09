@@ -157,7 +157,12 @@ public class StandoffScreen extends Screen {
     private static String slotLabel(String slot) {
         if (slot.equals(LoadoutDefs.KNIFE_SLOT)) return "Нож";
         GunDefs.Gun g = GunDefs.gun(slot);
-        return g == null ? slot : g.name();
+        if (g != null) return g.name();
+        return switch (slot) {
+            case "grenade_he" -> "Осколочная"; case "grenade_flash" -> "Светошумовая";
+            case "grenade_smoke" -> "Дымовая"; case "grenade_molotov" -> "Молотов";
+            default -> slot;
+        };
     }
 
     private static String equippedOf(String slot) {
@@ -169,7 +174,7 @@ public class StandoffScreen extends Screen {
 
     private static String rarityOf(String item) {
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return s.rarity();
-        return item.equals("claw") ? "mythic" : "common";
+        return item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") ? "mythic" : "common";
     }
 
     private static int rarColor(String r) {
@@ -493,8 +498,11 @@ public class StandoffScreen extends Screen {
     }
 
     // ================= СНАРЯЖЕНИЕ =================
-    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПИСТОЛЕТЫ", "НОЖИ"};
-    private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "p90");
+    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПП", "ДРОБОВИКИ", "ПИСТОЛЕТЫ", "НОЖИ", "СНАРЯЖЕНИЕ"};
+    private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "famas", "scar20");
+    private static final Set<String> GEAR = Set.of("taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov");
+    private static final Set<String> SMGS = Set.of("p90", "mp9", "mp7", "mac10");
+    private static final Set<String> SHOTGUNS = Set.of("nova", "xm1014", "mag7", "sawedoff");
     private static final Set<String> PISTOLS = Set.of("glock18", "usp", "deagle", "fiveseven", "revolver");
     private int cat = 0, gridScroll = 0;
     private boolean onlyOwned = false, sortQuality = false;
@@ -502,8 +510,8 @@ public class StandoffScreen extends Screen {
     private String lastCardId = "";
 
     private static String slotOf(String item) {
-        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw")) return LoadoutDefs.KNIFE_SLOT;
-        for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return s.base().equals("claw") ? LoadoutDefs.KNIFE_SLOT : s.base();
+        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton")) return LoadoutDefs.KNIFE_SLOT;
+        for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return GunDefs.isSpecialKnife(s.base()) ? LoadoutDefs.KNIFE_SLOT : s.base();
         return item;
     }
 
@@ -516,8 +524,11 @@ public class StandoffScreen extends Screen {
         for (String slot : LoadoutDefs.slots()) {
             boolean ok = switch (cat) {
                 case 1 -> RIFLES.contains(slot);
-                case 2 -> PISTOLS.contains(slot);
-                case 3 -> slot.equals(LoadoutDefs.KNIFE_SLOT);
+                case 2 -> SMGS.contains(slot);
+                case 3 -> SHOTGUNS.contains(slot);
+                case 4 -> PISTOLS.contains(slot);
+                case 5 -> slot.equals(LoadoutDefs.KNIFE_SLOT);
+                case 6 -> GEAR.contains(slot);
                 default -> true;
             };
             if (!ok) continue;
@@ -760,13 +771,13 @@ public class StandoffScreen extends Screen {
         }
         float ry = VY + (need > 5 ? 62 : 42);
         text(c, sel.size() + " / " + need, VX + VW / 2f, ry, 0.95f, sel.size() == need ? 0xFF55FF55 : 0xFFFFFFFF, 1);
-        String[] rule = {"10 скинов одной редкости →", "1 скин редкостью выше.", "5 «Тайных» → Нож-коготь.", "Износ — средний из вложенных.", "StatTrak™ с обычными не смешать."};
+        String[] rule = {"10 скинов одной редкости →", "1 скин редкостью выше.", "5 «Тайных» → скин ножа.", "Износ — средний из вложенных.", "StatTrak™ с обычными не смешать."};
         for (int i = 0; i < rule.length; i++) text(c, rule[i], VX + VW / 2f, ry + 14 + i * 9, 0.6f, 0xFF9AA5BB, 1);
         float by = VY + 138;
         if (selRar != null) {
             String nr = nextRar(selRar);
             text(c, "Результат:", VX + VW / 2f, by, 0.66f, 0xFF7C879D, 1);
-            text(c, nr.equals("mythic") ? "Скин Ножа-когтя" : rarLabel(nr), VX + VW / 2f, by + 9, 0.85f, 0xFF000000 | rarColor(nr), 1);
+            text(c, nr.equals("mythic") ? "Скин ножа" : rarLabel(nr), VX + VW / 2f, by + 9, 0.85f, 0xFF000000 | rarColor(nr), 1);
         } else text(c, "Положите скины в контракт", VX + VW / 2f, by + 4, 0.66f, 0xFF59627A, 1);
         boolean ready = sel.size() == need;
         final String locs = String.join(",", sel);

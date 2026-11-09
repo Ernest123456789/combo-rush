@@ -1,0 +1,12 @@
+{
+  "name": "Скелетный нож",
+  "description": "Коллекционный нож. V — осмотр.",
+  "set_effects": [
+    {
+      "type": "chips_per_action",
+      "value": 4,
+      "source": "KILL"
+    }
+  ],
+  "abilities": []
+}

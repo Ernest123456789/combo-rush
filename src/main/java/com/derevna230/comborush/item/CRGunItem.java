@@ -156,7 +156,7 @@ public class CRGunItem extends Item implements GeoItem {
         double sp = def.spread() * (p.isSneaking() ? 0.6 : 1.0) + def.bloom() * s.bloom;
         double move = Math.min(0.06, hv * 0.3) + (p.isOnGround() ? 0 : 0.05);
         if (def.scope()) sp = scoped ? sp * 0 + move * 0.35 : 0.07 + move;           // AWP без прицела стреляет «от бедра»
-        else sp += move;
+        else sp += pellets > 1 ? move * 0.25 : move;            // у дробовиков конус картечи почти не зависит от движения
         s.bloom = Math.min(1.0, s.bloom + 0.11);
 
         boolean off = silencerOff(stack);
@@ -197,7 +197,7 @@ public class CRGunItem extends Item implements GeoItem {
             double dist = eye.distanceTo(hitPos);
             if (modern) {
                 // трассер: короткие жёлтые искры вдоль луча
-                for (double t = 2.5; t < dist; t += 2.2) {
+                for (double t = 2.5; t < dist; t += pellets > 1 ? 5.0 : 2.2) {
                     Vec3d q = eye.add(dir.multiply(t));
                     w.spawnParticles(TRACER, q.x, q.y - 0.12, q.z, 1, 0, 0, 0, 0);
                 }
@@ -217,10 +217,15 @@ public class CRGunItem extends Item implements GeoItem {
                 w.spawnParticles(ParticleTypes.POOF, stop.x, stop.y, stop.z, 2, 0.05, 0.05, 0.05, 0.01);
             }
         }
+        boolean zap = modern && def != null && def.id().equals("taser");
         for (Map.Entry<LivingEntity, Float> h : hits.entrySet()) {
             LivingEntity e = h.getKey();
             e.timeUntilRegen = 0;
             e.damage(p.getDamageSources().playerAttack(p), h.getValue());
+            if (zap) {          // разряд: оглушение — цель почти не может двигаться
+                e.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.SLOWNESS, 60, 4));
+                w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, e.getX(), e.getBodyY(0.6), e.getZ(), 24, 0.3, 0.5, 0.3, 0.4);
+            }
         }
         if (modern && !hits.isEmpty() && HudSync.has(p))
             ServerPlayNetworking.send(p, new HudPayload("gun_hit", head ? "{\"h\":1}" : "{\"h\":0}"));
@@ -228,12 +233,18 @@ public class CRGunItem extends Item implements GeoItem {
         Vec3d up = new Vec3d(0, 1, 0);
         Vec3d right = look.crossProduct(up).normalize();
         Vec3d m = eye.add(look.multiply(1.25)).add(right.multiply(0.22)).add(0, -0.16, 0);
-        if (!silenced) w.spawnParticles(ParticleTypes.FLAME, m.x, m.y - 0.15, m.z, 3, 0.03, 0.03, 0.03, 0.02);
-        w.spawnParticles(ParticleTypes.LARGE_SMOKE, m.x, m.y - 0.15, m.z, silenced ? 1 : 2, 0.05, 0.05, 0.05, 0.01);
-        if (pellets > 1) {
+        if (zap) w.spawnParticles(ParticleTypes.ELECTRIC_SPARK, m.x, m.y - 0.15, m.z, 10, 0.06, 0.06, 0.06, 0.3);
+        else {
+            if (!silenced) w.spawnParticles(ParticleTypes.FLAME, m.x, m.y - 0.15, m.z, 3, 0.03, 0.03, 0.03, 0.02);
+            w.spawnParticles(ParticleTypes.LARGE_SMOKE, m.x, m.y - 0.15, m.z, silenced ? 1 : 2, 0.05, 0.05, 0.05, 0.01);
+        }
+        if (zap) {
+            w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.PLAYERS, 0.25f, 2.0f);
+            w.playSound(null, p.getBlockPos(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 0.8f, 2.0f);
+        } else if (pellets > 1) {
             w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.PLAYERS, 1.6f, 0.6f);
             w.playSound(null, p.getBlockPos(), SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.PLAYERS, 0.35f, 1.9f);
-            p.addVelocity(-look.x * 0.35, 0.05, -look.z * 0.35);       // отдача
+            p.addVelocity(-look.x * 0.12, 0.02, -look.z * 0.12);       // отдача
             p.velocityModified = true;
         } else {
             float v = silenced ? 0.18f : 1f;
@@ -253,6 +264,7 @@ public class CRGunItem extends Item implements GeoItem {
             tooltip.add(Text.literal("§7Темп: §f" + fmt((float) (1200.0 / cooldown)) + " выстр./мин§7, магазин §f" + def.mag() + "§7 (запас без лимита)"));
             tooltip.add(Text.literal("§7Патроны: §f" + ammo(stack) + " / " + def.mag()));
             tooltip.add(Text.literal(def.scope() ? "§7ПКМ — оптический прицел (без него разброс огромный)" : def.silenceable() ? "§7ПКМ — снять / надеть глушитель" + (silencerOff(stack) ? ": §cснят §7(+15% урона, шумно)" : ": §aустановлен §7(тихо)") : "§7ПКМ — нет"));
+            if (def.id().equals("taser")) tooltip.add(Text.literal("§7Бьёт вплотную (§f4,5 блока§7), цель оглушается. Один заряд, зарядка §f2,5 с§7."));
             tooltip.add(Text.literal("§8R — перезарядка, V — осмотр. В движении и в прыжке разброс больше; присев — меньше."));
         }
         if (GunDefs.isSkin(setId)) {

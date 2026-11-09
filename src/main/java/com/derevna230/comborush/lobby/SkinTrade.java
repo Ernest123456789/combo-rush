@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Контракт обмена, как в CS2: 10 скинов одной редкости → один скин редкостью выше (нельзя смешивать StatTrak™ с обычными);
- * 5 «Тайных» скинов → Нож-коготь (скин). Износ результата — средний износ вложенных скинов, пересчитанный в окно нового скина.
+ * 5 «Тайных» скинов → скин ножа (Нож-коготь или Штык). Износ результата — средний износ вложенных скинов, пересчитанный в окно нового скина.
  * Предметы берутся из инвентаря и эндер-сундука; место задаётся строкой «i<слот>» или «e<слот>».
  */
 public final class SkinTrade {
@@ -29,7 +29,7 @@ public final class SkinTrade {
     private record Ref(Inventory inv, int slot, String loc, ItemStack st) {}
 
     private static boolean tradeable(ItemStack st) {
-        if (st.isEmpty() || !SkinData.rollable(st)) return false;
+        if (st.isEmpty() || !SkinData.rollable(st) || st.getItem() instanceof com.derevna230.comborush.item.CRGrenadeItem) return false;
         String r = SkinData.rarityOf(SkinData.idOf(st));
         return !r.equals("mythic");          // ножи дальше не обменять
     }
@@ -103,7 +103,7 @@ public final class SkinTrade {
 
         // пул результата; шанс скина выше у того же ствола, что среди вложенных
         List<GunDefs.Skin> pool = new ArrayList<>();
-        for (GunDefs.Skin s : GunDefs.SKINS) if (s.rarity().equals(target)) pool.add(s);
+        for (GunDefs.Skin s : GunDefs.SKINS) if (s.rarity().equals(target) && !GunDefs.isGrenadeBase(s.base())) pool.add(s);
         if (pool.isEmpty()) return "Для этой редкости пока нет скинов.";
         double[] w = new double[pool.size()];
         double total = 0;

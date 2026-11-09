@@ -14,5 +14,6 @@ public final class WeaponKeys {
     public static void handle(ServerPlayerEntity p, ShopActionPayload a) {
         ItemStack s = p.getMainHandStack();
         if (s.getItem() instanceof CRGunItem g) g.keyAction(p, s, a.action(), a.a() == 1);
+        else if (s.getItem() instanceof CRGrenadeItem gr) gr.keyAction(p, s, a.action(), a.a());
     }
 }

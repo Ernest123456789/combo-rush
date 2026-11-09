@@ -120,12 +120,14 @@ public final class ModItems {
     public static Item REDSTONE_HEART;
     /** Предметы Ночного города */
     public static Item NEON_SHARD, DATA_CHIP, ENERGY_DRINK, NITRO_CANISTER, STASH_SCANNER;
+    /** Бомба и набор для обезвреживания */
+    public static Item BOMB, DEFUSE_KIT;
     /** Машины (предметы): id → предмет. Не выпадают из кейсов, ставятся ПКМ по блоку и ездят */
     public static final Map<String, Item> CARS = new LinkedHashMap<>();
     /** Карманные станки из Мастерской: id → предмет */
     public static final Map<String, Item> POCKET = new LinkedHashMap<>();
 
-    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor", "arsenal");
+    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor", "arsenal", "bayonet", "sidearm", "utility", "shotgun");
     public static final List<String> PIECES = List.of("helmet", "chestplate", "leggings", "boots");
 
     /** комплект → его предметы (у шляп один предмет) */
@@ -214,6 +216,8 @@ public final class ModItems {
         NEON_SHARD = register("neon_shard", new NeonShardItem(new Item.Settings().maxCount(64).rarity(Rarity.RARE)));
         DATA_CHIP = register("data_chip", new DataChipItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
         ENERGY_DRINK = register("energy_drink", new EnergyDrinkItem(new Item.Settings().maxCount(16).rarity(Rarity.UNCOMMON)));
+        BOMB = register("bomb", new BombItem(new Item.Settings().maxCount(1).rarity(Rarity.EPIC)));
+        DEFUSE_KIT = register("defuse_kit", new DefuseKitItem(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
         NITRO_CANISTER = register("nitro_canister", new NitroCanisterItem(new Item.Settings().maxCount(8).rarity(Rarity.RARE)));
         STASH_SCANNER = register("stash_scanner", new StashScannerItem(new Item.Settings().maxDamage(48).rarity(Rarity.EPIC)));
         for (com.derevna230.comborush.car.CarDefs.Def cd : com.derevna230.comborush.car.CarDefs.ALL.values())
@@ -235,11 +239,18 @@ public final class ModItems {
     }
 
     /** Стволы, нож-коготь и все скины «Арсенала» (GunDefs): отдельные предметы, из кейса выпадают только скины */
+    /** Гранаты по видам (для рендера летящей гранаты) */
+    public static final java.util.Map<CRGrenadeItem.Kind, Item> GRENADES = new java.util.EnumMap<>(CRGrenadeItem.Kind.class);
     private static void registerArsenal() {
         for (GunDefs.Gun g : GunDefs.GUNS) addGun(g.id(), "rare", g);
         addKnife(GunDefs.KNIFE, "mythic");
+        addKnife(GunDefs.BAYONET, "mythic");
+        addKnife(GunDefs.SKELETON, "mythic");
+        for (CRGrenadeItem.Kind k : CRGrenadeItem.Kind.values())
+            GRENADES.put(k, register(k.id, new CRGrenadeItem(k, new Item.Settings().maxCount(4).rarity(Rarity.UNCOMMON).fireproof(), k.id)));
         for (GunDefs.Skin sk : GunDefs.SKINS) {
-            if (GunDefs.isKnifeBase(sk.base())) addKnife(sk.id(), sk.rarity());
+            if (GunDefs.isGrenadeBase(sk.base())) addGrenadeSkin(sk);
+            else if (GunDefs.isKnifeBase(sk.base())) addKnife(sk.id(), sk.rarity());
             else addGun(sk.id(), sk.rarity(), GunDefs.gun(sk.base()));
         }
     }
@@ -247,6 +258,14 @@ public final class ModItems {
     private static void addGun(String id, String rarity, GunDefs.Gun g) {
         Item it = register(id, new CRGunItem(id, settings(rarity).fireproof().attributeModifiers(attrs(3, 1.0)), g));
         track(id, it, rarity, "gun");
+    }
+
+    private static void addGrenadeSkin(GunDefs.Skin sk) {
+        CRGrenadeItem.Kind kind = null;
+        for (CRGrenadeItem.Kind k : CRGrenadeItem.Kind.values()) if (k.id.equals(sk.base())) kind = k;
+        if (kind == null) return;
+        Item it = register(sk.id(), new CRGrenadeItem(kind, new Item.Settings().maxCount(4).rarity(mcRarity(sk.rarity())).fireproof(), sk.id()));
+        track(sk.id(), it, sk.rarity(), "gun");
     }
 
     private static void addKnife(String id, String rarity) {

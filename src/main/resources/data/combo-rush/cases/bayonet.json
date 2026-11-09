@@ -1,0 +1,91 @@
+{
+  "name": "Кейс «Штык»",
+  "description": "15 скинов на снайперские винтовки и ПП — от армейских до тайных. И крошечный шанс на Штык.",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 8,
+  "keyPrice": 250,
+  "noShop": true,
+  "drops": [
+    {
+      "set": "awp_dune",
+      "weight": 726
+    },
+    {
+      "set": "awp_arctic",
+      "weight": 145
+    },
+    {
+      "set": "awp_aurora",
+      "weight": 16
+    },
+    {
+      "set": "p90_olivedrab",
+      "weight": 726
+    },
+    {
+      "set": "p90_cosmos",
+      "weight": 45
+    },
+    {
+      "set": "p90_sky",
+      "weight": 145
+    },
+    {
+      "set": "mp9_lime",
+      "weight": 726
+    },
+    {
+      "set": "mp9_lava",
+      "weight": 145
+    },
+    {
+      "set": "mp9_voidglass",
+      "weight": 45
+    },
+    {
+      "set": "mp7_ashfall",
+      "weight": 726
+    },
+    {
+      "set": "mp7_ocean",
+      "weight": 145
+    },
+    {
+      "set": "mp7_royal",
+      "weight": 45
+    },
+    {
+      "set": "scar20_desert",
+      "weight": 726
+    },
+    {
+      "set": "scar20_cyrex",
+      "weight": 145
+    },
+    {
+      "set": "scar20_emerald",
+      "weight": 45
+    },
+    {
+      "set": "bayonet_fade",
+      "weight": 5
+    },
+    {
+      "set": "bayonet_doppler",
+      "weight": 5
+    },
+    {
+      "set": "bayonet_tiger",
+      "weight": 5
+    },
+    {
+      "set": "bayonet_crimsonweb",
+      "weight": 5
+    },
+    {
+      "set": "bayonet_heat",
+      "weight": 5
+    }
+  ]
+}

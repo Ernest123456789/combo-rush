@@ -1,0 +1,71 @@
+{
+  "name": "Кейс «Кобура»",
+  "description": "15 скинов на пистолеты и револьвер — от армейских до тайных.",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 9,
+  "keyPrice": 250,
+  "noShop": true,
+  "drops": [
+    {
+      "set": "deagle_rust",
+      "weight": 726
+    },
+    {
+      "set": "deagle_hazard",
+      "weight": 145
+    },
+    {
+      "set": "deagle_goldage",
+      "weight": 16
+    },
+    {
+      "set": "glock18_slate",
+      "weight": 726
+    },
+    {
+      "set": "glock18_hazefade",
+      "weight": 45
+    },
+    {
+      "set": "glock18_ember",
+      "weight": 145
+    },
+    {
+      "set": "usp_khaki",
+      "weight": 726
+    },
+    {
+      "set": "usp_toxic",
+      "weight": 45
+    },
+    {
+      "set": "usp_midnight",
+      "weight": 145
+    },
+    {
+      "set": "fiveseven_olivegrid",
+      "weight": 726
+    },
+    {
+      "set": "fiveseven_cyber",
+      "weight": 45
+    },
+    {
+      "set": "fiveseven_coral",
+      "weight": 145
+    },
+    {
+      "set": "revolver_copper",
+      "weight": 726
+    },
+    {
+      "set": "revolver_pirategold",
+      "weight": 45
+    },
+    {
+      "set": "revolver_abyss",
+      "weight": 145
+    }
+  ]
+}

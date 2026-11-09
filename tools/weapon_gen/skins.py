@@ -2,8 +2,8 @@ import math
 from wgen import MATS, hsh
 from PIL import Image
 
-METAL = {'steel', 'blued', 'darksteel', 'bright', 'slide'}
-FURN = {'wood', 'woodd', 'poly', 'olive', 'oliveD', 'tan', 'smoke', 'navy', 'rubber'}
+METAL = {'steel', 'blued', 'darksteel', 'bright', 'slide', 'chrome', 'steelL'}
+FURN = {'wood', 'woodd', 'poly', 'olive', 'oliveD', 'tan', 'smoke', 'navy', 'rubber', 'grip', 'yellow', 'amber'}
 
 def lerp(a, b, t):
     t = max(0.0, min(1.0, t)); return tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
@@ -67,14 +67,14 @@ def bounds(g):
 def face_pos(c, face, xx, yy, w, h):
     fx, fy = (xx + .5) / w, (yy + .5) / h
     x0, x1 = c.x; y0, y1 = c.y; z0, z1 = c.z
-    if face == 'north': return (x0 + fx * (x1 - x0), y1 - fy * (y1 - y0), z1)
-    if face == 'south': return (x1 - fx * (x1 - x0), y1 - fy * (y1 - y0), z0)
+    if face == 'north': return (x0 + fx * (x1 - x0), y1 - fy * (y1 - y0), z0)
+    if face == 'south': return (x1 - fx * (x1 - x0), y1 - fy * (y1 - y0), z1)
     if face == 'east':  return (x1, y1 - fy * (y1 - y0), z1 - fx * (z1 - z0))
     if face == 'west':  return (x0, y1 - fy * (y1 - y0), z0 + fx * (z1 - z0))
     if face == 'up':    return (x0 + fx * (x1 - x0), y1, z1 - fy * (z1 - z0))
     return (x0 + fx * (x1 - x0), y0, z0 + fy * (z1 - z0))
 
-def apply(g, metal=None, furn=None, special=None, gloss=1.0):
+def apply(g, metal=None, furn=None, special=None, gloss=1.0, sparkle=0.0):
     """special: {part: painter} overrides. Luminance of the base texel is preserved relative to material."""
     bx, by, bz = bounds(g)
     img = g.img.copy(); px = img.load()
@@ -98,7 +98,10 @@ def apply(g, metal=None, furn=None, special=None, gloss=1.0):
                     k = max(.25, min(1.7, lum / bl))
                     # lift dark materials so skins stay vivid
                     k = k ** .9
-                    px[u + xx, v + yy] = tuple(max(0, min(255, int(col[i] * k * gloss))) for i in range(3)) + (255,)
+                    out = [col[i] * k * gloss for i in range(3)]
+                    if sparkle and hsh(u + xx, v + yy, 99) < sparkle:
+                        out = [o + (255 - o) * 0.55 for o in out]
+                    px[u + xx, v + yy] = tuple(max(0, min(255, int(o))) for o in out) + (255,)
     return img
 
 C = lambda h: tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
@@ -150,6 +153,31 @@ SKINS = {
   ('cosmos', 'Космос', 'Cosmos', 'epic', marble([C('#0a0a2a'), PUR, MAG, C('#101040')], 1.0), solid(C('#10102a'))),
   ('sky', 'Небо', 'Sky', 'rare', grad([BLU, C('#9fd2ff'), WHT], 1), solid(C('#2b4a78'))),
  ],
+ 'taser': [
+  ('hazard', 'Опасность', 'Hazard', 'uncommon', solid(C('#8a8f99')), hazard(YEL, BLK)),
+  ('storm', 'Гроза', 'Storm', 'rare', solid(C('#c4d0e0')), grad([NAVY, BLU, CYAN, WHT], 1)),
+  ('plasma', 'Плазма', 'Plasma', 'epic', solid(C('#d0c4ff')), marble([PUR, MAG, CYAN, PUR], 1.0)),
+ ],
+ 'grenade_he': [
+  ('woodland', 'Вудленд', 'Woodland', 'uncommon', solid(C('#6a6e60')), camo(GRN, GRN2, GRN3, 1.4)),
+  ('ember', 'Тлеющая', 'Smoldering', 'rare', solid(C('#6a5a50')), flame([BLK, RUST2, ORG, YEL])),
+  ('gilded', 'Позолота', 'Gilded', 'epic', solid(C('#e6c060')), grad([DGOLD, GOLD, C('#fff2b0'), GOLD], 1)),
+ ],
+ 'grenade_flash': [
+  ('arctic', 'Арктика', 'Arctic', 'uncommon', camo(WHT, C('#b9cce0'), C('#8aa4c8'), 1.5), solid(C('#b8c4d4'))),
+  ('neon', 'Неон', 'Neon', 'rare', stripes(C('#14142a'), CYAN, 2.2, 1), solid(C('#303848'))),
+  ('prism', 'Призма', 'Prism', 'epic', marble([CYAN, MAG, YEL, BLU], 1.1), solid(C('#c0c8e0'))),
+ ],
+ 'grenade_smoke': [
+  ('urban', 'Урбан', 'Urban', 'uncommon', solid(C('#80868e')), digi(C('#6a7078'), C('#4a5058'), C('#8a9098'))),
+  ('toxic', 'Токсин', 'Toxic', 'rare', solid(C('#3a4a30')), marble([C('#1a3a10'), LIME, C('#3a7a1a'), C('#c8f060')], 1.2)),
+  ('nebula', 'Туманность', 'Nebula', 'epic', solid(C('#303050')), marble([C('#0a0a2a'), PUR, PINK, C('#101040')], 1.0)),
+ ],
+ 'grenade_molotov': [
+  ('hazard', 'Опасность', 'Hazard', 'uncommon', solid(C('#8a8f99')), hazard(YEL, BLK)),
+  ('inferno', 'Инферно', 'Inferno', 'rare', solid(C('#5a4030')), flame([BLK, DRED, RED, ORG, YEL])),
+  ('frostfire', 'Ледяной огонь', 'Frostfire', 'epic', solid(C('#9ad0ff')), grad([C('#0a2a6a'), BLU, CYAN, ICE], 1)),
+ ],
  'fiveseven': [
   ('olivegrid', 'Оливковая сетка', 'Olive Grid', 'uncommon', digi(C('#5c6a3a'), C('#46532c'), C('#76864a')), solid(C('#2d3420'))),
   ('cyber', 'Киберпанк', 'Cyberpunk', 'epic', stripes(C('#12121f'), CYAN, 2.4, 2), solid(C('#1c1c30'))),
@@ -165,6 +193,26 @@ SKINS = {
   ('goldsteel', 'Золото и сталь', 'Gold & Steel', 'epic', stripes(C('#9aa4b4'), GOLD, 2.2, 2), solid(C('#2a2a30'))),
   ('mint', 'Мята', 'Mint', 'rare', grad([C('#1d6e5a'), C('#46d6a8'), C('#d4ffe9')], 2), solid(C('#16352c'))),
  ],
+ 'famas': [
+  ('tundra', 'Тундра', 'Tundra', 'uncommon', camo(C('#8c96a0'), C('#5e6a76'), C('#c8d0d8'), 1.8), solid(C('#3a424c'))),
+  ('eclipse', 'Затмение', 'Eclipse', 'rare', grad([BLK, PUR, ORG], 2), solid(C('#18141f'))),
+  ('sakura', 'Сакура', 'Sakura', 'epic', marble([C('#5a1a3a'), PINK, C('#ffe0ee'), PINK]), solid(C('#3a1a2a'))),
+ ],
+ 'mp9': [
+  ('lime', 'Лайм', 'Lime', 'uncommon', stripes(C('#2a3a1a'), LIME, 2.4, 2, True), solid(C('#22281a'))),
+  ('lava', 'Лава', 'Lava', 'rare', flame([BLK, RUST2, ORG, YEL]), solid(C('#2a1a14'))),
+  ('voidglass', 'Стекло бездны', 'Voidglass', 'epic', marble([C('#0a0420'), PUR, CYAN, C('#140a3a')]), solid(C('#100a22'))),
+ ],
+ 'mp7': [
+  ('ashfall', 'Пепел', 'Ashfall', 'uncommon', digi(C('#5a5a5a'), C('#3c3c3c'), C('#7a7a7a')), solid(C('#2a2a2a'))),
+  ('ocean', 'Океан', 'Ocean', 'rare', grad([NAVY, BLU, ICE], 1), solid(C('#1a2a48'))),
+  ('royal', 'Королевский', 'Royal', 'epic', stripes(GOLD, C('#3a1a5a'), 2.2, 2), solid(C('#241238'))),
+ ],
+ 'scar20': [
+  ('desert', 'Пустыня', 'Desert', 'uncommon', camo(C('#a8956a'), C('#7a6a48'), C('#c9b98a'), 1.8), solid(C('#4a4030'))),
+  ('cyrex', 'Сайрекс', 'Cyrex', 'rare', grad([BLK, CYAN, WHT], 1), solid(C('#18222a'))),
+  ('emerald', 'Изумруд', 'Emerald', 'epic', marble([C('#06241a'), C('#1fa86a'), C('#9bffd0'), C('#0e5a3a')]), solid(C('#0e2a20'))),
+ ],
 }
 KNIFE = [
  ('fade', 'Градиент', 'Fade', grad([C('#6a3bd1'), MAG, ORG, YEL], 2), solid(C('#201a2a'))),
@@ -179,3 +227,32 @@ C2 = lambda h: tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
 # стандартные ножи команд: id, ru, en, metal, furniture
 STD = [('t', 'Нож (Т)', 'Knife (T)', solid(C2('#9a9ea6')), solid(C2('#7a5430'))),
        ('ct', 'Нож (КТ)', 'Knife (CT)', solid(C2('#c4d0e0')), solid(C2('#2f4f8c')))]
+
+# ---- дробовики и MAC-10 (кейс «Дробовики»): id, ru, en, редкость, металл, фурнитура
+SKINS.update({
+ 'mac10': [
+  ('tarnish', 'Потускнение', 'Tarnish', 'uncommon', marble([C('#3a4a44'), C('#6a8a7a'), C('#9ab8a8')], 1.2), solid(C('#222a26'))),
+  ('neonrider', 'Неоновый гонщик', 'Neon Rider', 'rare', stripes(C('#14142a'), MAG, 2.2, 2, True), solid(C('#1c1c34'))),
+  ('vapor', 'Пар', 'Vapor', 'epic', marble([C('#2a0a4a'), PINK, CYAN, C('#5a2a9a')], 1.0), solid(C('#241238'))),
+ ],
+ 'nova': [
+  ('forest', 'Лесной', 'Forest', 'uncommon', camo(GRN, GRN2, GRN3, 1.5), solid(C('#232d1c'))),
+  ('antique', 'Антик', 'Antique', 'rare', marble([C('#3a2412'), C('#8a5a2a'), C('#d8a868')], 1.1), solid(C('#2a1c10'))),
+  ('koi', 'Кои', 'Koi', 'epic', marble([C('#14141c'), ORG, WHT, RED], 1.0), solid(C('#1a1a22'))),
+ ],
+ 'xm1014': [
+  ('scrapyard', 'Свалка', 'Scrapyard', 'uncommon', camo(C('#7a7468'), C('#524c42'), C('#9a9486'), 1.7), solid(C('#34302a'))),
+  ('aqua', 'Аква', 'Aqua', 'rare', grad([C('#06425a'), CYAN, C('#d8ffff')], 2), solid(C('#0c2a36'))),
+  ('magma', 'Магма', 'Magma', 'epic', flame([BLK, DRED, RED, ORG, YEL]), solid(C('#2a1410'))),
+ ],
+ 'mag7': [
+  ('caution', 'Осторожно', 'Caution', 'uncommon', hazard(YEL, BLK, 2.2), solid(C('#3a3c42'))),
+  ('cobalt', 'Кобальт', 'Cobalt', 'rare', grad([C('#06143a'), BLU, C('#a8c8ff')], 1), solid(C('#101c3a'))),
+  ('praetorian', 'Преторианец', 'Praetorian', 'epic', carbon(C('#14141a'), GOLD), solid(C('#241e12'))),
+ ],
+ 'sawedoff': [
+  ('walnut', 'Орех', 'Walnut', 'uncommon', solid(C('#5a5e66')), marble([C('#2a1a0c'), C('#5a3818'), C('#8a5a2a')], 1.2)),
+  ('copper', 'Медь', 'Copper', 'rare', marble([C('#6e3a1c'), C('#c0743a'), C('#e09a60')]), solid(C('#4a2c18'))),
+  ('moonshine', 'Самогон', 'Moonshine', 'epic', marble([C('#1a1038'), C('#a89ae0'), WHT, C('#5a4ab0')], 1.0), solid(C('#1e1630'))),
+ ],
+})

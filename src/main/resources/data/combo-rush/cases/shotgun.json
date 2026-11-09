@@ -1,0 +1,91 @@
+{
+  "name": "Кейс «Дробовики»",
+  "description": "15 скинов на дробовики (Nova, XM1014, MAG-7, Обрез) и MAC-10 — от армейских до засекреченных. И крошечный шанс на Скелетный нож.",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 11,
+  "keyPrice": 250,
+  "noShop": true,
+  "drops": [
+    {
+      "set": "mac10_tarnish",
+      "weight": 726
+    },
+    {
+      "set": "mac10_neonrider",
+      "weight": 145
+    },
+    {
+      "set": "mac10_vapor",
+      "weight": 45
+    },
+    {
+      "set": "nova_forest",
+      "weight": 726
+    },
+    {
+      "set": "nova_antique",
+      "weight": 145
+    },
+    {
+      "set": "nova_koi",
+      "weight": 45
+    },
+    {
+      "set": "xm1014_scrapyard",
+      "weight": 726
+    },
+    {
+      "set": "xm1014_aqua",
+      "weight": 145
+    },
+    {
+      "set": "xm1014_magma",
+      "weight": 45
+    },
+    {
+      "set": "mag7_caution",
+      "weight": 726
+    },
+    {
+      "set": "mag7_cobalt",
+      "weight": 145
+    },
+    {
+      "set": "mag7_praetorian",
+      "weight": 45
+    },
+    {
+      "set": "sawedoff_walnut",
+      "weight": 726
+    },
+    {
+      "set": "sawedoff_copper",
+      "weight": 145
+    },
+    {
+      "set": "sawedoff_moonshine",
+      "weight": 45
+    },
+    {
+      "set": "skeleton_fade",
+      "weight": 5
+    },
+    {
+      "set": "skeleton_doppler",
+      "weight": 5
+    },
+    {
+      "set": "skeleton_tiger",
+      "weight": 5
+    },
+    {
+      "set": "skeleton_crimsonweb",
+      "weight": 5
+    },
+    {
+      "set": "skeleton_heat",
+      "weight": 5
+    }
+  ]
+}
