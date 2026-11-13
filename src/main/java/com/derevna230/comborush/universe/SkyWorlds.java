@@ -219,7 +219,9 @@ public final class SkyWorlds {
 
     public static void column(String kind, int x, int z, BlockState[] a) {
         java.util.Arrays.fill(a, null);
-        if ("standoff".equals(kind)) standoff(x, z, a); else lobby(x, z, a);
+        if ("standoff".equals(kind)) standoff(x, z, a);
+        else if ("dust".equals(kind)) DustMap.column(x, z, a);
+        else lobby(x, z, a);
     }
 
     /** Высота «земли» в точке: для getHeight */

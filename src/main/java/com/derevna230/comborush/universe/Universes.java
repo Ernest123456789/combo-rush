@@ -32,6 +32,8 @@ public final class Universes {
 
     public static final RegistryKey<World> LOBBY = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "lobby"));
     public static final RegistryKey<World> STANDOFF = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "standoff"));
+    /** Тестовая карта «Дюны» для матчей «Противостояния» */
+    public static final RegistryKey<World> DUST = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "dust"));
 
     /** Откуда игрок вошёл: «мир|x|y|z|yaw|pitch» — туда он вернётся при выходе */
     private static final AttachmentType<String> RETURN = AttachmentRegistry.create(
@@ -53,11 +55,12 @@ public final class Universes {
     public static boolean inCity(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(NIGHT_CITY); }
     public static boolean inLobby(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(LOBBY); }
     public static boolean inStandoff(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(STANDOFF); }
-    /** В любой вселенной: Ночной город, Лобби или комната «Противостояния» */
-    public static boolean inUniverse(ServerPlayerEntity p) { return inCity(p) || inLobby(p) || inStandoff(p); }
+    public static boolean inDust(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(DUST); }
+    /** В любой вселенной: Ночной город, Лобби, комната «Противостояния» или карта матча */
+    public static boolean inUniverse(ServerPlayerEntity p) { return inCity(p) || inLobby(p) || inStandoff(p) || inDust(p); }
     public static boolean lobbyWorld(net.minecraft.world.World w) { return w.getRegistryKey().equals(LOBBY) || w.getRegistryKey().equals(STANDOFF); }
 
-    public static String where(ServerPlayerEntity p) { return inCity(p) ? "city" : inLobby(p) ? "lobby" : inStandoff(p) ? "standoff" : "home"; }
+    public static String where(ServerPlayerEntity p) { return inCity(p) ? "city" : inLobby(p) ? "lobby" : inStandoff(p) ? "standoff" : inDust(p) ? "dust" : "home"; }
 
     /** Запомнить точку возврата домой — только если игрок ещё не во вселенной (переход между вселенными её не затирает) */
     private static void rememberHome(ServerPlayerEntity p) {
@@ -107,6 +110,7 @@ public final class Universes {
         if (server == null) return "Сервер недоступен.";
         if (!inUniverse(p)) return "Вы не во вселенной.";
         com.derevna230.comborush.lobby.Party.leave(p, false);
+        com.derevna230.comborush.match.Match.leave(p, false);
         ServerWorld to = server.getOverworld();
         Vec3d at = null; float yaw = p.getYaw(), pitch = p.getPitch();
         String saved = p.getAttached(RETURN);

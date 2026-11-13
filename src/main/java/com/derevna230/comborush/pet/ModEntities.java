@@ -25,6 +25,8 @@ public final class ModEntities {
     public static EntityType<com.derevna230.comborush.item.GrenadeEntity> GRENADE;
     /** Заложенная бомба */
     public static EntityType<com.derevna230.comborush.item.BombEntity> BOMB;
+    /** Бот матча «Противостояния» (команда — в самой сущности) */
+    public static EntityType<com.derevna230.comborush.match.BotEntity> BOT;
     /** Машины: combo-rush:car_<id>, один класс, разные модели и места */
     public static final java.util.Map<String, EntityType<com.derevna230.comborush.car.CarEntity>> CARS = new java.util.LinkedHashMap<>();
 
@@ -87,6 +89,13 @@ public final class ModEntities {
                 .trackingTickInterval(2)
                 .disableSaving()
                 .build("bomb"));
+        BOT = Registry.register(Registries.ENTITY_TYPE, Identifier.of(ComboRush.MOD_ID, "bot"),
+            EntityType.Builder.create(com.derevna230.comborush.match.BotEntity::new, SpawnGroup.MISC)
+                .dimensions(0.6f, 1.8f)
+                .maxTrackingRange(12)
+                .disableSaving()
+                .build("bot"));
+        FabricDefaultAttributeRegistry.register(BOT, com.derevna230.comborush.match.BotEntity.createAttributes());
         for (com.derevna230.comborush.car.CarDefs.Def d : com.derevna230.comborush.car.CarDefs.ALL.values()) {
             EntityType<com.derevna230.comborush.car.CarEntity> t = Registry.register(Registries.ENTITY_TYPE,
                 Identifier.of(ComboRush.MOD_ID, "car_" + d.id()),

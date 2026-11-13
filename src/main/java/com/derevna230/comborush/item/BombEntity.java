@@ -40,6 +40,14 @@ public class BombEntity extends Entity {
     private static final double RADIUS = 14.0, MAX_DAMAGE = 60.0;
     private static final DustParticleEffect LED = new DustParticleEffect(new Vector3f(1f, 0.1f, 0.1f), 0.8f);
 
+    /** События бомбы для режима матча (null — не слушают) */
+    public interface Listener {
+        void planted(ServerWorld w, BombEntity bomb, Entity owner);
+        void exploded(ServerWorld w);
+        void defused(ServerWorld w, LivingEntity by);
+    }
+    public static volatile Listener LISTENER;
+
     private int remain = FUSE_TICKS;
     private UUID owner;
     private UUID defuser;
@@ -53,7 +61,10 @@ public class BombEntity extends Entity {
     }
 
     /** Заложить бомбу под игроком */
-    public static void plant(ServerWorld sw, ServerPlayerEntity p) {
+    public static BombEntity plant(ServerWorld sw, ServerPlayerEntity p) { return plantAt(sw, p); }
+
+    /** Заложить бомбу там, где стоит owner (игрок или бот) */
+    public static BombEntity plantAt(ServerWorld sw, Entity p) {
         BombEntity b = new BombEntity(com.derevna230.comborush.pet.ModEntities.BOMB, sw);
         b.owner = p.getUuid();
         b.setPosition(p.getX(), p.getY(), p.getZ());
@@ -62,6 +73,9 @@ public class BombEntity extends Entity {
         sw.playSound(null, b.getX(), b.getY(), b.getZ(), SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), SoundCategory.PLAYERS, 1.5f, 0.6f);
         Text msg = Text.literal("§c§lБомба заложена! §fДо взрыва 40 секунд.");
         for (ServerPlayerEntity o : sw.getPlayers()) o.sendMessage(msg, false);
+        Listener l = LISTENER;
+        if (l != null) l.planted(sw, b, p);
+        return b;
     }
 
     /** Полоска прогресса для строки над хотбаром */
@@ -92,18 +106,26 @@ public class BombEntity extends Entity {
     public ActionResult interact(PlayerEntity player, Hand hand) {
         if (getWorld().isClient) return ActionResult.SUCCESS;
         if (!(player instanceof ServerPlayerEntity p) || player.isSpectator()) return ActionResult.PASS;
-        if (defuser == null) {
-            defuser = p.getUuid();
-            progress = 0;
-            need = hasKit(p) ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
-            p.getServerWorld().playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN, SoundCategory.PLAYERS, 1f, 1.6f);
-        } else if (!defuser.equals(p.getUuid())) {
-            p.sendMessage(Text.literal("§cЕё уже обезвреживает другой игрок."), true);
-            return ActionResult.SUCCESS;
-        }
-        lastInteract = age;
+        if (!defuseStep(p, hasKit(p))) p.sendMessage(Text.literal("§cЕё уже обезвреживает другой."), true);
         return ActionResult.SUCCESS;
     }
+
+    /** Один шаг обезвреживания (игрок — по повторному ПКМ, бот — каждый тик). @return false, если бомбу уже обезвреживает другой */
+    public boolean defuseStep(LivingEntity who, boolean kit) {
+        if (defuser == null) {
+            defuser = who.getUuid();
+            progress = 0;
+            need = kit ? DEFUSE_KIT_TICKS : DEFUSE_TICKS;
+            getWorld().playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN, SoundCategory.PLAYERS, 1f, 1.6f);
+        } else if (!defuser.equals(who.getUuid())) {
+            return false;
+        }
+        lastInteract = age;
+        return true;
+    }
+
+    public int remainTicks() { return remain; }
+    public boolean beingDefused() { return defuser != null; }
 
     private static boolean hasKit(ServerPlayerEntity p) {
         return p.getInventory().contains(s -> s.getItem() instanceof DefuseKitItem);
@@ -125,15 +147,17 @@ public class BombEntity extends Entity {
 
         // обезвреживание
         if (defuser != null) {
-            ServerPlayerEntity d = sw.getServer().getPlayerManager().getPlayer(defuser);
+            Entity de = sw.getEntity(defuser);
+            LivingEntity d = de instanceof LivingEntity le ? le : null;
+            ServerPlayerEntity dp = d instanceof ServerPlayerEntity sp ? sp : null;
             boolean ok = d != null && d.isAlive() && !d.isSpectator() && age - lastInteract <= 6 && d.getEyePos().distanceTo(getPos()) <= 4.5
                 && d.getWorld() == getWorld();
             if (!ok) {
-                if (d != null && age - lastInteract > 6) d.sendMessage(Text.literal("§cОбезвреживание прервано."), true);
+                if (dp != null && age - lastInteract > 6) dp.sendMessage(Text.literal("§cОбезвреживание прервано."), true);
                 defuser = null; progress = 0;
             } else {
                 progress++;
-                if (progress % 4 == 0) d.sendMessage(Text.literal("§6Обезвреживание §f" + bar(progress / (float) need)), true);
+                if (dp != null && progress % 4 == 0) dp.sendMessage(Text.literal("§6Обезвреживание §f" + bar(progress / (float) need)), true);
                 if (progress % 10 == 0) sw.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_NOTE_BLOCK_HAT.value(), SoundCategory.PLAYERS, 0.8f, 1.5f);
                 if (progress >= need) { defused(sw, d); return; }
             }
@@ -141,12 +165,14 @@ public class BombEntity extends Entity {
         if (remain % 4 == 0 || defuser != null) refreshLabel();
     }
 
-    private void defused(ServerWorld sw, ServerPlayerEntity by) {
+    private void defused(ServerWorld sw, LivingEntity by) {
         sw.playSound(null, getX(), getY(), getZ(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.PLAYERS, 1.2f, 1.0f);
         sw.spawnParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 0.4, getZ(), 18, 0.4, 0.2, 0.4, 0.0);
         Text msg = Text.literal("§a§lБомба обезврежена! §f" + by.getName().getString());
         for (ServerPlayerEntity o : sw.getPlayers()) o.sendMessage(msg, false);
         discard();
+        Listener l = LISTENER;
+        if (l != null) l.defused(sw, by);
     }
 
     private boolean blocked(ServerWorld sw, Vec3d from, Vec3d to) {
@@ -178,5 +204,7 @@ public class BombEntity extends Entity {
             e.addVelocity(push.x, 0.5 * k, push.z);
             e.velocityModified = true;
         }
+        Listener l = LISTENER;
+        if (l != null) l.exploded(sw);
     }
 }

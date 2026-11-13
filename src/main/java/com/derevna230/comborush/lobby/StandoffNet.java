@@ -29,6 +29,10 @@ public final class StandoffNet {
             case "so_leave_party" -> Party.leave(p, true);
             case "so_kick" -> err = Party.kick(p, a.c());
             case "so_exit" -> err = Standoff.exit(p);
+            case "so_play" -> {
+                com.derevna230.comborush.match.Team team = com.derevna230.comborush.match.Team.parse(a.c());
+                err = team == null ? "Выберите команду: T или CT." : com.derevna230.comborush.match.Match.start(p, team);
+            }
             case "so_equip" -> {
                 int i = a.c().indexOf('|');
                 err = !Universes.inStandoff(p) || i < 0 ? "Снаряжение меняется в меню «Противостояния»."

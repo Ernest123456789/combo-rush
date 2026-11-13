@@ -43,6 +43,9 @@ public final class Standoff {
         return null;
     }
 
+    /** Вернуть игрока в комнату меню (после матча) */
+    public static String toMenu(ServerPlayerEntity p) { return tp(p); }
+
     private static String tp(ServerPlayerEntity p) {
         MinecraftServer server = p.getServer();
         ServerWorld w = server == null ? null : server.getWorld(Universes.STANDOFF);

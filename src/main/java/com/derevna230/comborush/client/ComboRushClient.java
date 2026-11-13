@@ -38,6 +38,7 @@ public class ComboRushClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.TRADER, TraderRenderer::new);
         EntityRendererRegistry.register(ModEntities.GRENADE, GrenadeRenderer::new);
         EntityRendererRegistry.register(ModEntities.BOMB, BombRenderer::new);
+        EntityRendererRegistry.register(ModEntities.BOT, BotRenderer::new);
         ModEntities.CARS.forEach((id, type) -> EntityRendererRegistry.register(type, ctx -> new CarRenderer(ctx, id)));
         // J — журнал «Сценарий»
         net.minecraft.client.option.KeyBinding journalKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(

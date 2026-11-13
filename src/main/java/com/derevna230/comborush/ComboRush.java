@@ -57,6 +57,7 @@ public class ComboRush implements ModInitializer {
         ModEntities.init();
         com.derevna230.comborush.universe.Universes.init();
         com.derevna230.comborush.lobby.Lobby.init();
+        com.derevna230.comborush.match.Match.init();
         com.derevna230.comborush.item.WeaponEvents.init();
         PetManager.init();
         PayloadTypeRegistry.playS2C().register(HudPayload.ID, HudPayload.CODEC);

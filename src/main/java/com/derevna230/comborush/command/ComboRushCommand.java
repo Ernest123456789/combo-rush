@@ -38,6 +38,11 @@ public class ComboRushCommand {
         return err == null ? 1 : 0;
     }
 
+    private static int matchReply(ServerCommandSource src, String err) {
+        if (err != null) src.sendFeedback(() -> Text.literal("§c" + err), false);
+        return err == null ? 1 : 0;
+    }
+
     public static void register(CommandDispatcher<ServerCommandSource> d) {
         d.register(CommandManager.literal("shop").executes(c -> {
             ShopGui.open(c.getSource().getPlayerOrThrow()); return 1; }));
@@ -164,6 +169,16 @@ public class ComboRushCommand {
                 String err = com.derevna230.comborush.lobby.Standoff.enter(c.getSource().getPlayerOrThrow(), true);
                 if (err != null) c.getSource().sendFeedback(() -> Text.literal("§c" + err), false);
                 return err == null ? 1 : 0; }))
+            .then(CommandManager.literal("match")
+                .then(CommandManager.literal("start")
+                    .executes(c -> matchReply(c.getSource(), com.derevna230.comborush.match.Match.start(c.getSource().getPlayerOrThrow(), com.derevna230.comborush.match.Team.CT)))
+                    .then(CommandManager.argument("team", StringArgumentType.word()).executes(c -> {
+                        com.derevna230.comborush.match.Team t = com.derevna230.comborush.match.Team.parse(StringArgumentType.getString(c, "team"));
+                        return matchReply(c.getSource(), t == null ? "Команда: t или ct." : com.derevna230.comborush.match.Match.start(c.getSource().getPlayerOrThrow(), t));
+                    })))
+                .then(CommandManager.literal("stop").executes(c -> matchReply(c.getSource(), com.derevna230.comborush.match.Match.stop(c.getSource().getServer()))))
+                .then(CommandManager.literal("status").executes(c -> {
+                    c.getSource().sendFeedback(() -> Text.literal("§7" + com.derevna230.comborush.match.Match.status()), false); return 1; })))
             .then(CommandManager.literal("matchreward").requires(ComboRushCommand::op)
                 .then(CommandManager.literal("force").executes(c -> {
                     boolean ok = com.derevna230.comborush.lobby.Standoff.giveCase(c.getSource().getPlayerOrThrow());
