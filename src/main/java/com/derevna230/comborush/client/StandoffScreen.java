@@ -389,7 +389,7 @@ public class StandoffScreen extends Screen {
         for (int i = 0; i < info.length; i++) text(c, info[i], 14, 60 + i * 10, 0.72f, 0xFFB8C2D6, 0);
         button(c, "playT", 14, 102, 100, 16, "ИГРАТЬ ЗА  T", 0xB5651D, () -> { send("so_play", "t"); close(); });
         button(c, "playCT", 14, 121, 100, 16, "ИГРАТЬ ЗА  CT", 0x2F5FA8, () -> { send("so_play", "ct"); close(); });
-        text(c, "Карта: «Дюны» (тест)", 64, 143, 0.72f, 0xFF8A94A8, 1);
+        text(c, "Карта: «Дюны»", 64, 143, 0.72f, 0xFF8A94A8, 1);
         panel(c, 8, 160, 112, 80);
         text(c, "КЕЙС «АРСЕНАЛ»", 64, 168, 0.85f, 0xFFFFB02E, 1);
         String[] cs = {"Выпадает после матчей.", "Ключ стоит 250 эссенции:", "его покупают при открытии", "кейса из инвентаря."};

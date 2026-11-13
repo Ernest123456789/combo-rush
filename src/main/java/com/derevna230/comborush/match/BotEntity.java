@@ -68,6 +68,9 @@ public class BotEntity extends PathAwareEntity {
     private int plantTicks;
     private Vec3d goal;
     private int goalAge, stuckTicks, patrolUntil;
+    private int tStage;                 // Т: 0 — идём ко входу на площадку, 1 — на самой площадке
+    private Vec3d stagePoint;
+    private int stageDeadline = 20 * 45;
     private Vec3d lastPos = Vec3d.ZERO;
 
     public BotEntity(EntityType<? extends PathAwareEntity> type, World world) {
@@ -101,6 +104,7 @@ public class BotEntity extends PathAwareEntity {
         this.ammo = gun.mag();
         this.hasKit = kit;
         this.role = role;
+        this.tStage = 0; this.stagePoint = null; this.stageDeadline = age + 20 * 45;
         net.minecraft.item.Item it = Registries.ITEM.get(Identifier.of(com.derevna230.comborush.ComboRush.MOD_ID, gun.id()));
         if (it != net.minecraft.item.Items.AIR) this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(it));
         this.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0f);
@@ -262,25 +266,37 @@ public class BotEntity extends PathAwareEntity {
         if (team() == Team.T) objectiveT(sw); else objectiveCT(sw);
     }
 
-    private Vec3d pointNear(double cx, double cz, double spread) {
-        return new Vec3d(cx + (random.nextDouble() * 2 - 1) * spread, DustMap.FLOOR + 1, cz + (random.nextDouble() * 2 - 1) * spread);
+    private Vec3d pointNear(double cx, double cz, double spread, double y) {
+        return new Vec3d(cx + (random.nextDouble() * 2 - 1) * spread, y, cz + (random.nextDouble() * 2 - 1) * spread);
+    }
+
+    /** Случайная точка из списка (позиции карты проверены на проходимость, разброс только в пределах блока) */
+    private Vec3d pick(java.util.List<DustMap.Pt> l, Vec3d fallback) {
+        if (l.isEmpty()) return fallback;
+        DustMap.Pt p = l.get(random.nextInt(l.size()));
+        return pointNear(p.cx(), p.cz(), 0.35, p.y());
+    }
+
+    private boolean near2D(Vec3d p, double r) {
+        double dx = getX() - p.x, dz = getZ() - p.z;
+        return dx * dx + dz * dz <= r * r;
     }
 
     private void objectiveT(ServerWorld sw) {
-        if (Match.bombPlanted()) {                              // охраняем бомбу
+        char site = Match.targetSite();
+        double[] c = DustMap.siteCenter(site);
+        double cy = DustMap.siteY(site);
+        if (Match.bombPlanted()) {                              // держим площадку с разных позиций
             BombEntity b = Match.bomb(sw);
             if (b == null) return;
-            if (squaredDistanceTo(b) > 64 || age >= patrolUntil && getNavigation().isIdle()) {
-                Vec3d p = pointNear(b.getX(), b.getZ(), 5);
-                goTo(p, 1.0);
-                patrolUntil = age + 100 + random.nextInt(100);
+            if (age >= patrolUntil || getNavigation().isIdle() && age - goalAge > 40) {
+                goTo(pick(DustMap.post(site), b.getPos()), 1.0);
+                patrolUntil = age + 120 + random.nextInt(140);
             }
             return;
         }
         if (hasBomb) {
-            char site = Match.targetSite();
-            double[] c = DustMap.siteCenter(site);
-            if (DustMap.siteAt(getX(), getZ()) == site && getNavigation().isIdle()) {      // на площадке: закладываем
+            if (DustMap.siteAt(getX(), getZ()) == site && tStage >= 1 && getNavigation().isIdle()) {     // на площадке: закладываем
                 getNavigation().stop();
                 getLookControl().lookAt(getX(), getY() - 1, getZ());
                 plantTicks++;
@@ -290,16 +306,19 @@ public class BotEntity extends PathAwareEntity {
                     hasBomb = false;
                     plantTicks = 0;
                 }
+            } else if (tStage == 0) {                           // сначала к точке входа на площадку
+                if (stagePoint == null) stagePoint = pick(DustMap.entry(site), new Vec3d(c[0], cy, c[1]));
+                if (near2D(stagePoint, 3.5) || age > stageDeadline) { tStage = 1; goal = null; }
+                else goTo(stagePoint, 1.0);
             } else if (DustMap.siteAt(getX(), getZ()) == site) {
-                // уже на площадке, но ещё идём к выбранной точке — остановимся рядом
-                if (squaredDistanceTo(c[0], getY(), c[1]) < 25) getNavigation().stop();
-                else goTo(pointNear(c[0], c[1], 3), 1.0);
+                if (squaredDistanceTo(c[0], getY(), c[1]) < 9) getNavigation().stop();
+                else goTo(pointNear(c[0], c[1], 1.5, cy), 1.0);
             } else {
-                goTo(pointNear(c[0], c[1], 3), 1.0);
+                goTo(pointNear(c[0], c[1], 1.5, cy), 1.0);
             }
             return;
         }
-        // без бомбы: подобрать упавшую или идти к точке раунда
+        // без бомбы: подобрать упавшую; иначе — пройти к входу и зачищать позиции площадки
         if (age % 10 == 0) {
             for (net.minecraft.entity.ItemEntity ie : sw.getEntitiesByClass(net.minecraft.entity.ItemEntity.class,
                     getBoundingBox().expand(64, 16, 64), i -> i.getStack().getItem() instanceof BombItem)) {
@@ -308,10 +327,14 @@ public class BotEntity extends PathAwareEntity {
                 return;
             }
         }
+        if (tStage == 0) {
+            if (stagePoint == null) stagePoint = pick(DustMap.entry(site), new Vec3d(c[0], cy, c[1]));
+            if (near2D(stagePoint, 3.5) || age > stageDeadline) { tStage = 1; goal = null; patrolUntil = 0; }
+            else { goTo(stagePoint, 1.0); return; }
+        }
         if (age >= patrolUntil || getNavigation().isIdle() && age - goalAge > 40) {
-            double[] c = DustMap.siteCenter(Match.targetSite());
-            goTo(pointNear(c[0], c[1], 6), 1.0);
-            patrolUntil = age + 160 + random.nextInt(120);
+            goTo(pick(DustMap.hold(String.valueOf(site)), new Vec3d(c[0], cy, c[1])), 1.0);
+            patrolUntil = age + 140 + random.nextInt(140);
         }
     }
 
@@ -330,14 +353,9 @@ public class BotEntity extends PathAwareEntity {
             return;
         }
         if (age >= patrolUntil || getNavigation().isIdle() && age - goalAge > 60) {
-            double cx, cz;
-            switch (role) {
-                case 'A' -> { cx = DustMap.AX + 1; cz = DustMap.AZ; }
-                case 'B' -> { cx = DustMap.BX + 1; cz = DustMap.BZ; }
-                default -> { cx = 12; cz = 0; }
-            }
-            goTo(pointNear(cx, cz, role == 'M' ? 4 : 5), 1.0);
-            patrolUntil = age + 140 + random.nextInt(160);
+            double[] c = DustMap.siteCenter(role == 'B' ? 'B' : 'A');
+            goTo(pick(DustMap.hold(String.valueOf(role)), new Vec3d(c[0], DustMap.siteY(role == 'B' ? 'B' : 'A'), c[1])), 1.0);
+            patrolUntil = age + 200 + random.nextInt(260);
         }
     }
 
@@ -356,7 +374,7 @@ public class BotEntity extends PathAwareEntity {
                 stuckTicks = 0;
                 goal = null;
                 getJumpControl().setActive();
-                Vec3d p = pointNear(getX(), getZ(), 6);
+                Vec3d p = pointNear(getX(), getZ(), 4, getY());
                 getNavigation().startMovingTo(p.x, p.y, p.z, 1.0);
             }
         } else stuckTicks = 0;

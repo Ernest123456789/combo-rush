@@ -1,132 +1,180 @@
 package com.derevna230.comborush.universe;
 
+import com.derevna230.comborush.ComboRush;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.Registries;
+import net.minecraft.state.property.Property;
+import net.minecraft.util.Identifier;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Тестовая карта «Дюны» (измерение combo-rush:dust). Всё считается по формулам от координат, как у небесных миров.
+ * Карта «Дюны» (измерение combo-rush:dust). Сама карта — текстовый ресурс {@code data/combo-rush/maps/dust.map},
+ * его делает генератор {@code tools/map_gen/dust.py} (там же схема и проверка проходимости).
  * <pre>
- *   x → восток, z → юг.   Т — на западе (x ≈ −38), КТ — на востоке (x ≈ +38)
- *
- *    ┌──────────────────────────────────────────────┐
- *    │  северный коридор                 ┌───A───┐  │
- *    │ Т  ═════════════╗ дверь            └───────┘  │  КТ
- *    │ Т  ────────  средний коридор  ───  центр ─── │
- *    │  южный коридор                    ┌───B───┐  │
- *    └──────────────────────────────────────────────┘
+ *   x → восток, z → юг.   Т — на западе (x ≈ −56), КТ — на востоке (x ≈ +56)
+ *   «Лонг» (север) ведёт к А (приподнятая, +2, балкон и яма), «Нижний» (юг) — к Б (утоплена, −2, склад и мостик);
+ *   посередине «Мид» → «Развязка» → «Центр» с мостом; «Склад» и «Тоннели» — закрытые здания.
  * </pre>
- * Площадки A и B — квадраты 13×13 с буквой на полу: бомбу можно закладывать только на них ({@link #siteAt}).
+ * Уровень 0 = блок пола на высоте {@link #FLOOR}; игрок стоит на FLOOR + уровень + 1.
  */
 public final class DustMap {
     private DustMap() {}
 
-    /** Блок пола; игрок стоит на FLOOR + 1 */
     public static final int FLOOR = 64;
-    public static final int X0 = -44, X1 = 44, Z0 = -32, Z1 = 32;
-    private static final int WALL_H = 10, CEIL = 34;
+    /** Игровая область (вокруг ещё кольцо внешней стены) */
+    public static final int X0, X1, Z0, Z1;
+    private static final int LV0;
 
-    /** Центры площадок и половина их стороны (зона закладки: |dx| ≤ R, |dz| ≤ R) */
-    public static final int AX = 22, AZ = -20, BX = 22, BZ = 20, SITE_R = 6;
+    private static final BlockState[] PALETTE;
+    private static final Map<Long, int[]> COLS = new HashMap<>();     // колонка → RLE: пары (id палитры, длина) от LV0
 
-    /** Места возрождения: центр зоны и половина размаха по z */
-    public static final double T_X = -38.5, CT_X = 38.5, SPAWN_SPREAD = 9;
-
-    private static BlockState s(net.minecraft.block.Block b) { return b.getDefaultState(); }
-    private static final BlockState STONE = s(Blocks.STONE), SAND_A = s(Blocks.SMOOTH_SANDSTONE), SAND_B = s(Blocks.CUT_SANDSTONE),
-        SAND_C = s(Blocks.SANDSTONE), WALL_A = s(Blocks.SANDSTONE), WALL_B = s(Blocks.CUT_SANDSTONE), WALL_C = s(Blocks.SMOOTH_SANDSTONE),
-        CRATE = s(Blocks.SPRUCE_PLANKS), CRATE2 = s(Blocks.DARK_OAK_PLANKS), SITE = s(Blocks.ORANGE_TERRACOTTA),
-        SITE_RIM = s(Blocks.YELLOW_CONCRETE), LETTER = s(Blocks.WHITE_CONCRETE), LANTERN = s(Blocks.SEA_LANTERN),
-        T_PAD = s(Blocks.RED_TERRACOTTA), CT_PAD = s(Blocks.BLUE_TERRACOTTA), BARRIER = s(Blocks.BARRIER),
-        PILLAR = s(Blocks.YELLOW_CONCRETE), BRICK = s(Blocks.STONE_BRICKS);
-
-    /** Коробка: x0..x1, z0..z1 (включительно), высота h, материал */
-    private record Box(int x0, int x1, int z0, int z1, int h, BlockState st) {
-        boolean has(int x, int z) { return x >= x0 && x <= x1 && z >= z0 && z <= z1; }
+    public record Site(char id, int x, int z, int r, int level) {}
+    public record Pt(int x, int z, int level) {
+        public double cx() { return x + 0.5; }
+        public double cz() { return z + 0.5; }
+        public double y() { return FLOOR + level + 1; }
     }
+    private record Zone(String name, int x0, int x1, int z0, int z1) {}
 
-    private static Box box(int x0, int x1, int z0, int z1, int h, BlockState st) { return new Box(x0, x1, z0, z1, h, st); }
+    private static final List<Site> SITES = new ArrayList<>();
+    private static final List<Zone> ZONES = new ArrayList<>();
+    private static final List<Pt> SPAWN_T = new ArrayList<>(), SPAWN_CT = new ArrayList<>();
+    private static final Map<String, List<Pt>> HOLD = new HashMap<>(), ENTRY = new HashMap<>(), POST = new HashMap<>();
 
-    private static final Box[] BOXES = {
-        // стенка у базы Т (x −31..−30) с проходами: север z −26..−14, центр −3..3, юг 14..26
-        box(-31, -30, Z0, -27, 6, WALL_B), box(-31, -30, -13, -4, 6, WALL_B), box(-31, -30, 4, 13, 6, WALL_B), box(-31, -30, 27, Z1, 6, WALL_B),
-        // стенка у базы КТ (x 30..31): проходы к A (−26..−20), центр, к B (20..26)
-        box(30, 31, Z0, -27, 6, WALL_B), box(30, 31, -19, -4, 6, WALL_B), box(30, 31, 4, 19, 6, WALL_B), box(30, 31, 27, Z1, 6, WALL_B),
-        // разделители коридоров (с «дверью» z-ряда x −15..−11)
-        box(-28, -16, -10, -9, 6, WALL_A), box(-10, 8, -10, -9, 6, WALL_A),
-        box(-28, -16, 9, 10, 6, WALL_A), box(-10, 8, 9, 10, 6, WALL_A),
-        // центр: две колонны и низкая стенка
-        box(-1, 1, -3, -2, 4, WALL_C), box(-1, 1, 2, 3, 4, WALL_C), box(14, 15, -1, 1, 6, WALL_B),
-        // ящики в коридорах и в центре (2×2×2, перепрыгнуть нельзя, обойти можно)
-        box(-24, -23, -20, -19, 2, CRATE), box(-8, -7, -16, -15, 2, CRATE2), box(2, 3, -22, -21, 2, CRATE),
-        box(-24, -23, 19, 20, 2, CRATE), box(-8, -7, 15, 16, 2, CRATE2), box(2, 3, 21, 22, 2, CRATE),
-        box(-20, -19, -1, 0, 2, CRATE), box(-6, -5, 4, 5, 2, CRATE2), box(-6, -5, -5, -4, 2, CRATE), box(6, 7, -1, 0, 2, CRATE2),
-        // укрытия на площадке A и B
-        box(17, 18, -25, -24, 2, CRATE), box(26, 27, -16, -15, 2, CRATE2), box(26, 27, -25, -24, 2, CRATE),
-        box(17, 18, 24, 25, 2, CRATE), box(26, 27, 15, 16, 2, CRATE2), box(26, 27, 24, 25, 2, CRATE),
-        // ящики у баз
-        box(-36, -35, -14, -13, 2, CRATE), box(-36, -35, 13, 14, 2, CRATE2),
-        box(35, 36, -14, -13, 2, CRATE2), box(35, 36, 13, 14, 2, CRATE),
-    };
-
-    // ---------------------------------------------------------------- площадки A и B
-    /** 'A', 'B' или 0 — на какой площадке закладки точка (x, z) */
-    public static char siteAt(double x, double z) {
-        if (Math.abs(x - (AX + 0.5)) <= SITE_R + 0.5 && Math.abs(z - (AZ + 0.5)) <= SITE_R + 0.5) return 'A';
-        if (Math.abs(x - (BX + 0.5)) <= SITE_R + 0.5 && Math.abs(z - (BZ + 0.5)) <= SITE_R + 0.5) return 'B';
-        return 0;
-    }
-
-    public static double[] siteCenter(char site) { return site == 'A' ? new double[]{AX + 0.5, AZ + 0.5} : new double[]{BX + 0.5, BZ + 0.5}; }
-
-    private static final String[] GLYPH_A = {".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"};
-    private static final String[] GLYPH_B = {"####.", "#...#", "#...#", "####.", "#...#", "#...#", "####."};
-
-    /** Буква на полу, читается стоя к западу от площадки и глядя на восток: вверх буквы — к востоку (+x), вправо — к югу (+z) */
-    private static boolean letter(String[] g, int dx, int dz) {
-        int row = 3 - dx;              // dx = +3 — верх буквы
-        int col = dz + 2;
-        return row >= 0 && row < 7 && col >= 0 && col < 5 && g[row].charAt(col) == '#';
-    }
-
-    private static BlockState floor(int x, int z) {
-        for (char c : new char[]{'A', 'B'}) {
-            int cx = c == 'A' ? AX : BX, cz = c == 'A' ? AZ : BZ;
-            int dx = x - cx, dz = z - cz;
-            if (Math.abs(dx) <= SITE_R && Math.abs(dz) <= SITE_R) {
-                if (Math.abs(dx) == SITE_R || Math.abs(dz) == SITE_R) return SITE_RIM;
-                return letter(c == 'A' ? GLYPH_A : GLYPH_B, dx, dz) ? LETTER : SITE;
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static BlockState parseState(String s) {
+        String name = s, props = null;
+        int i = s.indexOf('[');
+        if (i >= 0) { name = s.substring(0, i); props = s.substring(i + 1, s.length() - 1); }
+        Block b = Registries.BLOCK.get(Identifier.of(name));
+        BlockState st = b.getDefaultState();
+        if (props != null) {
+            for (String kv : props.split(",")) {
+                String[] p = kv.split("=");
+                Property prop = b.getStateManager().getProperty(p[0]);
+                if (prop == null) continue;
+                java.util.Optional v = prop.parse(p[1]);
+                if (v.isPresent()) st = st.with(prop, (Comparable) v.get());
             }
         }
-        if (x <= -32 && x >= -44) return ((x + z) & 1) == 0 ? T_PAD : s(Blocks.TERRACOTTA);
-        if (x >= 32) return ((x + z) & 1) == 0 ? CT_PAD : s(Blocks.LIGHT_BLUE_TERRACOTTA);
-        int h = (x * 7 + z * 13) & 7;
-        return h < 5 ? SAND_A : h < 7 ? SAND_B : SAND_C;
+        return st;
     }
+
+    static {
+        int x0 = 0, x1 = 0, z0 = 0, z1 = 0, lv0 = 0;
+        Map<Integer, BlockState> pal = new HashMap<>();
+        int maxId = 0;
+        try (InputStream in = DustMap.class.getResourceAsStream("/data/" + ComboRush.MOD_ID + "/maps/dust.map")) {
+            if (in == null) throw new IllegalStateException("нет ресурса карты dust.map");
+            BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+            String line;
+            while ((line = r.readLine()) != null) {
+                if (line.isEmpty() || line.charAt(0) == '#') continue;
+                if (line.startsWith("C ")) {
+                    String[] p = line.split(" ");
+                    int[] rle = new int[(p.length - 3) * 2];
+                    for (int i = 3; i < p.length; i++) {
+                        String[] q = p[i].split(":");
+                        rle[(i - 3) * 2] = Integer.parseInt(q[0]);
+                        rle[(i - 3) * 2 + 1] = Integer.parseInt(q[1]);
+                    }
+                    COLS.put(key(Integer.parseInt(p[1]), Integer.parseInt(p[2])), rle);
+                } else if (line.startsWith("B ")) {
+                    String[] p = line.split(" ", 3);
+                    int id = Integer.parseInt(p[1]);
+                    pal.put(id, parseState(p[2]));
+                    maxId = Math.max(maxId, id);
+                } else if (line.startsWith("BOUNDS ")) {
+                    String[] p = line.split(" ");
+                    x0 = Integer.parseInt(p[1]); x1 = Integer.parseInt(p[2]); z0 = Integer.parseInt(p[3]); z1 = Integer.parseInt(p[4]); lv0 = Integer.parseInt(p[5]);
+                } else if (line.startsWith("Z ")) {
+                    String[] p = line.substring(2).split("\\|");
+                    ZONES.add(new Zone(p[0], Integer.parseInt(p[1]), Integer.parseInt(p[2]), Integer.parseInt(p[3]), Integer.parseInt(p[4])));
+                } else if (line.startsWith("SITE ")) {
+                    String[] p = line.split(" ");
+                    SITES.add(new Site(p[1].charAt(0), Integer.parseInt(p[2]), Integer.parseInt(p[3]), Integer.parseInt(p[4]), Integer.parseInt(p[5])));
+                } else if (line.startsWith("SPAWN ")) {
+                    String[] p = line.split(" ");
+                    Pt pt = new Pt(Integer.parseInt(p[2]), Integer.parseInt(p[3]), Integer.parseInt(p[4]));
+                    (p[1].equals("T") ? SPAWN_T : SPAWN_CT).add(pt);
+                } else {
+                    String[] p = line.split(" ");
+                    Map<String, List<Pt>> target = switch (p[0]) { case "HOLD" -> HOLD; case "ENTRY" -> ENTRY; case "POST" -> POST; default -> null; };
+                    if (target != null) target.computeIfAbsent(p[1], k -> new ArrayList<>()).add(new Pt(Integer.parseInt(p[2]), Integer.parseInt(p[3]), Integer.parseInt(p[4])));
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("не удалось прочитать карту dust.map", e);
+        }
+        X0 = x0; X1 = x1; Z0 = z0; Z1 = z1; LV0 = lv0;
+        PALETTE = new BlockState[maxId + 1];
+        PALETTE[0] = Blocks.AIR.getDefaultState();
+        pal.forEach((k, v) -> PALETTE[k] = v);
+    }
+
+    private static long key(int x, int z) { return ((long) x << 32) ^ (z & 0xFFFFFFFFL); }
 
     // ---------------------------------------------------------------- колонка
     public static void column(int x, int z, BlockState[] a) {
-        boolean inside = x >= X0 && x <= X1 && z >= Z0 && z <= Z1;
-        boolean ring = x >= X0 - 1 && x <= X1 + 1 && z >= Z0 - 1 && z <= Z1 + 1;
-        if (!ring) return;
-        a[FLOOR - 1] = STONE;
-        if (!inside) {                                              // внешняя стена: песчаник до WALL_H, выше невидимый барьер
-            for (int y = FLOOR; y <= FLOOR + WALL_H; y++) a[y] = ((x + z + y) & 3) == 0 ? WALL_B : WALL_A;
-            for (int y = FLOOR + WALL_H + 1; y <= CEIL; y++) a[y] = BARRIER;
-            return;
-        }
-        a[FLOOR] = floor(x, z);
-        a[CEIL] = BARRIER;                                          // потолок: не вылететь вверх
-        for (Box b : BOXES) {
-            if (!b.has(x, z)) continue;
-            for (int y = FLOOR + 1; y <= FLOOR + b.h; y++) a[y] = b.st;
-        }
-        // угловые столбы площадок: видны издалека
-        for (char c : new char[]{'A', 'B'}) {
-            int cx = c == 'A' ? AX : BX, cz = c == 'A' ? AZ : BZ;
-            if (Math.abs(x - cx) == SITE_R && Math.abs(z - cz) == SITE_R) {
-                for (int y = FLOOR + 1; y <= FLOOR + 5; y++) a[y] = PILLAR;
-                a[FLOOR + 6] = LANTERN;
+        int[] rle = COLS.get(key(x, z));
+        if (rle == null) return;
+        int lv = 0;
+        for (int i = 0; i < rle.length; i += 2) {
+            int id = rle[i], n = rle[i + 1];
+            if (id != 0) {
+                BlockState st = PALETTE[id];
+                for (int k = 0; k < n; k++) {
+                    int y = FLOOR + LV0 + lv + k;
+                    if (y >= 0 && y < a.length) a[y] = st;
+                }
             }
+            lv += n;
         }
+    }
+
+    // ---------------------------------------------------------------- площадки, спавны, точки ботов
+    public static Site site(char c) {
+        for (Site s : SITES) if (s.id == c) return s;
+        return SITES.get(0);
+    }
+
+    /** 'A', 'B' или 0 — на какой площадке закладки точка (x, z) */
+    public static char siteAt(double x, double z) {
+        for (Site s : SITES) {
+            if (Math.abs(x - (s.x + 0.5)) <= s.r + 0.5 && Math.abs(z - (s.z + 0.5)) <= s.r + 0.5) return s.id;
+        }
+        return 0;
+    }
+
+    public static double[] siteCenter(char c) { Site s = site(c); return new double[]{s.x + 0.5, s.z + 0.5}; }
+    public static double siteY(char c) { return FLOOR + site(c).level + 1; }
+
+    /** Место возрождения игрока/бота номер i (0..4) */
+    public static Pt spawn(boolean ct, int i) {
+        List<Pt> l = ct ? SPAWN_CT : SPAWN_T;
+        return l.get(Math.floorMod(i, l.size()));
+    }
+
+    private static final List<Pt> NONE = List.of();
+    public static List<Pt> hold(String key) { return HOLD.getOrDefault(key, NONE); }
+    public static List<Pt> entry(char site) { return ENTRY.getOrDefault(String.valueOf(site), NONE); }
+    public static List<Pt> post(char site) { return POST.getOrDefault(String.valueOf(site), NONE); }
+
+    /** Название места по координатам (для подсказок в матче) */
+    public static String zoneAt(double x, double z) {
+        int ix = (int) Math.floor(x), iz = (int) Math.floor(z);
+        for (Zone zn : ZONES) if (ix >= zn.x0 && ix <= zn.x1 && iz >= zn.z0 && iz <= zn.z1) return zn.name;
+        return "Карта";
     }
 }

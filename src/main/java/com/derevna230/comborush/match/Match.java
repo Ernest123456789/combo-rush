@@ -190,12 +190,11 @@ public final class Match {
     }
 
     private static void loadMapChunks(ServerWorld w) {
-        for (int cx = DustMap.X0 >> 4; cx <= DustMap.X1 >> 4; cx++)
-            for (int cz = DustMap.Z0 >> 4; cz <= DustMap.Z1 >> 4; cz++) w.getChunk(cx, cz);
+        for (int cx = (DustMap.X0 - 1) >> 4; cx <= (DustMap.X1 + 1) >> 4; cx++)
+            for (int cz = (DustMap.Z0 - 1) >> 4; cz <= (DustMap.Z1 + 1) >> 4; cz++) w.getChunk(cx, cz);
     }
 
     // ---------------------------------------------------------------- раунд
-    private static double slotZ(int i) { return -8 + 4 * i + 0.5; }
 
     private static void startRound(MinecraftServer server, ServerWorld w) {
         round++;
@@ -219,19 +218,20 @@ public final class Match {
         // носитель бомбы: случайный из Т (человек или будущий бот)
         int carrier = RND.nextInt(TEAM_SIZE);
         for (Team t : Team.values()) {
-            double x = t == Team.T ? DustMap.T_X : DustMap.CT_X;
             float yaw = t == Team.T ? -90f : 90f;
             int idx = 0;
             for (ServerPlayerEntity p : humans.get(t)) {
                 Human h = HUMANS.get(p.getUuid());
-                h.sx = x; h.sz = slotZ(idx); h.yaw = yaw;
+                DustMap.Pt sp = DustMap.spawn(t == Team.CT, idx);
+                h.sx = sp.cx(); h.sz = sp.cz(); h.yaw = yaw;
                 setupHuman(p, h, w, t == Team.T && idx == carrier);
                 idx++;
             }
             for (; idx < TEAM_SIZE; idx++) {
                 BotEntity b = ModEntities.BOT.create(w);
                 if (b == null) continue;
-                b.refreshPositionAndAngles(x, DustMap.FLOOR + 1, slotZ(idx), yaw, 0f);
+                DustMap.Pt sp = DustMap.spawn(t == Team.CT, idx);
+                b.refreshPositionAndAngles(sp.cx(), sp.y(), sp.cz(), yaw, 0f);
                 b.setHeadYaw(yaw); b.setBodyYaw(yaw);
                 b.setup(t, pickGun(t), idx % 2 == 0, t == Team.T ? 'A' : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
                 b.setCustomName(Text.literal(t.color + "[" + t.tag + "] §fБот " + BOT_NAMES[(botSerial++) % BOT_NAMES.length]));
@@ -362,6 +362,9 @@ public final class Match {
             default -> { }
         }
         if (phase != Phase.IDLE && server.getTicks() % 10 == 0) updateBar(w);
+        if (phase == Phase.LIVE && server.getTicks() % 10 == 0)
+            for (ServerPlayerEntity p : players(server))
+                p.sendMessage(Text.literal("§7Место: §f" + DustMap.zoneAt(p.getX(), p.getZ())), true);
         if (phase != Phase.IDLE && server.getTicks() % 100 == 0)
             for (ServerPlayerEntity p : players(server)) p.getHungerManager().setFoodLevel(10);
     }
@@ -432,7 +435,7 @@ public final class Match {
             planted = true;
             bombId = bomb.getUuid();
             char site = DustMap.siteAt(bomb.getX(), bomb.getZ());
-            broadcast("§c§lБомба заложена" + (site == 0 ? "" : " на точке §e" + site) + "§c! §fСпецназ, обезвреживайте.");
+            broadcast("§c§lБомба заложена" + (site == 0 ? "" : " на точке §e" + site + " §7(" + DustMap.zoneAt(bomb.getX(), bomb.getZ()) + ")§c") + "§c! §fСпецназ, обезвреживайте.");
         }
         @Override public void exploded(ServerWorld w) {
             if (phase == Phase.LIVE) { pendingWinner = Team.T; pendingReason = "Бомба взорвалась"; }
