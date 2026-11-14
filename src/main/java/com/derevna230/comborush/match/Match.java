@@ -45,7 +45,9 @@ import net.minecraft.world.GameMode;
 import java.util.*;
 
 /**
- * Матч «Противостояния» на карте «Дюны»: до {@value #WIN_ROUNDS} побед, раунд = заморозка → бой → пауза.
+ * Соревновательный матч «Противостояния» на карте «Дюны»: до {@value #WIN_ROUNDS} побед (12:12 — ничья), после {@value #HALF}-го раунда
+ * стороны меняются. Раунд = заморозка с закупкой → бой → пауза. Деньги — как в CS: за победу/поражение раунда (с бонусом за серию
+ * поражений), за убийства, закладку и разминирование; выжившие сохраняют оружие, погибшие начинают с пистолета.
  * <ul>
  * <li>Т побеждают, взорвав бомбу или уничтожив спецназ; КТ — обезвредив бомбу, уничтожив Т до закладки или дотянув до конца времени.</li>
  * <li>Команды добираются ботами до {@value #TEAM_SIZE} человек. Живые игроки получают ствол/нож по своему снаряжению из меню; свой инвентарь на матч прячется и возвращается после.</li>
@@ -56,8 +58,11 @@ import java.util.*;
 public final class Match {
     private Match() {}
 
-    public static final int TEAM_SIZE = 5, WIN_ROUNDS = 4;
-    private static final int FREEZE_TICKS = 5 * 20, ROUND_TICKS = 115 * 20, END_TICKS = 5 * 20, OVER_TICKS = 7 * 20;
+    public static final int TEAM_SIZE = 5, WIN_ROUNDS = 13, HALF = 10, DRAW_AT = 12;
+    private static final int FREEZE_TICKS = 12 * 20, ROUND_TICKS = 115 * 20, END_TICKS = 5 * 20, HALF_TICKS = 8 * 20, OVER_TICKS = 8 * 20;
+    /** Закупка: вся заморозка + столько тиков после начала боя, и только у своей базы */
+    private static final int BUY_TICKS = 20 * 20;
+    private static final double BUY_RADIUS = 13;
     /** Урон ботов относительно «человеческого» урона ствола */
     public static final float BOT_DAMAGE = 0.9f;
 
@@ -75,7 +80,13 @@ public final class Match {
     private static final List<UUID> BOTS = new ArrayList<>();
     private static Phase phase = Phase.IDLE;
     private static int timer, round, winsT, winsCT;
-    private static boolean planted, over;
+    private static boolean planted, over, draw, halftime;
+    private static int liveTicks;
+    // экономика
+    private static final Map<UUID, Integer> MONEY = new HashMap<>();
+    private static final Set<UUID> SURVIVED = new HashSet<>();
+    private static final int[] LOSS = new int[2], BOT_MONEY = new int[2];
+    private static final Map<UUID, Integer> LAST_PAY = new HashMap<>();
     private static UUID bombId;
     private static char targetSite = 'A';
     private static Team pendingWinner;
@@ -162,12 +173,15 @@ public final class Match {
             HUMANS.put(p.getUuid(), new Human(team, p.interactionManager.getGameMode()));
             stash(p);
             setSide(p, team);
+            MONEY.put(p.getUuid(), BuyDefs.START_MONEY);
         }
-        round = 0; winsT = 0; winsCT = 0; over = false; planted = false; bombId = null; pendingWinner = null;
+        round = 0; winsT = 0; winsCT = 0; over = false; draw = false; halftime = false; planted = false; bombId = null; pendingWinner = null;
+        SURVIVED.clear(); LOSS[0] = LOSS[1] = 0; BOT_MONEY[0] = BOT_MONEY[1] = BuyDefs.START_MONEY;
         BombEntity.LISTENER = LISTENER;
         bar = new ServerBossBar(Text.literal("Матч"), BossBar.Color.YELLOW, BossBar.Style.PROGRESS);
         for (ServerPlayerEntity p : group) bar.addPlayer(p);
-        broadcast("§6§lМатч начинается! §fКарта «Дюны», до §e" + WIN_ROUNDS + "§f побед. Вы играете за " + team.coloredTag() + "§f.");
+        broadcast("§6§lСоревновательный матч! §fКарта «Дюны», до §e" + WIN_ROUNDS + "§f побед (12:12 — ничья), смена сторон после " + HALF
+            + "-го раунда. Вы играете за " + team.coloredTag() + "§f. §eE §f— закупка.");
         startRound(server, w);
         return null;
     }
@@ -175,7 +189,7 @@ public final class Match {
     /** Закончить матч сейчас и вернуть всех в меню */
     public static String stop(MinecraftServer server) {
         if (phase == Phase.IDLE) return "Матч не идёт.";
-        finish(server, null);
+        finish(server, null, false);
         return null;
     }
 
@@ -183,13 +197,14 @@ public final class Match {
     public static void leave(ServerPlayerEntity p, boolean toMenu) {
         Human h = HUMANS.remove(p.getUuid());
         if (h == null) return;
+        MONEY.remove(p.getUuid()); SURVIVED.remove(p.getUuid());
         if (bar != null) bar.removePlayer(p);
         clearSide(p);
         p.removeStatusEffect(StatusEffects.SLOWNESS);
         p.changeGameMode(h.prev);
         restore(p);
         if (toMenu && p.getWorld().getRegistryKey().equals(Universes.DUST)) Standoff.toMenu(p);
-        if (HUMANS.isEmpty() && phase != Phase.IDLE && p.getServer() != null) finish(p.getServer(), null);
+        if (HUMANS.isEmpty() && phase != Phase.IDLE && p.getServer() != null) finish(p.getServer(), null, false);
     }
 
     // ---- сторона игрока видна клиентам через scoreboard-команды: по ней рисуется модель бойца и цвет ника
@@ -223,7 +238,7 @@ public final class Match {
         round++;
         phase = Phase.FREEZE;
         timer = FREEZE_TICKS;
-        planted = false; bombId = null; pendingWinner = null;
+        planted = false; bombId = null; pendingWinner = null; liveTicks = 0;
         targetSite = RND.nextBoolean() ? 'A' : 'B';
         cleanMap(w);
 
@@ -236,7 +251,7 @@ public final class Match {
             if (p == null) { it.remove(); continue; }
             humans.get(en.getValue().team).add(p);
         }
-        if (HUMANS.isEmpty()) { finish(server, null); return; }
+        if (HUMANS.isEmpty()) { finish(server, null, false); return; }
 
         // носитель бомбы: случайный из Т (человек или будущий бот)
         int carrier = RND.nextInt(TEAM_SIZE);
@@ -247,16 +262,17 @@ public final class Match {
                 Human h = HUMANS.get(p.getUuid());
                 DustMap.Pt sp = DustMap.spawn(t == Team.CT, idx);
                 h.sx = sp.cx(); h.sz = sp.cz(); h.yaw = yaw;
-                setupHuman(p, h, w, t == Team.T && idx == carrier);
+                setupHuman(p, h, w, t == Team.T && idx == carrier, SURVIVED.contains(p.getUuid()));
                 idx++;
             }
+            BotBuy buy = botBuy(t);
             for (; idx < TEAM_SIZE; idx++) {
                 BotEntity b = ModEntities.BOT.create(w);
                 if (b == null) continue;
                 DustMap.Pt sp = DustMap.spawn(t == Team.CT, idx);
                 b.refreshPositionAndAngles(sp.cx(), sp.y(), sp.cz(), yaw, 0f);
                 b.setHeadYaw(yaw); b.setBodyYaw(yaw);
-                b.setup(t, pickGun(t), idx % 2 == 0, t == Team.T ? 'A' : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
+                b.setup(t, buy.gun(RND), t == Team.CT && buy.kit && RND.nextInt(3) > 0, t == Team.T ? 'A' : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
                 b.setCustomName(Text.literal(t.color + "[" + t.tag + "] §fБот " + BOT_NAMES[(botSerial++) % BOT_NAMES.length]));
                 b.setCustomNameVisible(false);
                 if (t == Team.T && idx == carrier) b.giveBomb();
@@ -264,17 +280,40 @@ public final class Match {
                 BOTS.add(b.getUuid());
             }
         }
-        broadcast("§e§lРаунд " + round + " §7— счёт §6T " + winsT + " §7: §9" + winsCT + " CT§7. До начала 5 секунд.");
+        SURVIVED.clear();
+        for (ServerPlayerEntity p : players(server)) sendState(p);
+        broadcast("§e§lРаунд " + round + " §7— счёт §6T " + winsT + " §7: §9" + winsCT + " CT§7. Закупка " + FREEZE_TICKS / 20 + " с (§eE§7).");
         title("§eРаунд " + round, "§7Т " + winsT + " : " + winsCT + " КТ");
     }
 
     private static final String[] BOT_NAMES = {"Алекс", "Дима", "Макс", "Витя", "Кирилл", "Серёга", "Тимур", "Артём", "Влад", "Егор", "Рома", "Паша"};
 
-    private static String pickGun(Team t) {
-        String[] pool = t == Team.T
-            ? new String[]{"ak47", "ak47", "ak47", "ak47", "galil", "galil", "mac10", "p90", "nova", "awp"}
-            : new String[]{"m4a4", "m4a4", "m4a4", "m4a4", "m4a1s", "m4a1s", "famas", "famas", "mp9", "mag7", "awp"};
-        return pool[RND.nextInt(pool.length)];
+    /** Закупка ботов: у каждой стороны общий «средний кошелёк», боты закупаются вместе (раунд экономии, форс, полная закупка) */
+    private record BotBuy(String[] pool, boolean kit) {
+        String gun(Random r) { return pool[r.nextInt(pool.length)]; }
+    }
+
+    private static BotBuy botBuy(Team t) {
+        int i = t.ordinal(), m = BOT_MONEY[i];
+        boolean T = t == Team.T;
+        String[] pool; int cost;
+        if (m >= 3700) {
+            pool = T ? new String[]{"ak47", "ak47", "ak47", "ak47", "galil", "awp"} : new String[]{"m4a4", "m4a4", "m4a1s", "m4a1s", "famas", "awp"};
+            cost = T ? 2900 : 3300;
+        } else if (m >= 2000) {
+            pool = T ? new String[]{"galil", "galil", "mac10", "mp7", "sawedoff", "xm1014"} : new String[]{"famas", "famas", "mp9", "mp7", "mag7", "xm1014"};
+            cost = 1700;
+        } else if (m >= 1000) {
+            pool = T ? new String[]{"deagle", "mac10", "glock18", "revolver"} : new String[]{"deagle", "fiveseven", "mp9", "usp"};
+            cost = 700;
+        } else {
+            pool = T ? new String[]{"glock18"} : new String[]{"usp"};
+            cost = 0;
+        }
+        BOT_MONEY[i] = Math.max(0, m - cost);
+        boolean kit = !T && BOT_MONEY[i] >= 400;
+        if (kit) BOT_MONEY[i] -= 300;
+        return new BotBuy(pool, kit);
     }
 
     private static void cleanMap(ServerWorld w) {
@@ -294,27 +333,40 @@ public final class Match {
         if (it != null) p.getInventory().offerOrDrop(new ItemStack(it));
     }
 
-    private static void setupHuman(ServerPlayerEntity p, Human h, ServerWorld w, boolean carrier) {
+    private static ItemStack stackOf(String id) {
+        Item it = itemOf(id);
+        return it == null ? ItemStack.EMPTY : new ItemStack(it);
+    }
+
+    private static String knifeFor(ServerPlayerEntity p, Team team) {
+        String knife = Loadout.equipped(p, Loadout.KNIFE_SLOT);
+        if (knife.equals("knife_t") || knife.equals("knife_ct")) knife = team == Team.T ? "knife_t" : "knife_ct";
+        return knife;
+    }
+
+    /** keep — игрок пережил прошлый раунд: оружие остаётся, иначе — нож и стандартный пистолет стороны */
+    private static void setupHuman(ServerPlayerEntity p, Human h, ServerWorld w, boolean carrier, boolean keep) {
         p.changeGameMode(GameMode.ADVENTURE);
         p.stopRiding();
-        p.getInventory().clear();
+        var inv = p.getInventory();
+        if (keep) {
+            for (int i = 0; i < inv.size(); i++) if (inv.getStack(i).getItem() instanceof BombItem) inv.setStack(i, ItemStack.EMPTY);
+        } else {
+            inv.clear();
+            boolean t = h.team == Team.T;
+            inv.setStack(BuyDefs.SLOT_PISTOL, stackOf(Loadout.equipped(p, t ? "glock18" : "usp")));
+        }
+        // нож всегда под текущую сторону (после смены сторон стандартный нож меняется)
+        inv.setStack(BuyDefs.SLOT_KNIFE, stackOf(knifeFor(p, h.team)));
+        if (carrier) inv.setStack(BuyDefs.SLOT_GEAR, stackOf("bomb"));
         p.clearStatusEffects();
         p.setHealth(p.getMaxHealth());
         p.extinguish();
         p.getAbilities().flying = false;
         p.getHungerManager().setFoodLevel(10);
         p.fallDistance = 0;
-        // снаряжение из меню: основной ствол и пистолет по команде, нож — надетый (стандартный — под команду)
-        boolean t = h.team == Team.T;
-        give(p, Loadout.equipped(p, t ? "ak47" : "m4a4"));
-        give(p, Loadout.equipped(p, t ? "glock18" : "usp"));
-        String knife = Loadout.equipped(p, Loadout.KNIFE_SLOT);
-        if (knife.equals("knife_t") || knife.equals("knife_ct")) knife = t ? "knife_t" : "knife_ct";
-        give(p, knife);
-        if (carrier) give(p, "bomb");
-        if (!t) give(p, "defuse_kit");
         p.teleport(w, h.sx, DustMap.FLOOR + 1, h.sz, h.yaw, 0f);
-        p.getInventory().selectedSlot = 0;
+        inv.selectedSlot = inv.getStack(BuyDefs.SLOT_PRIMARY).isEmpty() ? BuyDefs.SLOT_PISTOL : BuyDefs.SLOT_PRIMARY;
         p.playerScreenHandler.sendContentUpdates();
     }
 
@@ -340,7 +392,7 @@ public final class Match {
     private static void tick(MinecraftServer server) {
         if (phase == Phase.IDLE) return;
         ServerWorld w = server.getWorld(Universes.DUST);
-        if (w == null) { finish(server, null); return; }
+        if (w == null) { finish(server, null, false); return; }
 
         // вышедших с карты (например, кнопка «Вселенные») убираем из матча
         for (UUID id : new ArrayList<>(HUMANS.keySet())) {
@@ -348,7 +400,7 @@ public final class Match {
             if (p == null) { HUMANS.remove(id); continue; }
             if (!Universes.inDust(p)) leave(p, false);
         }
-        if (HUMANS.isEmpty()) { finish(server, null); return; }
+        if (HUMANS.isEmpty()) { finish(server, null, false); return; }
         if (phase == Phase.IDLE) return;
 
         timer--;
@@ -373,21 +425,24 @@ public final class Match {
                 }
             }
             case LIVE -> {
+                liveTicks++;
                 if (timer % 5 == 0) checkRound(server, w);
                 if (phase == Phase.LIVE && timer <= 0 && !planted) endRound(server, Team.CT, "Время вышло");
             }
             case END -> {
                 if (timer <= 0) {
-                    if (over) finish(server, winsT >= WIN_ROUNDS ? Team.T : Team.CT);
-                    else startRound(server, w);
+                    if (over) finish(server, draw ? null : winsT >= WIN_ROUNDS ? Team.T : Team.CT, draw);
+                    else {
+                        if (halftime) swapSides(server);
+                        startRound(server, w);
+                    }
                 }
             }
             default -> { }
         }
         if (phase != Phase.IDLE && server.getTicks() % 10 == 0) updateBar(w);
-        if (phase == Phase.LIVE && server.getTicks() % 10 == 0)
-            for (ServerPlayerEntity p : players(server))
-                p.sendMessage(Text.literal("§7Место: §f" + DustMap.zoneAt(p.getX(), p.getZ())), true);
+        if (phase != Phase.IDLE && server.getTicks() % 10 == 0)
+            for (ServerPlayerEntity p : players(server)) sendState(p);
         if (phase != Phase.IDLE && server.getTicks() % 100 == 0)
             for (ServerPlayerEntity p : players(server)) p.getHungerManager().setFoodLevel(10);
     }
@@ -418,19 +473,194 @@ public final class Match {
 
     private static void endRound(MinecraftServer server, Team winner, String reason) {
         if (phase != Phase.LIVE) return;
+        ServerWorld w = server.getWorld(Universes.DUST);
         phase = Phase.END;
-        timer = END_TICKS;
         if (winner == Team.T) winsT++; else winsCT++;
-        over = winsT >= WIN_ROUNDS || winsCT >= WIN_ROUNDS;
-        if (over) timer = OVER_TICKS;
-        String line = winner.coloredTag() + " §fвыигрывают раунд §7— " + reason + ". §fСчёт §6T " + winsT + " §7: §9" + winsCT + " CT";
-        broadcast(line);
-        title(winner.color + "§l" + winner.title + " побеждают", "§7" + reason);
-        if (over) broadcast("§6§lМатч окончен! §fПобеда: " + winner.coloredTag() + " §7(" + winsT + " : " + winsCT + ")");
+        Team loser = winner.opposite();
+        // деньги: победителям 3250 (3500 за взрыв/разминирование), проигравшим 1400 + 500 за каждое следующее поражение подряд (до 3400)
+        boolean bombWin = reason.startsWith("Бомба");
+        LOSS[winner.ordinal()] = 0;
+        LOSS[loser.ordinal()] = Math.min(5, LOSS[loser.ordinal()] + 1);
+        int winPay = bombWin ? 3500 : 3250;
+        int lossPay = Math.min(3400, 1400 + 500 * (LOSS[loser.ordinal()] - 1)) + (loser == Team.T && planted ? 800 : 0);
+        SURVIVED.clear();
+        LAST_PAY.clear();
+        for (var en : HUMANS.entrySet()) {
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(en.getKey());
+            if (p == null) continue;
+            if (p.isAlive() && !p.isSpectator()) SURVIVED.add(p.getUuid());
+            int pay = en.getValue().team == winner ? winPay : lossPay;
+            LAST_PAY.put(p.getUuid(), pay);
+            addMoney(p, pay);
+        }
+        BOT_MONEY[winner.ordinal()] = Math.min(BuyDefs.MAX_MONEY, BOT_MONEY[winner.ordinal()] + winPay);
+        BOT_MONEY[loser.ordinal()] = Math.min(BuyDefs.MAX_MONEY, BOT_MONEY[loser.ordinal()] + lossPay);
+
+        draw = winsT == DRAW_AT && winsCT == DRAW_AT;
+        over = winsT >= WIN_ROUNDS || winsCT >= WIN_ROUNDS || draw;
+        halftime = !over && round == HALF;
+        timer = over ? OVER_TICKS : halftime ? HALF_TICKS : END_TICKS;
+        broadcast(winner.coloredTag() + " §fвыигрывают раунд §7— " + reason + ". §fСчёт §6T " + winsT + " §7: §9" + winsCT + " CT");
+        if (draw) broadcast("§e§lМатч окончен вничью! §7(" + winsT + " : " + winsCT + ")");
+        else if (over) broadcast("§6§lМатч окончен! §fПобеда: " + winner.coloredTag() + " §7(" + winsT + " : " + winsCT + ")");
+        else if (halftime) broadcast("§e§lПерерыв: смена сторон! §7Деньги обнуляются до $" + BuyDefs.START_MONEY + ", оружие сдаётся.");
+
+        // анимация конца раунда — каждому со своей стороны
+        for (var en : HUMANS.entrySet()) {
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(en.getKey());
+            if (p == null) continue;
+            com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+            boolean won = en.getValue().team == winner;
+            o.addProperty("win", won);
+            o.addProperty("side", en.getValue().team == Team.T ? "t" : "ct");
+            o.addProperty("winner", winner == Team.T ? "t" : "ct");
+            o.addProperty("reason", reason);
+            o.addProperty("wt", winsT);
+            o.addProperty("wct", winsCT);
+            o.addProperty("round", round);
+            o.addProperty("pay", LAST_PAY.getOrDefault(p.getUuid(), 0));
+            o.addProperty("kind", draw ? "draw" : over ? "match" : halftime ? "half" : "round");
+            o.addProperty("ticks", timer);
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mround", o.toString()));
+        }
+        if (w != null) updateBar(w);
+    }
+
+    /** Смена сторон после {@link #HALF}-го раунда: счёт и команды меняются местами, деньги и оружие — с нуля */
+    private static void swapSides(MinecraftServer server) {
+        int t = winsT; winsT = winsCT; winsCT = t;
+        LOSS[0] = LOSS[1] = 0;
+        BOT_MONEY[0] = BOT_MONEY[1] = BuyDefs.START_MONEY;
+        SURVIVED.clear();
+        halftime = false;
+        for (var en : HUMANS.entrySet()) {
+            Human h = en.getValue();
+            h.team = h.team.opposite();
+            MONEY.put(en.getKey(), BuyDefs.START_MONEY);
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(en.getKey());
+            if (p != null) {
+                setSide(p, h.team);
+                p.sendMessage(Text.literal("§e§lСмена сторон! §fТеперь вы играете за " + h.team.coloredTag() + "§f."), false);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- деньги и закупка
+    public static int money(ServerPlayerEntity p) { return MONEY.getOrDefault(p.getUuid(), 0); }
+
+    private static void addMoney(ServerPlayerEntity p, int d) {
+        if (!MONEY.containsKey(p.getUuid())) return;
+        MONEY.put(p.getUuid(), Math.max(0, Math.min(BuyDefs.MAX_MONEY, money(p) + d)));
+    }
+
+    private static String baseInHand(LivingEntity e) {
+        ItemStack st = e.getMainHandStack();
+        if (st.isEmpty()) return null;
+        Identifier id = Registries.ITEM.getId(st.getItem());
+        return com.derevna230.comborush.item.GunDefs.baseOf(id.getPath());
+    }
+
+    /** Награда за убийство: людям — на счёт, ботам — в общий кошелёк стороны */
+    private static void killReward(Entity killer, Team victimTeam) {
+        if (!(killer instanceof LivingEntity le) || phase != Phase.LIVE) return;
+        Team kt = teamOf(killer);
+        if (kt == null || kt == victimTeam) return;
+        int r = BuyDefs.killReward(baseInHand(le));
+        if (killer instanceof ServerPlayerEntity p) addMoney(p, r);
+        else BOT_MONEY[kt.ordinal()] = Math.min(BuyDefs.MAX_MONEY, BOT_MONEY[kt.ordinal()] + r / 2);
+    }
+
+    private static int buyTicksLeft() {
+        if (phase == Phase.FREEZE) return timer + BUY_TICKS;
+        if (phase == Phase.LIVE) return Math.max(0, BUY_TICKS - liveTicks);
+        return 0;
+    }
+
+    private static boolean inBuyZone(ServerPlayerEntity p, Human h) {
+        for (int i = 0; i < TEAM_SIZE; i++) {
+            DustMap.Pt sp = DustMap.spawn(h.team == Team.CT, i);
+            double dx = p.getX() - sp.cx(), dz = p.getZ() - sp.cz();
+            if (dx * dx + dz * dz <= BUY_RADIUS * BUY_RADIUS) return true;
+        }
+        return false;
+    }
+
+    /** null — можно, иначе причина */
+    private static String buyBlock(ServerPlayerEntity p, Human h) {
+        if (h == null) return "Вы не в матче.";
+        if (!p.isAlive() || p.isSpectator()) return "Погибшие не закупаются.";
+        if (buyTicksLeft() <= 0) return "Время закупки вышло.";
+        if (!inBuyZone(p, h)) return "Закупаться можно только на своей базе.";
+        return null;
+    }
+
+    public static void handleNet(ServerPlayerEntity p, com.derevna230.comborush.hud.ShopActionPayload a) {
+        if (a.action().equals("m_buy")) {
+            String err = buy(p, a.c());
+            if (err != null) p.sendMessage(Text.literal("§c" + err), true);
+        }
+        sendState(p);
+    }
+
+    private static String buy(ServerPlayerEntity p, String id) {
+        Human h = HUMANS.get(p.getUuid());
+        String block = buyBlock(p, h);
+        if (block != null) return block;
+        BuyDefs.Entry e = BuyDefs.get(id);
+        if (e == null) return "Такого товара нет.";
+        if (!BuyDefs.allowed(e, h.team)) return e.name() + " — только для " + (e.side() == Team.T ? "террористов" : "спецназа") + ".";
+        if (money(p) < e.price()) return "Не хватает денег: нужно $" + e.price() + ".";
+        var inv = p.getInventory();
+        int slot = e.slot();
+        if (slot == BuyDefs.SLOT_GREN0) {
+            int free = -1, count = 0;
+            for (int i = BuyDefs.SLOT_GREN0; i <= BuyDefs.SLOT_GREN1; i++) {
+                ItemStack st = inv.getStack(i);
+                if (st.isEmpty()) { if (free < 0) free = i; continue; }
+                count++;
+                if (com.derevna230.comborush.item.GunDefs.baseOf(Registries.ITEM.getId(st.getItem()).getPath()).equals(id)) return "Эта граната уже есть.";
+            }
+            if (free < 0 || count >= 4) return "Больше гранат не унести.";
+            slot = free;
+        } else {
+            ItemStack cur = inv.getStack(slot);
+            if (!cur.isEmpty()) {
+                String base = com.derevna230.comborush.item.GunDefs.baseOf(Registries.ITEM.getId(cur.getItem()).getPath());
+                if (base.equals(id)) return "Это уже есть.";
+                if (cur.getItem() instanceof BombItem) return "Слот занят бомбой.";
+                p.dropItem(cur.copy(), false, false);        // старый ствол — на землю (его может подобрать союзник)
+            }
+        }
+        String item = id.equals("defuse_kit") ? "defuse_kit" : Loadout.equipped(p, id);
+        ItemStack st = stackOf(item);
+        if (st.isEmpty()) return "Предмет недоступен.";
+        inv.setStack(slot, st);
+        addMoney(p, -e.price());
+        if (slot <= BuyDefs.SLOT_PISTOL) inv.selectedSlot = slot;
+        p.playerScreenHandler.sendContentUpdates();
+        p.playSoundToPlayer(SoundEvents.ITEM_ARMOR_EQUIP_GENERIC.value(), SoundCategory.PLAYERS, 0.8f, 1.2f);
+        return null;
+    }
+
+    /** Состояние для клиента: деньги, закупка, сторона, место, счёт (каждые полсекунды) */
+    private static void sendState(ServerPlayerEntity p) {
+        Human h = HUMANS.get(p.getUuid());
+        if (h == null || !net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.canSend(p, com.derevna230.comborush.hud.HudPayload.ID)) return;
+        com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+        o.addProperty("money", money(p));
+        o.addProperty("buy", buyTicksLeft());
+        o.addProperty("zone", inBuyZone(p, h));
+        o.addProperty("side", h.team == Team.T ? "t" : "ct");
+        o.addProperty("round", round);
+        o.addProperty("wt", winsT);
+        o.addProperty("wct", winsCT);
+        o.addProperty("place", DustMap.zoneAt(p.getX(), p.getZ()));
+        o.addProperty("phase", phase.name());
+        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mstate", o.toString()));
     }
 
     /** Конец матча: награда, возврат инвентаря, все в меню */
-    private static void finish(MinecraftServer server, Team winner) {
+    private static void finish(MinecraftServer server, Team winner, boolean wasDraw) {
         ServerWorld w = server.getWorld(Universes.DUST);
         BombEntity.LISTENER = null;
         List<ServerPlayerEntity> list = players(server);
@@ -440,6 +670,9 @@ public final class Match {
         for (var en : HUMANS.entrySet()) modes.put(en.getKey(), en.getValue().prev);
         phase = Phase.IDLE;
         HUMANS.clear();
+        MONEY.clear(); SURVIVED.clear();
+        for (ServerPlayerEntity p : list)
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mstate", "{\"off\":true}"));
         if (w != null) cleanMap(w);
         if (bar != null) { bar.clearPlayers(); bar = null; }
         for (ServerPlayerEntity p : list) {
@@ -447,7 +680,7 @@ public final class Match {
             p.removeStatusEffect(StatusEffects.SLOWNESS);
             p.changeGameMode(modes.getOrDefault(p.getUuid(), GameMode.SURVIVAL));
             restore(p);
-            if (winner != null) Standoff.finishMatch(p, teams.get(p.getUuid()) == winner);
+            if (winner != null || wasDraw) Standoff.finishMatch(p, winner != null && teams.get(p.getUuid()) == winner);
             if (p.getWorld().getRegistryKey().equals(Universes.DUST)) Standoff.toMenu(p);
         }
     }
@@ -458,6 +691,7 @@ public final class Match {
             if (phase != Phase.LIVE) return;
             planted = true;
             bombId = bomb.getUuid();
+            if (owner instanceof ServerPlayerEntity sp) addMoney(sp, 300);
             char site = DustMap.siteAt(bomb.getX(), bomb.getZ());
             broadcast("§c§lБомба заложена" + (site == 0 ? "" : " на точке §e" + site + " §7(" + DustMap.zoneAt(bomb.getX(), bomb.getZ()) + ")§c") + "§c! §fСпецназ, обезвреживайте.");
         }
@@ -466,6 +700,7 @@ public final class Match {
         }
         @Override public void defused(ServerWorld w, LivingEntity by) {
             if (phase == Phase.LIVE) { pendingWinner = Team.CT; pendingReason = "Бомба обезврежена"; }
+            if (by instanceof ServerPlayerEntity sp) addMoney(sp, 300);
         }
     };
 
@@ -481,12 +716,14 @@ public final class Match {
         p.changeGameMode(GameMode.SPECTATOR);
         Team t = teamOf(p);
         Entity at = src.getAttacker();
+        killReward(at, t);
         String killer = at == null ? "§7случай" : at.getDisplayName().getString();
         broadcast((t == null ? "" : t.color) + p.getName().getString() + " §7погиб от §f" + killer);
     }
 
     static void onBotKilled(BotEntity bot, DamageSource src) {
         Entity at = src.getAttacker();
+        killReward(at, bot.team());
         String killer = at == null ? "§7случай" : at.getDisplayName().getString();
         broadcast(bot.getDisplayName().getString() + " §7погиб от §f" + killer);
     }
@@ -532,6 +769,6 @@ public final class Match {
     /** Строка состояния для команды /cr match status */
     public static String status() {
         if (phase == Phase.IDLE) return "Матч не идёт.";
-        return "Раунд " + round + ", счёт T " + winsT + " : " + winsCT + " CT, фаза " + phase + ", игроков " + HUMANS.size() + ", ботов " + BOTS.size();
+        return "Раунд " + round + " (до " + WIN_ROUNDS + ", смена сторон после " + HALF + "), счёт T " + winsT + " : " + winsCT + " CT, фаза " + phase + ", игроков " + HUMANS.size() + ", ботов " + BOTS.size();
     }
 }

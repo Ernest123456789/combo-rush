@@ -23,7 +23,8 @@ public class ComboRushClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientPlayNetworking.registerGlobalReceiver(HudPayload.ID, (payload, context) -> HudModel.receive(payload));
         HudRenderCallback.EVENT.register((context, tickCounter) -> HudRenderer.render(context));
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> { HudModel.reset(); HudModel.pockets = java.util.Set.of(); StoryHud.reset(); MusicPlayer.reset(); });
+        HudRenderCallback.EVENT.register((context, tickCounter) -> com.derevna230.comborush.client.match.MatchClient.render(context));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> { HudModel.reset(); com.derevna230.comborush.client.match.MatchClient.receive("mstate", com.google.gson.JsonParser.parseString("{\"off\":true}").getAsJsonObject()); HudModel.pockets = java.util.Set.of(); StoryHud.reset(); MusicPlayer.reset(); });
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(MusicPlayer::tick);
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c -> Hints.tick());
         Hints.register();

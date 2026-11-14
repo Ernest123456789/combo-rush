@@ -8,7 +8,9 @@
     "PlayerArmPoseMixin",
     "LivingSwingMixin",
     "AgentRendererMixin",
-    "LivingRendererAccess"
+    "LivingRendererAccess",
+    "BuyScreenMixin",
+    "ScopeHideMixin"
   ],
   "injectors": {
     "defaultRequire": 0
