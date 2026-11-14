@@ -26,6 +26,57 @@ def eyes_fn(a, c, w, h, col):
             if c == 16: return mul(skin, 0.86)                 # тень под глазом
     return base
 
+def face_fn(beard=False, stubble=False, sunglasses=False, skin='#b98a68', hair='#3a2a1e'):
+    """лицо 32×32: брови, глаза (или очки), нос, рот, щетина/борода"""
+    sk = hexc(skin); hr = hexc(hair)
+    def f(a, c, w, h, col):
+        k = 1.0 + (hsh(a, c, 31) - 0.5) * 0.05
+        if a in (0, 31): k *= 0.85
+        base = mul(sk, k)
+        if c <= 3: return mul(hr, 1 + (hsh(a, c, 32) - .5) * .2)                       # чёлка из-под головного убора
+        if 14 <= a <= 17 and 15 <= c <= 20: base = mul(sk, 1.07 if a in (15, 16) else 0.9)   # нос
+        if c == 21 and 14 <= a <= 17: base = mul(sk, 0.82)
+        if sunglasses and 12 <= c <= 16 and (4 <= a <= 14 or 17 <= a <= 27):
+            lc = hexc('#141618')
+            if (a - c) % 9 in (0, 1) and c < 15: lc = hexc('#4a5a6a')
+            return lc
+        if sunglasses and c == 13 and 14 <= a <= 17: return hexc('#141618')
+        if not sunglasses:
+            if c == 11 and (6 <= a <= 12 or 19 <= a <= 25): return mul(hr, 0.9)       # брови
+            for ex in (6, 19):
+                if ex <= a <= ex + 6:
+                    if c == 13: return hexc('#3b2a20') if ex < a < ex + 6 else mul(sk, 0.75)
+                    if c == 14:
+                        if a in (ex, ex + 6): return mul(sk, 0.78)
+                        if ex + 2 <= a <= ex + 4: return hexc('#20160f') if a == ex + 3 else hexc('#4a6a3a')
+                        return hexc('#e8e2d8')
+                    if c == 15: return mul(sk, 0.85)
+        if 23 <= c <= 24 and 12 <= a <= 19:                                             # рот
+            return mul(hexc('#7a3e32'), 1.0 if c == 23 else 0.85)
+        if beard and c >= 19 and not (c == 23 and 12 <= a <= 19):
+            if c >= 21 or a < 10 or a > 21:
+                return mul(hr, 0.9 + (hsh(a, c, 33) - .5) * .3)
+        if stubble and c >= 20 and hsh(a, c, 34) > 0.55: return mul(sk, 0.72)
+        return base
+    return f
+
+def hair_side(hair='#3a2a1e', rows=10):
+    hr = hexc(hair)
+    def f(a, c, w, h, col):
+        if c < rows: return mul(hr, 1 + (hsh(a, c, 35) - .5) * .2)
+        if 12 <= c <= 19 and 13 <= a <= 18: return mul(col, 0.82)                      # ухо
+        return None
+    return f
+
+def mask_fn(a, c, w, h, col):
+    """противогаз: две круглые линзы и выдох"""
+    for cx in (8, 21):
+        dx, dy = a - cx, c - 6
+        r2 = dx * dx + dy * dy
+        if r2 <= 12: return mix(hexc('#2a3a40'), hexc('#6a8a96'), 0.5 if (dx + dy) < -2 else 0.1)
+        if r2 <= 20: return hexc('#3a3d40')
+    return None
+
 def lens_fn(a, c, w, h, col):
     """очки КТ: две янтарные линзы с бликом (грань 36×8)"""
     if c in (0, h - 1) or a in (0, w - 1): return None
@@ -48,7 +99,7 @@ def laces(a, c, w, h, col):
     return None
 
 # ====================================================================== КТ
-def ct():
+def ct(v='ct'):
     for n, c, k in [('uni', '#334063', 'ripstop'), ('uni_d', '#28324c', 'ripstop'), ('pants', '#414b60', 'ripstop'), ('pants_d', '#343c4e', 'ripstop'),
                     ('gear', '#303236', 'cordura'), ('gear_l', '#42454b', 'cordura'), ('helm', '#363b42', 'poly'), ('helm_d', '#24272b', 'poly'),
                     ('bala', '#1c1e21', 'knit'), ('frame', '#17181a', 'poly'), ('olive', '#575c43', 'poly'), ('olive_d', '#3f432f', 'poly'),
@@ -56,18 +107,42 @@ def ct():
                     ('sole', '#121212', 'rubber'), ('metal', '#8d939a', 'metal'), ('steel_d', '#474c52', 'metal'), ('mag', '#28292b', 'poly'),
                     ('velcro', '#5d6167', 'velcro'), ('blue', '#2f62b8', 'cordura'), ('tq', '#2a2a2a', 'cordura'), ('red', '#9a2b25', 'cordura')]:
         M(n, c, k)
-    m = Model('ct')
+    if v == 'ct_marine':
+        for n, c, k in [('uni', '#5a6a3c', 'camo_w'), ('uni_d', '#4a5632', 'ripstop'), ('pants', '#5a6a3c', 'camo_w'), ('pants_d', '#3f4a2c', 'ripstop'),
+                        ('gear', '#7e6c4a', 'cordura'), ('gear_l', '#9a8660', 'cordura'), ('helm', '#a8936a', 'camo_m'), ('helm_d', '#5d4a32', 'poly'),
+                        ('glove', '#7a6a4c', 'leather'), ('boot', '#6b5236', 'leather'), ('mag', '#3a3428', 'poly'), ('skinc', '#c49572', 'skin')]:
+            M(n, c, k)
+    if v == 'ct_gas':
+        for n, c, k in [('uni', '#23262c', 'ripstop'), ('uni_d', '#1a1c21', 'ripstop'), ('pants', '#2b2f35', 'ripstop'), ('pants_d', '#212429', 'ripstop'),
+                        ('gear', '#4a4e55', 'cordura'), ('gear_l', '#5e636b', 'cordura'), ('helm', '#25282c', 'poly'), ('helm_d', '#1a1c1f', 'poly'),
+                        ('bala', '#141518', 'knit'), ('olive', '#3a3d42', 'poly'), ('olive_d', '#2a2c30', 'poly')]:
+            M(n, c, k)
+    m = Model(v)
     B = m.box
     # ---------------- голова
-    h = B('head', (-4, 4), (-8, 0), (-4, 4), 'bala', 0.92, name='head')
-    h.d('n', 'shade', (-0.5, 0.5), (-3.5, -2.0), 1.12)                       # нос под тканью
-    h.d('n', 'shade', (-1.5, 1.5), (-1.75, -0.75), 0.7)                      # дыхательная сетка
-    for i in range(5): h.d('n', 'px', -1.25 + i * 0.5 + 0.25, -1.25, '#3a3d42')
-    h.d('n', 'shade', (-4, 4), (-0.5, 0), 0.85)
-    g = B('head', (-4.5, 4.5), (-5.5, -3.5), (-4.75, -4.0), 'frame', 0.7, name='goggles')
-    g.d('n', 'fn', lens_fn)
-    g.d('u', 'shade', (-4.5, 4.5), (-4.75, -4.0), 1.2)
-    B('head', (-4.25, 4.25), (-5.25, -4.25), (-4.25, 4.25), 'gear', 0.8, name='gstrap').d('w', 'hline', (-4.25, 4.25), -4.75, 0.75, 2).d('e', 'hline', (-4.25, 4.25), -4.75, 0.75, 2)
+    if v == 'ct_marine':                          # лицо открыто: щетина и тёмные очки
+        h = B('head', (-4, 4), (-8, 0), (-4, 4), 'skinc', 0.92, name='head')
+        h.d('n', 'fn', face_fn(stubble=True, sunglasses=True, skin='#c49572'))
+        for f in ('w', 'e'): h.d(f, 'fn', hair_side('#4a3a28', 9))
+        h.d('s', 'fn', hair_side('#4a3a28', 24))
+        B('head', (-4.25, 4.25), (-5.25, -4.75), (-4.25, -3.75), 'frame', 0.7, name='sgframe')
+    elif v == 'ct_gas':                           # противогаз с фильтром
+        h = B('head', (-4, 4), (-8, 0), (-4, 4), 'bala', 0.92, name='head')
+        mk = B('head', (-3.75, 3.75), (-6.0, -0.25), (-5.0, -4.0), 'rubber', 0.72, name='mask')
+        mk.d('n', 'fn', mask_fn)
+        mk.d('n', 'shade', (-1.0, 1.0), (-2.5, -0.5), 0.75)
+        B('head', (-1.25, 1.25), (-2.75, -0.5), (-6.25, -4.75), 'olive', 0.7, name='filter').d('n', 'fill', (-0.75, 0.75), (-2.25, -1.0), 'olive_d', True, 0.7)
+        B('head', (-4.25, 4.25), (-5.0, -4.25), (-4.25, 4.25), 'rubber', 0.8, name='mstrap')
+    else:
+        h = B('head', (-4, 4), (-8, 0), (-4, 4), 'bala', 0.92, name='head')
+        h.d('n', 'shade', (-0.5, 0.5), (-3.5, -2.0), 1.12)                       # нос под тканью
+        h.d('n', 'shade', (-1.5, 1.5), (-1.75, -0.75), 0.7)                      # дыхательная сетка
+        for i in range(5): h.d('n', 'px', -1.25 + i * 0.5 + 0.25, -1.25, '#3a3d42')
+        h.d('n', 'shade', (-4, 4), (-0.5, 0), 0.85)
+        g = B('head', (-4.5, 4.5), (-5.5, -3.5), (-4.75, -4.0), 'frame', 0.7, name='goggles')
+        g.d('n', 'fn', lens_fn)
+        g.d('u', 'shade', (-4.5, 4.5), (-4.75, -4.0), 1.2)
+        B('head', (-4.25, 4.25), (-5.25, -4.25), (-4.25, 4.25), 'gear', 0.8, name='gstrap').d('w', 'hline', (-4.25, 4.25), -4.75, 0.75, 2).d('e', 'hline', (-4.25, 4.25), -4.75, 0.75, 2)
     sh = B('head', (-4.5, 4.5), (-9, -5.75), (-4.5, 4.75), 'helm', 0.72, name='shell')
     sh.d('n', 'hline', (-4.5, 4.5), -6.0, 0.6).d('n', 'shade', (-4.5, 4.5), (-6.0, -5.75), 0.8)
     for f in ('w', 'e'):
@@ -89,9 +164,10 @@ def ct():
     m.mirror(cup, 'head')
     arm = B('head', (4.5, 5.0), (-6.75, -5.5), (-0.5, 0.5), 'gear', 0.8, name='cuparm')
     m.mirror(arm, 'head')
-    B('head', (5.25, 5.75), (-3.25, -2.75), (-4.25, -0.5), 'gear', 0.75, name='boom')
-    B('head', (1.25, 5.75), (-3.25, -2.75), (-4.75, -4.25), 'gear', 0.75, name='boom2')
-    B('head', (0.5, 1.5), (-3.5, -2.25), (-5.0, -4.5), 'rubber', 0.8, name='mic').d('n', 'shade', (0.5, 1.5), (-3.5, -2.25), 1.25)
+    if v != 'ct_gas':
+        B('head', (5.25, 5.75), (-3.25, -2.75), (-4.25, -0.5), 'gear', 0.75, name='boom')
+        B('head', (1.25, 5.75), (-3.25, -2.75), (-4.75, -4.25), 'gear', 0.75, name='boom2')
+        B('head', (0.5, 1.5), (-3.5, -2.25), (-5.0, -4.5), 'rubber', 0.8, name='mic').d('n', 'shade', (0.5, 1.5), (-3.5, -2.25), 1.25)
     cw = B('head', (-2.25, 2.25), (-8.0, -5.75), (4.75, 5.5), 'gear', 0.7, name='cw')
     cw.d('s', 'molle', (-2.25, 2.25), (-8.0, -5.75)).d('s', 'stitch', (-2.25, 2.25), (-8.0, -5.75), 0.7)
     st = B('head', (0.75, 1.75), (-10.0, -9.5), (1.75, 2.75), 'rubber', 0.8, name='strobe')
@@ -190,7 +266,7 @@ def ct():
     return m
 
 # ====================================================================== Т
-def tt():
+def tt(v='t'):
     for n, c, k in [('jacket', '#8a7656', 'canvas'), ('jacket_d', '#6c5b40', 'canvas'), ('hoodie', '#3c3a39', 'twill'),
                     ('rig', '#5a5a3c', 'canvas'), ('rig_d', '#46462f', 'canvas'), ('akmag', '#8c4b22', 'poly'),
                     ('pants', '#4e493c', 'twill'), ('pants_d', '#3d392f', 'twill'), ('dboot', '#6b4a2c', 'leather'), ('dsole', '#2a221a', 'rubber'),
@@ -198,24 +274,53 @@ def tt():
                     ('shem', '#9e2a26', 'shemagh'), ('glove', '#1f1f1f', 'leather'), ('band', '#b02a22', 'cordura'), ('belt', '#4a3322', 'leather'),
                     ('metal', '#8d939a', 'metal'), ('knee', '#2e2e2b', 'rubber')]:
         M(n, c, k)
-    m = Model('t')
+    if v == 't_merc':
+        for n, c, k in [('jacket', '#26272b', 'twill'), ('jacket_d', '#1c1d20', 'twill'), ('hoodie', '#1c1d20', 'twill'), ('rig', '#7e6c4a', 'cordura'),
+                        ('rig_d', '#64553a', 'cordura'), ('akmag', '#2a2a2a', 'poly'), ('pants', '#3d4f6e', 'twill'), ('pants_d', '#2f3d56', 'twill'),
+                        ('dboot', '#232323', 'leather'), ('cap', '#1e1f22', 'cordura'), ('olive', '#4a4e40', 'poly')]:
+            M(n, c, k)
+    if v == 't_guerrilla':
+        for n, c, k in [('jacket', '#556b3a', 'camo_w'), ('jacket_d', '#3f5030', 'ripstop'), ('hoodie', '#4a4a3a', 'twill'),
+                        ('pants', '#5a4a36', 'twill'), ('pants_d', '#463928', 'twill'), ('dboot', '#4a3424', 'leather'),
+                        ('shem', '#3f5a32', 'shem_g'), ('hat', '#556b3a', 'camo_w')]:
+            M(n, c, k)
+    m = Model(v)
     B = m.box
     # ---------------- голова
-    h = B('head', (-4, 4), (-8, 0), (-4, 4), 'bala', 0.92, name='head')
-    h.d('n', 'fn', eyes_fn)
-    h.d('n', 'shade', (-4, 4), (-3.5, -3.25), 0.8)
-    be = B('head', (-4.25, 4.25), (-8.5, -6.0), (-4.25, 4.25), 'beanie', 0.85, name='beanie')
-    for f in ('n', 's'): be.d(f, 'shade', (-4.25, 4.25), (-8.5, -8.0), 1.1)
-    cu = B('head', (-4.5, 4.5), (-6.5, -5.5), (-4.5, 4.5), 'cuffk', 0.72, name='bcuff')
-    cu.d('n', 'fill', (2.25, 3.5), (-6.25, -5.75), 'rig_d', True, 0.8)        # нашивка-ярлык
-    B('head', (-3.5, 3.5), (-8.75, -8.5), (-3.5, 3.5), 'beanie', 0.85, name='btop')
-    sc = B('head', (-4.5, 4.5), (-3.25, 0.5), (-4.5, 4.5), 'shem', 0.8, name='scarf')
-    for f, hr in (('n', (-4.5, 4.5)), ('s', (-4.5, 4.5)), ('w', (-4.5, 4.5)), ('e', (-4.5, 4.5))):
-        sc.d(f, 'hline', hr, -2.75, 0.72, 3).d(f, 'hline', hr, -0.25, 0.72, 3)
-        sc.d(f, 'shade', hr, (-3.25, -3.0), 1.12)
-    sc.d('n', 'shade', (-1.0, 1.0), (-3.0, -2.0), 1.08)                       # нос под платком
-    s2 = B('head', (-4.75, 4.75), (-1.75, -0.75), (-4.75, 4.75), 'shem', 0.72, name='scarf2')
-    s2.d('w', 'fill', (-1.5, 0.5), (-1.75, 0.0), 'shem', True, 0.7)           # узел сбоку
+    if v == 't_merc':                             # бейсболка, тёмные очки, щетина, гарнитура
+        h = B('head', (-4, 4), (-8, 0), (-4, 4), 'skin', 0.92, name='head')
+        h.d('n', 'fn', face_fn(stubble=True, sunglasses=True, hair='#1e1a16'))
+        for f in ('w', 'e'): h.d(f, 'fn', hair_side('#1e1a16', 10))
+        h.d('s', 'fn', hair_side('#1e1a16', 24))
+        cp = B('head', (-4.25, 4.25), (-8.75, -6.25), (-4.25, 4.25), 'cap', 0.8, name='cap')
+        cp.d('n', 'fill', (-1.0, 1.0), (-8.0, -7.0), 'band', True, 0.75)
+        B('head', (-3.25, 3.25), (-6.75, -6.25), (-7.75, -4.25), 'cap', 0.75, name='brim')
+        B('head', (-5.0, -3.75), (-5.0, -2.5), (-1.25, 1.25), 'olive', 0.72, name='earpiece')
+    elif v == 't_guerrilla':                      # панама, борода, зелёный шемаг на шее
+        h = B('head', (-4, 4), (-8, 0), (-4, 4), 'skin', 0.92, name='head')
+        h.d('n', 'fn', face_fn(beard=True, hair='#2e2216'))
+        for f in ('w', 'e'): h.d(f, 'fn', hair_side('#2e2216', 11))
+        h.d('s', 'fn', hair_side('#2e2216', 24))
+        B('head', (-4.25, 4.25), (-8.75, -6.5), (-4.25, 4.25), 'hat', 0.8, name='crown')
+        B('head', (-6.0, 6.0), (-6.75, -6.25), (-6.0, 6.0), 'hat', 0.75, name='brimw')
+        B('head', (-4.5, 4.5), (-1.25, 0.5), (-4.5, 4.5), 'shem', 0.8, name='neckscarf')
+    else:
+        h = B('head', (-4, 4), (-8, 0), (-4, 4), 'bala', 0.92, name='head')
+        h.d('n', 'fn', eyes_fn)
+        h.d('n', 'shade', (-4, 4), (-3.5, -3.25), 0.8)
+        be = B('head', (-4.25, 4.25), (-8.5, -6.0), (-4.25, 4.25), 'beanie', 0.85, name='beanie')
+        for f in ('n', 's'): be.d(f, 'shade', (-4.25, 4.25), (-8.5, -8.0), 1.1)
+        cu = B('head', (-4.5, 4.5), (-6.5, -5.5), (-4.5, 4.5), 'cuffk', 0.72, name='bcuff')
+        cu.d('n', 'fill', (2.25, 3.5), (-6.25, -5.75), 'rig_d', True, 0.8)        # нашивка-ярлык
+        B('head', (-3.5, 3.5), (-8.75, -8.5), (-3.5, 3.5), 'beanie', 0.85, name='btop')
+    if v == 't':
+      sc = B('head', (-4.5, 4.5), (-3.25, 0.5), (-4.5, 4.5), 'shem', 0.8, name='scarf')
+      for f, hr in (('n', (-4.5, 4.5)), ('s', (-4.5, 4.5)), ('w', (-4.5, 4.5)), ('e', (-4.5, 4.5))):
+          sc.d(f, 'hline', hr, -2.75, 0.72, 3).d(f, 'hline', hr, -0.25, 0.72, 3)
+          sc.d(f, 'shade', hr, (-3.25, -3.0), 1.12)
+      sc.d('n', 'shade', (-1.0, 1.0), (-3.0, -2.0), 1.08)                       # нос под платком
+      s2 = B('head', (-4.75, 4.75), (-1.75, -0.75), (-4.75, 4.75), 'shem', 0.72, name='scarf2')
+      s2.d('w', 'fill', (-1.5, 0.5), (-1.75, 0.0), 'shem', True, 0.7)           # узел сбоку
 
     # ---------------- торс
     t = B('body', (-4, 4), (0, 12), (-2, 2), 'jacket', 0.92, name='torso')
@@ -230,9 +335,10 @@ def tt():
     ho = B('body', (-3.0, 3.0), (-0.5, 2.5), (2.0, 3.25), 'hoodie', 0.8, name='hood')
     ho.d('s', 'hline', (-3.0, 3.0), 1.25, 0.75).d('s', 'shade', (-3.0, 3.0), (2.0, 2.5), 0.8)
     ho.d('u', 'color', (-2.25, 2.25), (2.25, 3.0), '#1b1b1b')
-    for (x0, x1, y0, y1) in ((-2.5, 2.5, 0.5, 1.75), (-1.5, 1.5, 1.75, 2.75), (-0.5, 0.5, 2.75, 3.5)):
-        dr = B('body', (x0, x1), (y0, y1), (-2.75, -2.0), 'shem', 0.75, name='drape')
-    B('body', (0.0, 1.75), (0.5, 4.0), (3.25, 3.75), 'shem', 0.75, name='tail').d('s', 'hline', (0.0, 1.75), 3.5, 0.7)
+    if v != 't_merc':
+        for (x0, x1, y0, y1) in ((-2.5, 2.5, 0.5, 1.75), (-1.5, 1.5, 1.75, 2.75), (-0.5, 0.5, 2.75, 3.5)):
+            dr = B('body', (x0, x1), (y0, y1), (-2.75, -2.0), 'shem', 0.75, name='drape')
+        B('body', (0.0, 1.75), (0.5, 4.0), (3.25, 3.75), 'shem', 0.75, name='tail').d('s', 'hline', (0.0, 1.75), 3.5, 0.7)
     rg = B('body', (-3.75, 3.75), (3.5, 8.25), (-2.75, -2.0), 'rig', 0.75, name='rig')
     rg.d('n', 'stitch', (-3.75, 3.75), (3.5, 8.25), 0.75)
     st = B('body', (-3.25, -2.0), (-0.25, 3.5), (-2.5, 2.25), 'rig', 0.78, name='rstrap')
@@ -258,8 +364,9 @@ def tt():
         if 1 <= a <= w - 3: return mul(hexc('#c9a43a'), 1.15 if c % 3 == 0 else 0.85)
         if a == w - 2: return mul(hexc('#b0683a'), 1.1 if c % 3 == 0 else 0.8)
         return None
-    bd = B('body', (-0.75, 0.75), (-1.0, 12.0), (-2.25, 2.25), 'belt', 0.75, rot=((0, 5.5, 0), (0, 0, 0.53)), name='bando')
-    bd.d('n', 'fn', bullets).d('s', 'fn', bullets)
+    if v != 't_merc':
+        bd = B('body', (-0.75, 0.75), (-1.0, 12.0), (-2.25, 2.25), 'belt', 0.75, rot=((0, 5.5, 0), (0, 0, 0.53)), name='bando')
+        bd.d('n', 'fn', bullets).d('s', 'fn', bullets)
     bl = B('body', (-4.25, 4.25), (9.75, 11.0), (-2.5, 2.5), 'belt', 0.75, name='belt')
     for f in ('n', 's'): bl.d(f, 'hline', (-4.25, 4.25), 10.0, 0.8, 2)
     bk = B('body', (-0.75, 0.75), (9.5, 11.25), (-2.75, -2.5), 'metal', 0.6, name='buckle')
@@ -304,7 +411,8 @@ def tt():
 
 if __name__ == '__main__':
     root = sys.argv[1] if len(sys.argv) > 1 else '../../src/main/resources/assets/combo-rush'
-    for fn in (ct, tt):
+    import functools
+    for fn in (ct, functools.partial(ct, 'ct_marine'), functools.partial(ct, 'ct_gas'), tt, functools.partial(tt, 't_merc'), functools.partial(tt, 't_guerrilla')):
         MATS.clear()
         mdl = fn()
         bad = check(mdl)

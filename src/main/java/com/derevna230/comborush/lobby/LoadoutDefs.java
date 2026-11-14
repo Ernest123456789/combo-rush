@@ -19,6 +19,8 @@ public final class LoadoutDefs {
         List<String> l = new ArrayList<>();
         l.add(KNIFE_SLOT);
         l.add(GLOVES_SLOT);
+        l.add(AgentDefs.SLOT_CT);
+        l.add(AgentDefs.SLOT_T);
         for (GunDefs.Gun g : GunDefs.GUNS) l.add(g.id());
         for (String gr : GRENADES) l.add(gr);
         return l;
@@ -27,6 +29,8 @@ public final class LoadoutDefs {
     /** Предметы слота: первый — стандартный (доступен всегда), остальные нужны в инвентаре */
     public static List<String> candidates(String slot) {
         List<String> l = new ArrayList<>();
+        if (slot.equals(AgentDefs.SLOT_CT)) { l.addAll(AgentDefs.CT); return l; }
+        if (slot.equals(AgentDefs.SLOT_T)) { l.addAll(AgentDefs.T); return l; }
         if (slot.equals(GLOVES_SLOT)) {
             l.addAll(GunDefs.STD_GLOVES);
             for (GunDefs.Skin s : GunDefs.SKINS) if (GunDefs.isGlovesBase(s.base())) l.add(s.id());
@@ -42,6 +46,7 @@ public final class LoadoutDefs {
 
     public static boolean isStandard(String slot, String item) {
         if (slot.equals(GLOVES_SLOT)) return GunDefs.STD_GLOVES.contains(item);
+        if (slot.startsWith("agent_")) return AgentDefs.isAgent(item);          // агенты бесплатные
         return slot.equals(KNIFE_SLOT) ? item.equals("knife_t") || item.equals("knife_ct") : item.equals(slot);
     }
 }

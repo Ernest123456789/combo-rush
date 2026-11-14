@@ -81,6 +81,17 @@ def pat(kind, base, x, y, s):
         elif cx == 2 and cy == 2: c = mix(base, light, 0.45)
         else: c = base
         return mul(c, 1 + n * 0.08 + (vnoise(x, y, s, 6) - 0.5) * 0.16)
+    if kind in ('camo_w', 'camo_m'):              # лесной / мультикам: пятна
+        pal = [hexc('#4a5a32'), hexc('#6b7a44'), hexc('#5a4630'), hexc('#2a2c22')] if kind == 'camo_w' else \
+              [hexc('#a8936a'), hexc('#7c7a52'), hexc('#5d4a32'), hexc('#c4b48c')]
+        v = vnoise(x, y, s, 5) * 0.6 + vnoise(x + 11, y + 5, s + 2, 2.8) * 0.4
+        c = pal[min(3, int(v * 4))]
+        return mul(c, 1 + n * 0.08)
+    if kind == 'shem_g':
+        cx, cy = x % 4, y % 4
+        light = hexc('#c9c2a0')
+        c = mix(base, light, 0.7) if (cx == 0) != (cy == 0) else base
+        return mul(c, 1 + n * 0.08 + (vnoise(x, y, s, 6) - 0.5) * 0.14)
     if kind == 'brass':
         return mul(base, 1 + n * 0.1)
     return mul(base, 1 + n * 0.05)
@@ -301,6 +312,8 @@ def build(model, outdir, texdir):
     os.makedirs(texdir, exist_ok=True); os.makedirs(outdir, exist_ok=True)
     img.save(os.path.join(texdir, 'agent_' + model.id + '.png'))
     js = {'k': K, 'w': TEXW, 'h': th, 'off': {k: list(v) for k, v in OFF.items()}, 'boxes': []}
+    hb = [b for b in model.boxes if b.name == 'head']
+    if hb: js['icon'] = list(hb[0].region('n'))
     for b in model.boxes:
         e = {'b': b.bone, 'uv': [b.u, b.v], 'o': [b.x0, b.y0, b.z0], 's': [b.x1 - b.x0, b.y1 - b.y0, b.z1 - b.z0]}
         if b.rot: e['r'] = list(b.rot[0]) + list(b.rot[1])

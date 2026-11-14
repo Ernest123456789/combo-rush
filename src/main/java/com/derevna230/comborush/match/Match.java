@@ -329,6 +329,7 @@ public final class Match {
                 b.setup(t, buy.gun(RND), t == Team.CT && buy.kit && RND.nextInt(3) > 0, t == Team.T ? (lurk && idx == TEAM_SIZE - 1 ? 'L' : 'A') : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
                 String bn = BOTNAME[t.ordinal()][idx];
                 b.setIdentity(bn);
+                b.setAgent(RND.nextInt(3));
                 b.setCustomName(Text.literal(t.color + "[" + t.tag + "] §fБот " + bn));
                 b.setCustomNameVisible(false);
                 if (t == Team.T && idx == carrier) b.giveBomb();

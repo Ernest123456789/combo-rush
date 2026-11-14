@@ -32,7 +32,9 @@ public final class AgentModels {
     private static final float[][] PIVOTS = {{0, 0, 0}, {0, 0, 0}, {-5, 2, 0}, {5, 2, 0}, {-1.9f, 12, 0}, {1.9f, 12, 0}};
     private static final String[] EMPTY = {"hat", "jacket", "left_sleeve", "right_sleeve", "left_pants", "right_pants", "ear", "cloak"};
 
-    private record Loaded(TexturedModelData data, int k) {}
+    private record Loaded(TexturedModelData data, int k, int[] icon) {}
+
+    public static int[] icon(String id) { return load(id).icon(); }
     private static final Map<String, Loaded> CACHE = new HashMap<>();
 
     private static Loaded load(String id) {
@@ -83,7 +85,9 @@ public final class AgentModels {
             }
         }
         for (String e : EMPTY) root.addChild(e, ModelPartBuilder.create(), ModelTransform.NONE);
-        return new Loaded(TexturedModelData.of(md, w, h), k);
+        int[] icon = {0, 0, 8, 8, w, h};
+        if (js.has("icon")) { JsonArray ic = js.getAsJsonArray("icon"); icon = new int[]{ic.get(0).getAsInt(), ic.get(1).getAsInt(), ic.get(2).getAsInt(), ic.get(3).getAsInt(), w, h}; }
+        return new Loaded(TexturedModelData.of(md, w, h), k, icon);
     }
 
     /** Новая модель бойца ("ct" или "t") для любого существа с телом игрока */

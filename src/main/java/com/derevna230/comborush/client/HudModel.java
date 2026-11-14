@@ -224,6 +224,7 @@ public final class HudModel {
                 case "lobby_game" -> PromptScreen.lobbyGame(o);
                 case "case_key" -> PromptScreen.caseKey(o);
                 case "so" -> StandoffScreen.onPacket(o);
+                case "agents" -> com.derevna230.comborush.client.agent.AgentClient.receive(o);
                 case "mstate", "mround", "mkill", "mtab", "mresult" -> com.derevna230.comborush.client.match.MatchClient.receive(p.kind(), o);
                 case "gun_hit" -> WeaponClient.onHit(o);
                 case "flash" -> WeaponClient.onFlash(o);

@@ -21,13 +21,19 @@ import java.nio.file.Path;
 public final class AgentClient {
     private AgentClient() {}
 
-    private static AgentRenderer ct, t;
+    private static final java.util.Map<String, AgentRenderer> RENDERERS = new java.util.HashMap<>();
+    /** Выбор агентов других игроков: UUID → {t, ct} */
+    private static final java.util.Map<java.util.UUID, String[]> REMOTE = new java.util.HashMap<>();
+    private static String localT = "t", localCT = "ct";
+    /** Показать в меню агента, которого ещё не надели (окно просмотра «Снаряжения») */
+    public static String preview;
     private static Boolean menuCT;
 
     /** Вызывается при перезагрузке рендеров (из фабрики рендера ботов, там есть контекст) */
     public static void init(EntityRendererFactory.Context ctx) {
-        ct = new AgentRenderer(ctx, "ct");
-        t = new AgentRenderer(ctx, "t");
+        RENDERERS.clear();
+        for (String id : com.derevna230.comborush.lobby.AgentDefs.CT) RENDERERS.put(id, new AgentRenderer(ctx, id));
+        for (String id : com.derevna230.comborush.lobby.AgentDefs.T) RENDERERS.put(id, new AgentRenderer(ctx, id));
     }
 
     public static boolean inMode(World w) {
@@ -50,10 +56,41 @@ public final class AgentClient {
     }
 
     public static EntityRenderer<?> rendererFor(AbstractClientPlayerEntity p) {
-        if (ct == null) return null;
+        if (RENDERERS.isEmpty()) return null;
         Boolean s = side(p);
-        return s == null ? null : s ? ct : t;
+        if (s == null) return null;
+        return RENDERERS.getOrDefault(agentFor(p, s), RENDERERS.get(s ? "ct" : "t"));
     }
+
+    private static boolean isLocal(AbstractClientPlayerEntity p) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        return p == mc.player || mc.player != null && p.getUuid().equals(mc.player.getUuid());
+    }
+
+    public static String agentFor(AbstractClientPlayerEntity p, boolean ct) {
+        if (isLocal(p)) {
+            if (preview != null) return preview;
+            return ct ? localCT : localT;
+        }
+        String[] r = REMOTE.get(p.getUuid());
+        return r == null ? (ct ? "ct" : "t") : ct ? r[1] : r[0];
+    }
+
+    public static void setLocal(String t, String ct) {
+        if (t != null && com.derevna230.comborush.lobby.AgentDefs.T.contains(t)) localT = t; else localT = "t";
+        if (ct != null && com.derevna230.comborush.lobby.AgentDefs.CT.contains(ct)) localCT = ct; else localCT = "ct";
+    }
+
+    public static void receive(com.google.gson.JsonObject o) {
+        for (com.google.gson.JsonElement e : o.getAsJsonArray("list")) {
+            com.google.gson.JsonObject j = e.getAsJsonObject();
+            try { REMOTE.put(java.util.UUID.fromString(j.get("u").getAsString()), new String[]{j.get("t").getAsString(), j.get("ct").getAsString()}); }
+            catch (IllegalArgumentException ignored) { }
+        }
+    }
+
+    /** Область лица агента в его текстуре — для значков в «Снаряжении»: {u, v, w, h, texW, texH} */
+    public static int[] icon(String id) { return AgentModels.icon(id); }
 
     // ---- перчатки: что надето в «Снаряжении» (стандартные — по стороне)
     private static String glove;

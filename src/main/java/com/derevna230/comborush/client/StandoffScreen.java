@@ -89,6 +89,7 @@ public class StandoffScreen extends Screen {
         if (o.has("loadout")) for (var e : o.getAsJsonObject("loadout").entrySet()) lo.put(e.getKey(), e.getValue().getAsString());
         loadout = lo;
         com.derevna230.comborush.client.agent.AgentClient.setGlove(lo.getOrDefault(LoadoutDefs.GLOVES_SLOT, ""));
+        com.derevna230.comborush.client.agent.AgentClient.setLocal(lo.get(com.derevna230.comborush.lobby.AgentDefs.SLOT_T), lo.get(com.derevna230.comborush.lobby.AgentDefs.SLOT_CT));
         Set<String> ow = new HashSet<>();
         if (o.has("owned")) for (JsonElement e : o.getAsJsonArray("owned")) ow.add(e.getAsString());
         owned = ow;
@@ -232,7 +233,20 @@ public class StandoffScreen extends Screen {
         return GeoItem.getId(st);
     }
 
-    private static String itemName(String id) { return stackOf(id).getName().getString(); }
+    private static String itemName(String id) {
+        if (com.derevna230.comborush.lobby.AgentDefs.isAgent(id)) return com.derevna230.comborush.lobby.AgentDefs.name(id);
+        return stackOf(id).getName().getString();
+    }
+
+    /** Значок 16×16: предмет или лицо агента */
+    private static void drawIcon(DrawContext c, String id, int x, int y) {
+        if (com.derevna230.comborush.lobby.AgentDefs.isAgent(id)) {
+            int[] ic = com.derevna230.comborush.client.agent.AgentClient.icon(id);
+            c.drawTexture(Identifier.of(ComboRush.MOD_ID, "textures/entity/agent_" + id + ".png"), x, y, 16, 16, ic[0], ic[1], ic[2], ic[3], ic[4], ic[5]);
+            return;
+        }
+        c.drawItem(stackOf(id), x, y);
+    }
 
     /** Проиграть анимацию предмета (осмотр, доставание) на экране */
     private static void play(ItemStack st, String name) {
@@ -559,7 +573,7 @@ public class StandoffScreen extends Screen {
     }
 
     // ================= СНАРЯЖЕНИЕ =================
-    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПП", "ДРОБОВИКИ", "ПИСТОЛЕТЫ", "НОЖИ", "СНАРЯЖЕНИЕ", "ПЕРЧАТКИ"};
+    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПП", "ДРОБОВИКИ", "ПИСТОЛЕТЫ", "НОЖИ", "УТИЛИТЫ", "ПЕРЧАТКИ", "АГЕНТЫ"};
     private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "famas", "scar20");
     private static final Set<String> GEAR = Set.of("taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov");
     private static final Set<String> SMGS = Set.of("p90", "mp9", "mp7", "mac10");
@@ -571,6 +585,7 @@ public class StandoffScreen extends Screen {
     private String lastCardId = "";
 
     private static String slotOf(String item) {
+        if (com.derevna230.comborush.lobby.AgentDefs.isAgent(item)) return com.derevna230.comborush.lobby.AgentDefs.slotOf(item);
         if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton")) return LoadoutDefs.KNIFE_SLOT;
         if (GunDefs.STD_GLOVES.contains(item)) return LoadoutDefs.GLOVES_SLOT;
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return GunDefs.isSpecialKnife(s.base()) ? LoadoutDefs.KNIFE_SLOT : s.base();
@@ -592,6 +607,7 @@ public class StandoffScreen extends Screen {
                 case 5 -> slot.equals(LoadoutDefs.KNIFE_SLOT);
                 case 6 -> GEAR.contains(slot);
                 case 7 -> slot.equals(LoadoutDefs.GLOVES_SLOT);
+                case 8 -> slot.startsWith("agent_");
                 default -> true;
             };
             if (!ok) continue;
@@ -624,16 +640,16 @@ public class StandoffScreen extends Screen {
         // ---- фильтры
         float fx = 8;
         for (int i = 0; i < CATS.length; i++) {
-            float w = textRenderer.getWidth(CATS[i]) * 0.72f + 14;
+            float w = textRenderer.getWidth(CATS[i]) * 0.52f + 7;
             boolean on = cat == i;
             float h = hoverAmt("cat" + i, hitOver(fx, 34, w, 14));
             c.fill((int) fx, 34, (int) (fx + w), 48, on ? 0xFF000000 | GOLD : 0xFF000000 | (0x1A1E28 + ((int) (h * 0x0C) * 0x010101)));
-            text(c, CATS[i], fx + w / 2f, 38, 0.72f, on ? 0xFF10131A : 0xFFC4CCDB, 1);
+            text(c, CATS[i], fx + w / 2f, 39, 0.52f, on ? 0xFF10131A : 0xFFC4CCDB, 1);
             final int ci = i;
             hit(fx, 34, w, 14, () -> { cat = ci; gridScroll = 0; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.5f, 0.35f); });
-            fx += w + 3;
+            fx += w + 2;
         }
-        String[] tg = {sortQuality ? "↓ КАЧЕСТВО" : "↓ ОРУЖИЕ"};
+        String[] tg = {sortQuality ? "↓ РЕДК." : "↓ ТИП"};
         float tx = 294;
         for (int i = tg.length - 1; i >= 0; i--) {
             float w = textRenderer.getWidth(tg[i]) * 0.68f + 12;
@@ -668,7 +684,7 @@ public class StandoffScreen extends Screen {
             m.push();
             m.translate(x + cw / 2f, y + 22, 0);
             m.scale(2.3f, 2.3f, 1f);
-            c.drawItem(stackOf(id), -8, -8);
+            drawIcon(c, id, -8, -8);
             m.pop();
             m.push();
             m.translate(0, 0, 200);                                         // поверх предмета (он рисуется на z = 150)
@@ -726,7 +742,10 @@ public class StandoffScreen extends Screen {
         text(c, worn ? "§a● надето" : ownedNow ? "§7в наличии" : "§cнет в инвентаре", VX + VW / 2f, VY + 150, 0.7f, 0xFFFFFFFF, 1);
         text(c, "ПКМ + мышь — вращать", VX + VW / 2f, VY + 163, 0.58f, 0xFF7C879D, 1);
         drawWeapon(c, item);
-        button(c, "inspect", VX + 8, VY + 174, VW - 16, 14, "Осмотреть  [V]", 0x3A5A8C, this::inspect);
+        if (!com.derevna230.comborush.lobby.AgentDefs.isAgent(item))
+            button(c, "inspect", VX + 8, VY + 174, VW - 16, 14, "Осмотреть  [V]", 0x3A5A8C, this::inspect);
+        else text(c, "§7Бесплатно · " + (com.derevna230.comborush.lobby.AgentDefs.CT.contains(item) ? "§9за спецназ" : "§6за террористов"),
+            VX + VW / 2f, VY + 178, 0.6f, 0xFFFFFFFF, 1);
         boolean can = ownedNow && !worn;
         final String wearItem = item;
         button(c, "wear", VX + 8, VY + 192, VW - 16, 14, worn ? "Надето" : ownedNow ? "Надеть" : "Нет скина",
@@ -735,6 +754,16 @@ public class StandoffScreen extends Screen {
 
     /** Ствол в окне просмотра, повёрнутый на rotY вокруг вертикальной оси */
     private void drawWeapon(DrawContext c, String item) {
+        if (com.derevna230.comborush.lobby.AgentDefs.isAgent(item)) {          // агент — во весь рост, вращается
+            PreviewPlayer p = dummy();
+            if (p == null) return;
+            com.derevna230.comborush.client.agent.AgentClient.preview = item;
+            p.bodyYaw = 180; p.prevBodyYaw = 180; p.headYaw = 180; p.prevHeadYaw = 180; p.setYaw(180); p.setPitch(0);
+            InventoryScreen.drawEntity(c, VX + VW / 2f, VY + 140, 50, new org.joml.Vector3f(),
+                new Quaternionf().rotateZ((float) Math.PI).rotateX(-0.1f).rotateY(rotY), null, p);
+            com.derevna230.comborush.client.agent.AgentClient.preview = null;
+            return;
+        }
         ItemStack st = stackOf(item);
         MatrixStack m = c.getMatrices();
         m.push();

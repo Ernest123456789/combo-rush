@@ -84,16 +84,17 @@ def render(js, tex, yaw=0.0, pitch=0.0, S=12, pose={}, W=None, H=None):
 
 if __name__ == '__main__':
     d = sys.argv[1]; out = sys.argv[2]
+    ids = sys.argv[3].split(',') if len(sys.argv) > 3 else ['ct', 't']
     sheets = []
-    for mid in ('ct', 't'):
+    for mid in ids:
         js = json.load(open(f'{d}/agents/{mid}.json')); tex = Image.open(f'{d}/textures/entity/agent_{mid}.png')
-        views = [render(js, tex, 0, 0), render(js, tex, -0.7, 0.12), render(js, tex, math.pi / 2, 0), render(js, tex, math.pi, 0),
-                 render(js, tex, 0.6, 0.15, pose={'right_arm': (-1.45, -0.3, 0), 'left_arm': (-1.45, 0.6, 0), 'right_leg': (0.5, 0, 0), 'left_leg': (-0.5, 0, 0), 'head': (0.1, 0.25, 0)})]
+        views = [render(js, tex, 0, 0), render(js, tex, -0.7, 0.12), render(js, tex, math.pi, 0)]
         w = sum(v.width for v in views); sh = Image.new('RGB', (w, views[0].height))
         x = 0
         for v in views: sh.paste(v, (x, 0)); x += v.width
         sheets.append(sh)
-    full = Image.new('RGB', (sheets[0].width, sum(s.height for s in sheets)))
-    y = 0
-    for s in sheets: full.paste(s, (0, y)); y += s.height
+    cols = 2
+    rows = (len(sheets) + cols - 1) // cols
+    full = Image.new('RGB', (sheets[0].width * cols, sheets[0].height * rows))
+    for i, s_ in enumerate(sheets): full.paste(s_, ((i % cols) * sheets[0].width, (i // cols) * sheets[0].height))
     full.save(out)

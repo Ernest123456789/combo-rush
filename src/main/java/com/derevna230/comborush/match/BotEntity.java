@@ -51,6 +51,8 @@ import java.util.Map;
  */
 public class BotEntity extends PathAwareEntity {
     private static final TrackedData<Integer> TEAM = DataTracker.registerData(BotEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    /** Какой агент стороны (0..2) — случайный у каждого бота */
+    private static final TrackedData<Integer> AGENT = DataTracker.registerData(BotEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final DustParticleEffect TRACER = new DustParticleEffect(new Vector3f(1.0f, 0.82f, 0.35f), 0.5f);
     private static final int PLANT_TICKS = BombItem.PLANT_TICKS;
 
@@ -100,9 +102,12 @@ public class BotEntity extends PathAwareEntity {
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
         builder.add(TEAM, 0);
+        builder.add(AGENT, 0);
     }
 
     public Team team() { return dataTracker.get(TEAM) == 0 ? Team.T : Team.CT; }
+    public int agent() { return dataTracker.get(AGENT); }
+    public void setAgent(int i) { dataTracker.set(AGENT, i); }
 
     /** Выдать бота: команда, ствол, набор, роль */
     public void setup(Team team, String gunId, boolean kit, char role) {
