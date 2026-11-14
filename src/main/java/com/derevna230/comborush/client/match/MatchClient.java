@@ -120,7 +120,7 @@ public final class MatchClient {
         // закупка
         if (buyTicks > 0) {
             int s = (buyTicks + 19) / 20;
-            String line = zone ? "§e[E]§f Закупка  §7" + s / 60 + ":" + String.format("%02d", s % 60) : "§7Закупка — только на своей базе";
+            String line = zone ? "§e[E]§f Закупка  §7" + s / 60 + ":" + String.format("%02d", s % 60) : "§7Закупка — только на спавне";
             text(c, tr, line, mx, my - 12, 0.85f, 0xFFFFFFFF, 0);
         }
         // место на карте и сторона

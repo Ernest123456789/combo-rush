@@ -106,12 +106,17 @@ public class BombEntity extends Entity {
     public ActionResult interact(PlayerEntity player, Hand hand) {
         if (getWorld().isClient) return ActionResult.SUCCESS;
         if (!(player instanceof ServerPlayerEntity p) || player.isSpectator()) return ActionResult.PASS;
+        if (com.derevna230.comborush.match.Match.teamOf(p) == com.derevna230.comborush.match.Team.T) {
+            p.sendMessage(Text.literal("§cТеррористы не могут обезвреживать бомбу."), true);
+            return ActionResult.SUCCESS;
+        }
         if (!defuseStep(p, hasKit(p))) p.sendMessage(Text.literal("§cЕё уже обезвреживает другой."), true);
         return ActionResult.SUCCESS;
     }
 
     /** Один шаг обезвреживания (игрок — по повторному ПКМ, бот — каждый тик). @return false, если бомбу уже обезвреживает другой */
     public boolean defuseStep(LivingEntity who, boolean kit) {
+        if (com.derevna230.comborush.match.Match.teamOf(who) == com.derevna230.comborush.match.Team.T) return true;   // Т не обезвреживают
         if (defuser == null) {
             defuser = who.getUuid();
             progress = 0;

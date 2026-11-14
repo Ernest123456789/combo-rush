@@ -39,7 +39,9 @@ import java.util.*;
  */
 public class StandoffScreen extends Screen {
     private static final int DW = 420, DH = 250;
-    private static final String[] TABS = {"ГЛАВНАЯ", "СНАРЯЖЕНИЕ", "ОБМЕН", "КАРТЫ", "НАСТРОЙКИ"};
+    private static final String[] TABS = {"ГЛАВНАЯ", "СНАРЯЖЕНИЕ", "ОБМЕН", "РЫНОК", "КАРТЫ", "НАСТРОЙКИ"};
+    /** номера вкладок в TABS → внутренние номера экранов (рынок — 5) */
+    private static final int[] TAB_ID = {0, 1, 2, 5, 3, 4};
     private static final int GOLD = 0xE8B33A, DARK = 0x10131A;
 
     // ---- состояние с сервера
@@ -50,8 +52,13 @@ public class StandoffScreen extends Screen {
     private static volatile String inviteFrom = null;
     private static volatile Map<String, String> loadout = Map.of();
     private static volatile Set<String> owned = Set.of();
+    private static volatile Map<String, Integer> counts = Map.of();         // повторы скинов: показываем ×N
     private static volatile int essence = 0, partyMax = 5;
     private record TStack(String id, String loc, float wf, boolean st) {}
+    private record MLot(int id, String item, float wf, boolean st, int price, String seller, boolean mine) {}
+    private record MMine(String loc, String item, float wf, boolean st, int n, int q) {}
+    private static volatile List<MLot> mLots = List.of();
+    private static volatile List<MMine> mMine = List.of();
     private static volatile List<TStack> tstacks = List.of();                  // скины, которые можно положить в контракт
     private static volatile JsonObject tradedRes = null;                       // итог последнего контракта
     private static volatile long tradedAt = 0;
@@ -84,6 +91,9 @@ public class StandoffScreen extends Screen {
         Set<String> ow = new HashSet<>();
         if (o.has("owned")) for (JsonElement e : o.getAsJsonArray("owned")) ow.add(e.getAsString());
         owned = ow;
+        Map<String, Integer> cn = new HashMap<>();
+        if (o.has("counts")) for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("counts").entrySet()) cn.put(e.getKey(), e.getValue().getAsInt());
+        counts = cn;
         essence = o.has("essence") ? o.get("essence").getAsInt() : 0;
         List<TStack> ts = new ArrayList<>();
         if (o.has("stacks")) for (JsonElement e : o.getAsJsonArray("stacks")) {
@@ -91,6 +101,22 @@ public class StandoffScreen extends Screen {
             ts.add(new TStack(t.get("id").getAsString(), t.get("loc").getAsString(), t.get("wf").getAsFloat(), t.get("st").getAsInt() == 1));
         }
         tstacks = ts;
+        if (o.has("market")) {
+            JsonObject mk = o.getAsJsonObject("market");
+            List<MLot> ml = new ArrayList<>();
+            for (JsonElement e : mk.getAsJsonArray("lots")) {
+                JsonObject j = e.getAsJsonObject();
+                ml.add(new MLot(j.get("id").getAsInt(), j.get("item").getAsString(), j.get("wf").getAsFloat(), j.get("st").getAsInt() == 1,
+                    j.get("price").getAsInt(), j.get("seller").getAsString(), j.get("mine").getAsBoolean()));
+            }
+            List<MMine> mm = new ArrayList<>();
+            for (JsonElement e : mk.getAsJsonArray("mine")) {
+                JsonObject j = e.getAsJsonObject();
+                mm.add(new MMine(j.get("loc").getAsString(), j.get("item").getAsString(), j.get("wf").getAsFloat(), j.get("st").getAsInt() == 1,
+                    j.get("n").getAsInt(), j.get("q").getAsInt()));
+            }
+            mLots = ml; mMine = mm;
+        }
         if (o.has("traded")) {
             tradedRes = o.getAsJsonObject("traded"); tradedAt = System.currentTimeMillis(); clearSel = true;
             HudModel.play(SoundEvents.ENTITY_PLAYER_LEVELUP, 1.0f, 0.9f);
@@ -278,6 +304,7 @@ public class StandoffScreen extends Screen {
         int d = vertical > 0 ? -1 : 1;
         if (tab == 1 && px < 298) gridScroll += d;
         if (tab == 2 && px < 298) tScroll += d;
+        if (tab == 5) { if (px < 209) mScrollL = Math.max(0, mScrollL + d); else mScrollR = Math.max(0, mScrollR + d); }
         if (tab == 0 && px > 296) onlineScroll = Math.max(0, Math.min(Math.max(0, online.size() - 5), onlineScroll + d));
         return true;
     }
@@ -319,6 +346,7 @@ public class StandoffScreen extends Screen {
             case 1 -> drawEquipment(c, now, dt);
             case 2 -> drawTrade(c, now);
             case 3 -> drawMaps(c, now);
+            case 5 -> drawMarket(c, now);
             default -> drawSettings(c);
         }
         drawTopBar(c, now);
@@ -351,14 +379,14 @@ public class StandoffScreen extends Screen {
         // выход
         button(c, "exit", 6, 5, 62, 16, "◀  ЛОББИ", 0x3A4256, () -> { send("so_exit", ""); close(); });
         // вкладки
-        int tw = 58, x0 = 74;
+        int tw = 50, x0 = 72;
         for (int i = 0; i < TABS.length; i++) {
-            final int idx = i;
+            final int idx = TAB_ID[i];
             float x = x0 + i * tw;
-            boolean sel = tab == i;
+            boolean sel = tab == idx;
             float h = hoverAmt("tab" + i, hitOver(x, 0, tw, 26));
             if (sel || h > 0.02f) c.fill((int) x, 0, (int) (x + tw), 26, ((int) ((sel ? 34 : 20 * h)) << 24) | 0xFFFFFF);
-            text(c, TABS[i], x + tw / 2f, 9, 0.9f, sel ? 0xFFFFFFFF : 0xFFA9B4C9, 1);
+            text(c, TABS[i], x + tw / 2f, 9.5f, 0.78f, sel ? 0xFFFFFFFF : 0xFFA9B4C9, 1);
             if (sel) c.fill((int) x + 6, 24, (int) (x + tw - 6), 27, 0xFF000000 | GOLD);
             hit(x, 0, tw, 26, () -> { tab = idx; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.5f);
                 if (idx == 1) { selItem = equippedOf(selSlot); } });
@@ -528,7 +556,7 @@ public class StandoffScreen extends Screen {
                 default -> true;
             };
             if (!ok) continue;
-            for (String id : LoadoutDefs.candidates(slot)) if (!onlyOwned || has(slot, id)) l.add(id);
+            for (String id : LoadoutDefs.candidates(slot)) if (has(slot, id)) l.add(id);          // только то, что есть
         }
         if (sortQuality) l.sort(Comparator.comparingInt((String id) -> -rarRank(rarityOf(id))));
         return l;
@@ -566,7 +594,7 @@ public class StandoffScreen extends Screen {
             hit(fx, 34, w, 14, () -> { cat = ci; gridScroll = 0; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.5f, 0.35f); });
             fx += w + 3;
         }
-        String[] tg = {onlyOwned ? "✔ МОИ" : "☐ МОИ", sortQuality ? "↓ КАЧЕСТВО" : "↓ ОРУЖИЕ"};
+        String[] tg = {sortQuality ? "↓ КАЧЕСТВО" : "↓ ОРУЖИЕ"};
         float tx = 294;
         for (int i = tg.length - 1; i >= 0; i--) {
             float w = textRenderer.getWidth(tg[i]) * 0.68f + 12;
@@ -575,7 +603,7 @@ public class StandoffScreen extends Screen {
             c.fill((int) tx, 34, (int) (tx + w), 48, 0xFF000000 | (0x1A1E28 + ((int) (h * 0x0C) * 0x010101)));
             text(c, tg[i], tx + w / 2f, 38, 0.68f, 0xFFB8C2D6, 1);
             final int ti = i;
-            hit(tx, 34, w, 14, () -> { if (ti == 0) onlyOwned = !onlyOwned; else sortQuality = !sortQuality; gridScroll = 0;
+            hit(tx, 34, w, 14, () -> { sortQuality = !sortQuality; gridScroll = 0;
                 HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.5f, 0.35f); });
             tx -= 3;
         }
@@ -613,6 +641,13 @@ public class StandoffScreen extends Screen {
                 text(c, trim(nm[1], 16), x + cw / 2f, y + ch - 14, 0.62f, 0xFF000000 | rc, 1);
             }
             if (!owns) { c.fill((int) x, (int) y, (int) (x + cw), (int) (y + ch - 3), 0x99000000); drawLock(c, x + cw / 2f, y + 20); }
+            Integer cnt = counts.get(id);
+            if (cnt != null && cnt > 1) {                                   // повторы: ×N
+                String t = "×" + cnt;
+                float tw = textRenderer.getWidth(t) * 0.62f + 5;
+                c.fill((int) x + 2, (int) y + 2, (int) (x + 2 + tw), (int) y + 10, 0xCC000000);
+                text(c, t, x + 4.5f, y + 3, 0.62f, 0xFFFFD27A, 0);
+            }
             if (worn) { c.fill((int) x + cw - 12, (int) y + 2, (int) x + cw - 2, (int) y + 12, 0xFF2F7D4A); text(c, "✔", x + cw - 7, y + 3, 0.7f, 0xFFFFFFFF, 1); }
             m.pop();
             final String pick = id;
@@ -807,6 +842,100 @@ public class StandoffScreen extends Screen {
             text(c, com.derevna230.comborush.item.SkinData.condition(wf) + "  (" + com.derevna230.comborush.item.SkinData.floatText(wf) + ")", 210, 168, 0.68f, 0xFFB8C2D6, 1);
             text(c, "клик — закрыть", 210, 177, 0.55f, 0xFF6F7A90, 1);
             m.pop();
+        }
+    }
+
+    // ================= РЫНОК =================
+    private int mScrollL = 0, mScrollR = 0;
+    private String mListLoc = null, mConfirmLoc = null;
+    private int mListPrice = 0;
+    private long mConfirmAt = 0;
+
+    private static String skinLabel(String item, float wf, boolean st) {
+        String n = (st ? "StatTrak™ " : "") + itemName(item);
+        if (wf >= 0) n += " (" + com.derevna230.comborush.item.SkinData.condShort(wf) + ")";
+        return n;
+    }
+
+    private void drawMarket(DrawContext c, long now) {
+        text(c, "ТОРГОВАЯ ПЛОЩАДКА", 210, 36, 1.1f, 0xFFFFFFFF, 1);
+        text(c, "Скины за эссенцию ✦ между игроками · комиссия 5% · игре можно продать сразу, но дешевле", 210, 48, 0.6f, 0xFF8A94A8, 1);
+        long nowMs = System.currentTimeMillis();
+        // ---- мои скины
+        panel(c, 8, 58, 198, 184);
+        List<MMine> mine = mMine;
+        text(c, "МОИ СКИНЫ  " + mine.size(), 16, 63, 0.75f, 0xFF000000 | GOLD, 0);
+        int rows = mListLoc != null ? 6 : 8;
+        mScrollL = Math.max(0, Math.min(mScrollL, Math.max(0, mine.size() - rows)));
+        if (mine.isEmpty()) text(c, "Скинов нет — они выпадают из кейсов", 107, 120, 0.65f, 0xFF6F7A90, 1);
+        for (int r = 0; r < rows && r + mScrollL < mine.size(); r++) {
+            MMine it = mine.get(r + mScrollL);
+            float x = 12, y = 74 + r * 20;
+            boolean sel = it.loc().equals(mListLoc);
+            c.fill((int) x, (int) y, (int) x + 190, (int) y + 18, sel ? 0xFF2A3446 : 0xFF171C27);
+            c.fill((int) x, (int) y + 17, (int) x + 190, (int) y + 18, 0xFF000000 | rarColor(rarityOf(it.item())));
+            MatrixStack m = c.getMatrices();
+            m.push(); m.translate(x + 9, y + 9, 0); m.scale(0.9f, 0.9f, 1f); c.drawItem(stackOf(it.item()), -8, -8); m.pop();
+            m.push(); m.translate(0, 0, 200);
+            text(c, trim(skinLabel(it.item(), it.wf(), it.st()), 26), x + 20, y + 3, 0.55f, 0xFFE6EAF2, 0);
+            if (it.n() > 1) text(c, "×" + it.n(), x + 20, y + 10.5f, 0.5f, 0xFFFFD27A, 0);
+            m.pop();
+            boolean confirm = it.loc().equals(mConfirmLoc) && nowMs - mConfirmAt < 3000;
+            final MMine fi = it;
+            button(c, "msell" + it.loc(), x + 104, y + 3, 40, 12, confirm ? "ТОЧНО?" : "✦" + it.q(), confirm ? 0x9A3C3C : 0x3A4256, () -> {
+                if (fi.loc().equals(mConfirmLoc) && System.currentTimeMillis() - mConfirmAt < 3000) { send("so_mkt_sell", fi.loc()); mConfirmLoc = null; }
+                else { mConfirmLoc = fi.loc(); mConfirmAt = System.currentTimeMillis(); }
+            });
+            button(c, "mlist" + it.loc(), x + 147, y + 3, 40, 12, "ПРОДАТЬ", 0x2F7D4A, () -> {
+                mListLoc = fi.loc(); mListPrice = Math.max(1, fi.q() * 2);
+            });
+        }
+        text(c, "✦ — продать игре (2 клика) · «ПРОДАТЬ» — выставить на площадку", 107, 197 + (mListLoc != null ? -40 : 0), 0.5f, 0xFF6F7A90, 1);
+        if (mListLoc != null) {
+            MMine it = null;
+            for (MMine x : mine) if (x.loc().equals(mListLoc)) it = x;
+            if (it == null) mListLoc = null;
+            else {
+                float y = 200;
+                c.fill(12, (int) y - 2, 202, (int) y + 40, 0xFF1C2433);
+                text(c, "Цена для «" + trim(itemName(it.item()), 18) + "»:", 16, y + 1, 0.6f, 0xFFB8C2D6, 0);
+                text(c, "✦ " + mListPrice, 196, y, 0.85f, 0xFFD7A8FF, 2);
+                String[] lb = {"−100", "−10", "+10", "+100", "×2"};
+                int[] dv = {-100, -10, 10, 100, 0};
+                for (int i = 0; i < lb.length; i++) {
+                    final int d = dv[i];
+                    button(c, "mp" + i, 16 + i * 31, y + 12, 29, 11, lb[i], 0x3A4256, () ->
+                        mListPrice = Math.max(1, Math.min(com.derevna230.comborush.lobby.SkinMarket.MAX_PRICE, d == 0 ? mListPrice * 2 : mListPrice + d)));
+                }
+                text(c, "вы получите ✦" + Math.max(1, Math.round(mListPrice * 0.95)), 16, y + 28, 0.55f, 0xFF8A94A8, 0);
+                final String loc = it.loc();
+                button(c, "mok", 120, y + 25, 48, 12, "ВЫСТАВИТЬ", 0x2F7D4A, () -> { send("so_mkt_list", loc + "|" + mListPrice); mListLoc = null; });
+                button(c, "mno", 171, y + 25, 27, 12, "✕", 0x6A3030, () -> mListLoc = null);
+            }
+        }
+        // ---- лоты
+        panel(c, 212, 58, 200, 184);
+        List<MLot> lots = mLots;
+        text(c, "ЛОТЫ  " + lots.size(), 220, 63, 0.75f, 0xFF000000 | GOLD, 0);
+        int rr = 8;
+        mScrollR = Math.max(0, Math.min(mScrollR, Math.max(0, lots.size() - rr)));
+        if (lots.isEmpty()) text(c, "Пока никто ничего не выставил", 312, 120, 0.65f, 0xFF6F7A90, 1);
+        for (int r = 0; r < rr && r + mScrollR < lots.size(); r++) {
+            MLot it = lots.get(r + mScrollR);
+            float x = 216, y = 74 + r * 20;
+            c.fill((int) x, (int) y, (int) x + 192, (int) y + 18, it.mine() ? 0xFF1E2A22 : 0xFF171C27);
+            c.fill((int) x, (int) y + 17, (int) x + 192, (int) y + 18, 0xFF000000 | rarColor(rarityOf(it.item())));
+            MatrixStack m = c.getMatrices();
+            m.push(); m.translate(x + 9, y + 9, 0); m.scale(0.9f, 0.9f, 1f); c.drawItem(stackOf(it.item()), -8, -8); m.pop();
+            m.push(); m.translate(0, 0, 200);
+            text(c, trim(skinLabel(it.item(), it.wf(), it.st()), 24), x + 20, y + 3, 0.55f, 0xFFE6EAF2, 0);
+            text(c, (it.mine() ? "§aваш лот" : "§7" + trim(it.seller(), 14)), x + 20, y + 10.5f, 0.5f, 0xFFFFFFFF, 0);
+            m.pop();
+            text(c, "✦" + it.price(), x + 146, y + 5, 0.62f, 0xFFD7A8FF, 2);
+            final int id = it.id();
+            if (it.mine()) button(c, "mc" + id, x + 150, y + 3, 38, 12, "СНЯТЬ", 0x6A3030, () -> send("so_mkt_cancel", String.valueOf(id)));
+            else button(c, "mb" + id, x + 150, y + 3, 38, 12, "КУПИТЬ", essence >= it.price() ? 0x2F7D4A : 0x2A3242,
+                essence >= it.price() ? () -> send("so_mkt_buy", String.valueOf(id)) : null);
         }
     }
 

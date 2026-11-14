@@ -41,6 +41,7 @@ public final class StandoffNet {
             }
             case "so_trade" -> err = !Universes.inStandoff(p) ? "Контракты подписывают в меню «Противостояния»." : SkinTrade.execute(p, a.c());
             case "lobby_play" -> err = Lobby.play(p, a.a());
+            case "so_mkt_sell", "so_mkt_list", "so_mkt_cancel", "so_mkt_buy" -> err = SkinMarket.handle(p, a.action(), a.c());
             default -> { }
         }
         if (err != null) p.sendMessage(Text.literal("§c" + err), true);
@@ -94,7 +95,11 @@ public final class StandoffNet {
         JsonArray owned = new JsonArray();
         for (String id : Loadout.owned(p)) owned.add(id);
         o.add("owned", owned);
+        JsonObject counts = new JsonObject();
+        for (Map.Entry<String, Integer> e : Loadout.ownedCounts(p).entrySet()) if (e.getValue() > 1) counts.addProperty(e.getKey(), e.getValue());
+        o.add("counts", counts);
         o.add("stacks", SkinTrade.stacksJson(p));
+        o.add("market", SkinMarket.json(p));
         JsonObject traded = SkinTrade.takeResult(p.getUuid());
         if (traded != null) o.add("traded", traded);
         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new HudPayload("so", o.toString()));

@@ -37,6 +37,19 @@ public final class Loadout {
         return out;
     }
 
+    /** Сколько штук каждого предмета-оружия у игрока (инвентарь + эндер-сундук) */
+    public static Map<String, Integer> ownedCounts(ServerPlayerEntity p) {
+        Map<String, Integer> out = new HashMap<>();
+        for (Inventory inv : new Inventory[]{p.getInventory(), p.getEnderChestInventory()})
+            for (int i = 0; i < inv.size(); i++) {
+                ItemStack st = inv.getStack(i);
+                if (st.isEmpty()) continue;
+                Identifier id = Registries.ITEM.getId(st.getItem());
+                if (id.getNamespace().equals(ComboRush.MOD_ID)) out.merge(id.getPath(), st.getCount(), Integer::sum);
+            }
+        return out;
+    }
+
     private static void scan(Inventory inv, Set<String> out) {
         for (int i = 0; i < inv.size(); i++) {
             ItemStack st = inv.getStack(i);

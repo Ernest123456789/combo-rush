@@ -56,7 +56,7 @@ public class BuyScreen extends Screen {
 
     @Override
     public void render(DrawContext c, int mouseX, int mouseY, float delta) {
-        if (!MatchClient.inMatch()) { close(); return; }
+        if (!MatchClient.inMatch() || !MatchClient.canBuyNow()) { close(); return; }
         u = Math.min(width / (W + 20), height / (H + 20));
         ox = (width - W * u) / 2f; oy = (height - H * u) / 2f;
         float mx = (mouseX - ox) / u, my = (mouseY - oy) / u;
