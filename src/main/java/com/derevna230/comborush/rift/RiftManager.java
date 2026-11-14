@@ -103,7 +103,7 @@ public final class RiftManager {
             if (eventTicks % 20 == 0 && !SCHEDULE.isEmpty() && eventTicks / 20 >= SCHEDULE.get(0)) {
                 SCHEDULE.remove(0);
                 List<ServerPlayerEntity> ps = new ArrayList<>(server.getPlayerManager().getPlayerList());
-                ps.removeIf(p -> p.isSpectator() || !p.isAlive());
+                ps.removeIf(p -> p.isSpectator() || !p.isAlive() || com.derevna230.comborush.universe.Universes.standoffWorld(p.getWorld()));
                 if (!ps.isEmpty()) open(ps.get(ThreadLocalRandom.current().nextInt(ps.size())));
             }
         }
@@ -112,6 +112,7 @@ public final class RiftManager {
 
     /** Открыть разлом рядом с игроком (также команда /cr rift) */
     public static boolean open(ServerPlayerEntity near) {
+        if (com.derevna230.comborush.universe.Universes.standoffWorld(near.getWorld())) return false;
         ServerWorld w = near.getServerWorld();
         BlockPos pos = findSpot(w, near.getBlockPos());
         if (pos == null) return false;

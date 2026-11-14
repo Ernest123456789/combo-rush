@@ -56,6 +56,7 @@ public class ScoreEngine {
         }
 
         if (CycleManager.phase() != CyclePhase.EVENT) return;
+        if (com.derevna230.comborush.universe.Universes.standoffWorld(player.getWorld())) return;   // в «Противостоянии» событий нет
         if (!prof.started()) { remindStart(player, false); return; }   // забег не начат — очки не идут
 
         EventScore s = get(player.getUuid());
@@ -120,7 +121,7 @@ public class ScoreEngine {
 
     /** Бонусные очки с отдельной строкой в итогах (например, «Разломы») */
     public static void addBonus(ServerPlayerEntity p, double points, String key, String reason) {
-        if (CycleManager.phase() != CyclePhase.EVENT) return;
+        if (CycleManager.phase() != CyclePhase.EVENT || com.derevna230.comborush.universe.Universes.standoffWorld(p.getWorld())) return;
         EventScore s = get(p.getUuid());
         s.score += points;
         s.bySource.merge(key, points, Double::sum);
@@ -129,7 +130,7 @@ public class ScoreEngine {
 
     /** Бонусные очки (например, за убийство охотника), без множителей */
     public static void addBonus(ServerPlayerEntity p, double points) {
-        if (CycleManager.phase() != CyclePhase.EVENT) return;
+        if (CycleManager.phase() != CyclePhase.EVENT || com.derevna230.comborush.universe.Universes.standoffWorld(p.getWorld())) return;
         EventScore s = get(p.getUuid());
         s.score += points;
         s.bySource.merge("BONUS", points, Double::sum);

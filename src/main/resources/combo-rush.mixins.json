@@ -10,7 +10,8 @@
     "AgentRendererMixin",
     "LivingRendererAccess",
     "BuyScreenMixin",
-    "ScopeHideMixin"
+    "ScopeHideMixin",
+    "BossBarFilterMixin"
   ],
   "injectors": {
     "defaultRequire": 0

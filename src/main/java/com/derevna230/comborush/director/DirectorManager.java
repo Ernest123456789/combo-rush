@@ -114,6 +114,7 @@ public class DirectorManager implements SimpleSynchronousResourceReloadListener 
     private static String lastDebuff = "";
 
     public static DebuffDef debuffFor(ServerPlayerEntity p) {
+        if (com.derevna230.comborush.universe.Universes.standoffWorld(p.getWorld())) return null;
         return debuff != null && debuffPlayers.contains(p.getUuid()) ? debuff : null;
     }
     public static boolean hasDebuff(ServerPlayerEntity p, String id) {

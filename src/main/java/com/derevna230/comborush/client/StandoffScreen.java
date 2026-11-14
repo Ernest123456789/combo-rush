@@ -477,30 +477,19 @@ public class StandoffScreen extends Screen {
         p.lastHandSwingProgress = swing; p.handSwingProgress = swing;
         p.setPose(anim.equals("crouch") && t < 1.4 ? EntityPose.CROUCHING : EntityPose.STANDING);
 
-        float cx = ox + 210 * u, top = oy + 32 * u, bottom = oy + 232 * u;
-        float lookX, lookY;
-        float eye = top + 70 * u;
-        if (anim.equals("look") && t < 3.0) { lookX = cx + (float) Math.sin(t * 2.4) * 34f; lookY = eye; }
+        float cx = ox + 210 * u;
+        float lift = (1f - appear) * 12f * u;
+        // голова следит за курсором (или оглядывается в анимации «look»), тело стоит ровно
+        float look, pitch;
+        if (anim.equals("look") && t < 3.0) { look = (float) Math.sin(t * 2.4) * 40f; pitch = 0f; }
         else {
-            lookX = cx + Math.max(-34f, Math.min(34f, (mouseX - cx) * 0.12f));
-            lookY = eye + Math.max(-22f, Math.min(22f, (mouseY - eye) * 0.12f));
+            look = Math.max(-40f, Math.min(40f, (mouseX - cx) / u * 0.35f));
+            pitch = Math.max(-20f, Math.min(20f, (mouseY - (oy + 110 * u)) / u * 0.15f));
         }
-        int half = (int) (115 * u);          // широкое окно: ствол в вытянутых руках не обрезается
-        // подиум-свечение
-        int fy = (int) (bottom - 14 * u);
-        for (int i = 0; i < 6; i++) {
-            int rw = (int) ((62 - i * 8) * u);
-            c.fill((int) cx - rw, fy - i, (int) cx + rw, fy - i + 1, ((int) (22 + i * 6) << 24) | 0x5A7CBF);
-        }
-        float lift = (1f - appear) * 12f;
-        // персонаж повёрнут вправо (лицом к центру), правая рука со стволом ближе к зрителю — ствол в руках виден сбоку; поворот делаем матрицей, а не мышью, чтобы тело не крутило
-        MatrixStack m = c.getMatrices();
-        m.push();
-        m.translate(cx, 0, 0);
-        m.multiply(new Quaternionf().rotationY(0.95f + (float) Math.sin(now / 1.6e9) * 0.05f));
-        m.translate(-cx, 0, 0);
-        InventoryScreen.drawEntity(c, (int) cx - half, (int) (top + lift), (int) cx + half, (int) bottom, (int) (78 * u), 0.0625f, lookX, lookY, p);
-        m.pop();
+        float view = -0.55f + (float) Math.sin(now / 2.2e9) * 0.05f;
+        float body = 180f + 28f;
+        MenuDiorama.draw(c, p, ox + 124 * u, oy + 26 * u, ox + 294 * u, oy + 244 * u, cx + 4 * u, oy + 214 * u + lift, 52 * u,
+            view, body, body - look, pitch);
     }
 
     // ================= СНАРЯЖЕНИЕ =================
@@ -821,19 +810,37 @@ public class StandoffScreen extends Screen {
     }
 
     // ================= КАРТЫ / НАСТРОЙКИ =================
+    private static final Identifier MAP_DUST = Identifier.of(ComboRush.MOD_ID, "textures/gui/map_dust.png");
+
     private void drawMaps(DrawContext c, long now) {
         text(c, "КАРТЫ", 210, 38, 1.2f, 0xFFFFFFFF, 1);
-        text(c, "Выбор карты для матча. Карты добавим позже.", 210, 54, 0.78f, 0xFF8A94A8, 1);
-        String[] names = {"Карта 1", "Карта 2", "Карта 3", "Карта 4"};
-        for (int i = 0; i < 4; i++) {
-            float x = 24 + i * 94, y = 78, w = 86, h = 110;
-            panel(c, (int) x, (int) y, (int) w, (int) h);
-            c.fillGradient((int) x + 4, (int) y + 4, (int) (x + w - 4), (int) (y + 66), 0xFF1A2030, 0xFF0C0F16);
-            for (int k = 0; k < 4; k++) c.fill((int) x + 4, (int) y + 14 + k * 12, (int) (x + w - 4), (int) y + 15 + k * 12, 0x0CFFFFFF);
-            drawLock(c, x + w / 2, y + 36);
-            text(c, names[i], x + w / 2, y + 74, 0.9f, 0xFF8A94A8, 1);
-            text(c, "скоро", x + w / 2, y + 88, 0.72f, 0xFF5A6478, 1);
-        }
+        text(c, "Карты соревновательного режима", 210, 52, 0.72f, 0xFF8A94A8, 1);
+        // «Дюны» — доступна
+        panel(c, 14, 64, 250, 176);
+        c.fill(20, 70, 258, 74, 0xFF000000 | GOLD);
+        c.fill(39, 77, 239, 223, 0xFF000000);
+        c.drawTexture(MAP_DUST, 40, 78, 198, 144, 0f, 0f, 256, 189, 256, 189);
+        text(c, "ДЮНЫ", 22, 227, 1.0f, 0xFFFFFFFF, 0);
+        text(c, "§aдоступна", 256, 228, 0.7f, 0xFFFFFFFF, 2);
+        panel(c, 270, 64, 142, 176);
+        text(c, "ДЮНЫ", 341, 72, 1.0f, 0xFF000000 | GOLD, 1);
+        String[] info = {
+            "§7Режим: §fсоревновательный 5×5",
+            "§7Размер: §f120 × 88 блоков",
+            "§7Матч: §fдо 13 побед, 12:12 — ничья",
+            "§7Смена сторон: §fпосле 10-го раунда",
+            "",
+            "§e● A §7— приподнята на 2 блока:",
+            "§f   балкон, яма, пирамида ящиков",
+            "§e● B §7— утоплена на 2 блока:",
+            "§f   склад, мостик, ящики-ступени",
+            "",
+            "§7Пути: §fЛонг → A, Нижний → B,",
+            "§f   Мид → Развязка → Центр с мостом,",
+            "§f   Склад и Тоннели — крытые"};
+        for (int i = 0; i < info.length; i++) text(c, info[i], 276, 86 + i * 9.5f, 0.6f, 0xFFFFFFFF, 0);
+        button(c, "mapT", 276, 214, 64, 16, "ЗА  T", 0xB5651D, () -> { send("so_play", "t"); close(); });
+        button(c, "mapCT", 342, 214, 64, 16, "ЗА  CT", 0x2F5FA8, () -> { send("so_play", "ct"); close(); });
     }
 
     /** Замок из прямоугольников (в шрифте Minecraft нет значка) */

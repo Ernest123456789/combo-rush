@@ -58,6 +58,10 @@ public final class Universes {
     public static boolean inDust(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(DUST); }
     /** В любой вселенной: Ночной город, Лобби, комната «Противостояния» или карта матча */
     public static boolean inUniverse(ServerPlayerEntity p) { return inCity(p) || inLobby(p) || inStandoff(p) || inDust(p); }
+    /** Мир режима «Противостояние» (меню или карта матча): сюда не приходят события, разломы и их полоски */
+    public static boolean standoffWorld(net.minecraft.world.World w) {
+        return w != null && (w.getRegistryKey().equals(STANDOFF) || w.getRegistryKey().equals(DUST));
+    }
     public static boolean lobbyWorld(net.minecraft.world.World w) { return w.getRegistryKey().equals(LOBBY) || w.getRegistryKey().equals(STANDOFF); }
 
     public static String where(ServerPlayerEntity p) { return inCity(p) ? "city" : inLobby(p) ? "lobby" : inStandoff(p) ? "standoff" : inDust(p) ? "dust" : "home"; }

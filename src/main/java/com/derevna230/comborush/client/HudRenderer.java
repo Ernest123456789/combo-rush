@@ -41,6 +41,7 @@ public final class HudRenderer {
     public static void render(DrawContext c) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (!HudModel.enabled || mc.player == null || mc.options.hudHidden) return;
+        if (com.derevna230.comborush.universe.Universes.standoffWorld(mc.world)) return;     // в «Противостоянии» — только свой HUD матча
         TextRenderer tr = mc.textRenderer;
 
         long now = System.nanoTime();

@@ -102,8 +102,8 @@ public final class MatchClient {
         TextRenderer tr = mc.textRenderer;
         int w = c.getScaledWindowWidth(), h = c.getScaledWindowHeight();
         long now = System.currentTimeMillis();
-        // деньги: слева снизу
-        float mx = 10, my = h - 52;
+        // деньги: справа от хотбара (слева внизу — чат)
+        float mx = w / 2f + 91 + 12, my = h - 26;
         c.fill((int) mx - 4, (int) my - 4, (int) mx + 92, (int) my + 16, 0x90000000);
         c.fill((int) mx - 4, (int) my - 4, (int) mx - 2, (int) my + 16, ct ? 0xFF4A86E8 : 0xFFE0A030);
         text(c, tr, fmtMoney(money), mx + 2, my, 1.5f, 0xFF7CE07C, 0);
@@ -114,14 +114,14 @@ public final class MatchClient {
             float t = (now - p.at()) / 1800f;
             int a = (int) (255 * (1 - t));
             String s = (p.amount() > 0 ? "+" : "") + fmtMoney(p.amount());
-            text(c, tr, s, mx + 2, my - 14 - i * 10 - t * 12, 1f, (a << 24) | (p.amount() > 0 ? 0x7CE07C : 0xE07C7C), 0);
+            text(c, tr, s, mx + 98, my + 2 - i * 10 - t * 12, 1f, (a << 24) | (p.amount() > 0 ? 0x7CE07C : 0xE07C7C), 0);
             i++;
         }
         // закупка
         if (buyTicks > 0) {
             int s = (buyTicks + 19) / 20;
             String line = zone ? "§e[E]§f Закупка  §7" + s / 60 + ":" + String.format("%02d", s % 60) : "§7Закупка — только на своей базе";
-            text(c, tr, line, mx, my + 20, 0.85f, 0xFFFFFFFF, 0);
+            text(c, tr, line, mx, my - 12, 0.85f, 0xFFFFFFFF, 0);
         }
         // место на карте и сторона
         String side = ct ? "§9§lСПЕЦНАЗ" : "§6§lТЕРРОРИСТЫ";

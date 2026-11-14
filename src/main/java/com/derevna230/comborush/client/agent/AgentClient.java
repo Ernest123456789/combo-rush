@@ -44,7 +44,8 @@ public final class AgentClient {
             if (team.getName().equals("cr_t")) return false;
             if (team.getName().equals("cr_ct")) return true;
         }
-        if (p == MinecraftClient.getInstance().player) return menuCT();
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (p == mc.player || mc.player != null && p.getUuid().equals(mc.player.getUuid())) return menuCT();
         return true;
     }
 
