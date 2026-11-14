@@ -133,6 +133,12 @@ new Skin("famas_tundra", "famas", "uncommon"),
         new Skin("skeleton_crimsonweb", "skeleton", "mythic"),
         new Skin("skeleton_heat", "skeleton", "mythic"),
         new Skin("knife_t", "knife", "common"),
+        new Skin("gloves_sport_neon", "gloves", "mythic"),
+        new Skin("gloves_driver_leather", "gloves", "mythic"),
+        new Skin("gloves_moto_carbon", "gloves", "mythic"),
+        new Skin("gloves_tactical_camo", "gloves", "mythic"),
+        new Skin("gloves_wraps_desert", "gloves", "mythic"),
+
         new Skin("knife_ct", "knife", "common"));
 
     /** Базовые id гранат (модель и анимации общие у скинов) */
@@ -144,6 +150,10 @@ new Skin("famas_tundra", "famas", "uncommon"),
         return l;
     }
 
+    public static final String GLOVES = "gloves";
+    /** Стандартные перчатки сторон (не выпадают, доступны всегда) */
+    public static final List<String> STD_GLOVES = List.of("gloves_t", "gloves_ct");
+    public static boolean isGlovesBase(String base) { return base.equals(GLOVES); }
     public static final String KNIFE = "claw";
     public static final String BAYONET = "bayonet";
     public static final String SKELETON = "skeleton";

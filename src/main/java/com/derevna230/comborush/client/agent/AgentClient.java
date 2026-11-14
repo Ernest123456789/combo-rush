@@ -55,6 +55,26 @@ public final class AgentClient {
         return s == null ? null : s ? ct : t;
     }
 
+    // ---- перчатки: что надето в «Снаряжении» (стандартные — по стороне)
+    private static String glove;
+    private static Path gloveFile() { return FabricLoader.getInstance().getConfigDir().resolve("combo-rush-gloves.txt"); }
+
+    public static String gloveFor(boolean ct) {
+        if (glove == null) {
+            glove = "";
+            try { if (Files.exists(gloveFile())) glove = Files.readString(gloveFile()).trim(); } catch (Exception ignored) { }
+        }
+        if (glove.isEmpty() || com.derevna230.comborush.item.GunDefs.STD_GLOVES.contains(glove)) return ct ? "gloves_ct" : "gloves_t";
+        return glove;
+    }
+
+    public static void setGlove(String id) {
+        if (id == null) id = "";
+        if (id.equals(glove)) return;
+        glove = id;
+        try { Files.writeString(gloveFile(), id); } catch (Exception ignored) { }
+    }
+
     // ---- выбор бойца в меню (сохраняется в config/combo-rush-agent.txt)
     private static Path file() { return FabricLoader.getInstance().getConfigDir().resolve("combo-rush-agent.txt"); }
 

@@ -272,5 +272,12 @@
   "item.combo-rush.skeleton_doppler": "Скелетный нож | Допплер",
   "item.combo-rush.skeleton_tiger": "Скелетный нож | Тигровый зуб",
   "item.combo-rush.skeleton_crimsonweb": "Скелетный нож | Багровая паутина",
-  "item.combo-rush.skeleton_heat": "Скелетный нож | Закалка"
+  "item.combo-rush.skeleton_heat": "Скелетный нож | Закалка",
+  "item.combo-rush.gloves_sport_neon": "Спортивные перчатки | Неон",
+  "item.combo-rush.gloves_driver_leather": "Водительские перчатки | Кожа",
+  "item.combo-rush.gloves_moto_carbon": "Мотоперчатки | Карбон",
+  "item.combo-rush.gloves_tactical_camo": "Тактические перчатки | Мультикам",
+  "item.combo-rush.gloves_wraps_desert": "Обмотки | Пустыня",
+  "item.combo-rush.gloves_t": "Перчатки (Т)",
+  "item.combo-rush.gloves_ct": "Перчатки (КТ)"
 }

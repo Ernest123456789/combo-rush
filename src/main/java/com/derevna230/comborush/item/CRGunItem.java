@@ -294,7 +294,10 @@ public class CRGunItem extends Item implements GeoItem {
                     GeoModel<CRGunItem> model = def != null
                         ? new GunGeoModel<>(base, id)
                         : new DefaultedItemGeoModel<>(Identifier.of(ComboRush.MOD_ID, "weapon/" + id));
-                    this.renderer = new GeoItemRenderer<CRGunItem>(model) {
+                    com.derevna230.comborush.client.FpHands.Mode hm = def == null ? null
+                        : java.util.Set.of("glock18", "usp", "fiveseven", "deagle", "revolver", "taser").contains(base)
+                        ? com.derevna230.comborush.client.FpHands.Mode.PISTOL : com.derevna230.comborush.client.FpHands.Mode.RIFLE;
+                    this.renderer = new com.derevna230.comborush.client.HandsItemRenderer<CRGunItem>(model, hm) {
                         @Override
                         public Color getRenderColor(CRGunItem animatable, float partialTick, int packedLight) {
                             return Color.ofOpaque(SkinData.tint(getCurrentItemStack()));       // износ темнит скин

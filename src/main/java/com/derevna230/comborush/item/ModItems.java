@@ -248,8 +248,10 @@ public final class ModItems {
         addKnife(GunDefs.SKELETON, "mythic");
         for (CRGrenadeItem.Kind k : CRGrenadeItem.Kind.values())
             GRENADES.put(k, register(k.id, new CRGrenadeItem(k, new Item.Settings().maxCount(4).rarity(Rarity.UNCOMMON).fireproof(), k.id)));
+        for (String g : GunDefs.STD_GLOVES) register(g, new GlovesItem(g, settings("common")));
         for (GunDefs.Skin sk : GunDefs.SKINS) {
-            if (GunDefs.isGrenadeBase(sk.base())) addGrenadeSkin(sk);
+            if (GunDefs.isGlovesBase(sk.base())) { Item it = register(sk.id(), new GlovesItem(sk.id(), settings(sk.rarity()).fireproof())); track(sk.id(), it, sk.rarity(), "gloves"); }
+            else if (GunDefs.isGrenadeBase(sk.base())) addGrenadeSkin(sk);
             else if (GunDefs.isKnifeBase(sk.base())) addKnife(sk.id(), sk.rarity());
             else addGun(sk.id(), sk.rarity(), GunDefs.gun(sk.base()));
         }

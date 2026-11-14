@@ -54,7 +54,8 @@ public class CRKnifeItem extends CRSwordItem implements GeoItem {
 
             @Override
             public BuiltinModelItemRenderer getGeoItemRenderer() {
-                if (this.renderer == null) this.renderer = new GeoItemRenderer<CRKnifeItem>(new GunGeoModel<CRKnifeItem>(base, id)) {
+                if (this.renderer == null) this.renderer = new com.derevna230.comborush.client.HandsItemRenderer<CRKnifeItem>(new GunGeoModel<CRKnifeItem>(base, id),
+                        com.derevna230.comborush.client.FpHands.Mode.KNIFE) {
                     @Override
                     public Color getRenderColor(CRKnifeItem animatable, float partialTick, int packedLight) {
                         return Color.ofOpaque(SkinData.tint(getCurrentItemStack()));       // износ темнит скин

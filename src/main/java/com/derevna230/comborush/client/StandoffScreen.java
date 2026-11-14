@@ -88,6 +88,7 @@ public class StandoffScreen extends Screen {
         Map<String, String> lo = new HashMap<>();
         if (o.has("loadout")) for (var e : o.getAsJsonObject("loadout").entrySet()) lo.put(e.getKey(), e.getValue().getAsString());
         loadout = lo;
+        com.derevna230.comborush.client.agent.AgentClient.setGlove(lo.getOrDefault(LoadoutDefs.GLOVES_SLOT, ""));
         Set<String> ow = new HashSet<>();
         if (o.has("owned")) for (JsonElement e : o.getAsJsonArray("owned")) ow.add(e.getAsString());
         owned = ow;
@@ -522,7 +523,7 @@ public class StandoffScreen extends Screen {
     }
 
     // ================= СНАРЯЖЕНИЕ =================
-    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПП", "ДРОБОВИКИ", "ПИСТОЛЕТЫ", "НОЖИ", "СНАРЯЖЕНИЕ"};
+    private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПП", "ДРОБОВИКИ", "ПИСТОЛЕТЫ", "НОЖИ", "СНАРЯЖЕНИЕ", "ПЕРЧАТКИ"};
     private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "famas", "scar20");
     private static final Set<String> GEAR = Set.of("taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov");
     private static final Set<String> SMGS = Set.of("p90", "mp9", "mp7", "mac10");
@@ -535,6 +536,7 @@ public class StandoffScreen extends Screen {
 
     private static String slotOf(String item) {
         if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton")) return LoadoutDefs.KNIFE_SLOT;
+        if (GunDefs.STD_GLOVES.contains(item)) return LoadoutDefs.GLOVES_SLOT;
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return GunDefs.isSpecialKnife(s.base()) ? LoadoutDefs.KNIFE_SLOT : s.base();
         return item;
     }
@@ -553,6 +555,7 @@ public class StandoffScreen extends Screen {
                 case 4 -> PISTOLS.contains(slot);
                 case 5 -> slot.equals(LoadoutDefs.KNIFE_SLOT);
                 case 6 -> GEAR.contains(slot);
+                case 7 -> slot.equals(LoadoutDefs.GLOVES_SLOT);
                 default -> true;
             };
             if (!ok) continue;

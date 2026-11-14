@@ -177,7 +177,8 @@ public class CRGrenadeItem extends Item implements GeoItem {
 
             @Override
             public BuiltinModelItemRenderer getGeoItemRenderer() {
-                if (this.renderer == null) this.renderer = new GeoItemRenderer<CRGrenadeItem>(new GunGeoModel<CRGrenadeItem>(baseId, id));
+                if (this.renderer == null) this.renderer = new com.derevna230.comborush.client.HandsItemRenderer<CRGrenadeItem>(new GunGeoModel<CRGrenadeItem>(baseId, id),
+                        com.derevna230.comborush.client.FpHands.Mode.GRENADE);
                 return this.renderer;
             }
         });
