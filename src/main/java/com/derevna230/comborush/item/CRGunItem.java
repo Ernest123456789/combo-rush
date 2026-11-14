@@ -183,6 +183,7 @@ public class CRGunItem extends Item implements GeoItem {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         Map<LivingEntity, Float> hits = new LinkedHashMap<>();
         boolean head = false;
+        com.derevna230.comborush.match.HitBoxes.Part lastPart = null;
         double spread = modern ? spreadNow : this.spread;
 
         for (int i = 0; i < pellets; i++) {
@@ -190,10 +191,9 @@ public class CRGunItem extends Item implements GeoItem {
             Vec3d end = eye.add(dir.multiply(range));
             BlockHitResult bh = w.raycast(new RaycastContext(eye, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, p));
             Vec3d stop = bh.getType() == HitResult.Type.MISS ? end : bh.getPos();
-            EntityHitResult eh = ProjectileUtil.raycast(p, eye, stop, p.getBoundingBox().stretch(dir.multiply(range)).expand(1.0),
-                e -> e instanceof LivingEntity && e.isAlive() && e != p && !(e instanceof CRPetEntity) && !e.isSpectator(),
-                eye.squaredDistanceTo(stop));
-            Vec3d hitPos = eh != null ? eh.getPos() : stop;
+            com.derevna230.comborush.match.HitBoxes.Hit eh = com.derevna230.comborush.match.HitBoxes.trace(w, p, eye, stop,
+                e -> e instanceof LivingEntity && e.isAlive() && e != p && !(e instanceof CRPetEntity) && !e.isSpectator());
+            Vec3d hitPos = eh != null ? eh.pos() : stop;
             double dist = eye.distanceTo(hitPos);
             if (modern) {
                 // трассер: короткие жёлтые искры вдоль луча
@@ -208,10 +208,11 @@ public class CRGunItem extends Item implements GeoItem {
                 }
             }
             if (eh != null) {
-                Entity e = eh.getEntity();
-                boolean hs = modern && hitPos.y >= e.getY() + e.getHeight() * 0.8;
+                LivingEntity e = eh.entity();
+                boolean hs = modern && eh.part() == com.derevna230.comborush.match.HitBoxes.Part.HEAD;
                 head |= hs;
-                hits.merge((LivingEntity) e, hs ? damage * 2f : damage, Float::sum);
+                if (modern) lastPart = eh.part();
+                hits.merge(e, modern ? damage * eh.part().mult : damage, Float::sum);
                 w.spawnParticles(ParticleTypes.CRIT, hitPos.x, hitPos.y, hitPos.z, 6, 0.1, 0.1, 0.1, 0.2);
             } else if (bh.getType() != HitResult.Type.MISS) {
                 w.spawnParticles(ParticleTypes.POOF, stop.x, stop.y, stop.z, 2, 0.05, 0.05, 0.05, 0.01);
@@ -228,7 +229,7 @@ public class CRGunItem extends Item implements GeoItem {
             }
         }
         if (modern && !hits.isEmpty() && HudSync.has(p))
-            ServerPlayNetworking.send(p, new HudPayload("gun_hit", head ? "{\"h\":1}" : "{\"h\":0}"));
+            ServerPlayNetworking.send(p, new HudPayload("gun_hit", "{\"h\":" + (head ? 1 : 0) + ",\"p\":\"" + (lastPart == null ? "" : lastPart.title) + "\"}"));
 
         Vec3d up = new Vec3d(0, 1, 0);
         Vec3d right = look.crossProduct(up).normalize();

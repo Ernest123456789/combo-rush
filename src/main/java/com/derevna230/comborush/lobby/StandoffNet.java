@@ -30,8 +30,9 @@ public final class StandoffNet {
             case "so_kick" -> err = Party.kick(p, a.c());
             case "so_exit" -> err = Standoff.exit(p);
             case "so_play" -> {
-                com.derevna230.comborush.match.Team team = com.derevna230.comborush.match.Team.parse(a.c());
-                err = team == null ? "Выберите команду: T или CT." : com.derevna230.comborush.match.Match.start(p, team);
+                String[] tm = a.c().split("\\|");                 // "t" или "t|medina"
+                com.derevna230.comborush.match.Team team = com.derevna230.comborush.match.Team.parse(tm[0]);
+                err = team == null ? "Выберите команду: T или CT." : com.derevna230.comborush.match.Match.start(p, team, tm.length > 1 ? tm[1] : "dust");
             }
             case "so_equip" -> {
                 int i = a.c().indexOf('|');

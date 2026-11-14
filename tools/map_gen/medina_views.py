@@ -19,7 +19,8 @@ BASE = {'mass_a': (205, 178, 128), 'mass_b': (190, 160, 112), 'mass_c': (214, 19
         'prop_bus': (220, 190, 60), 'prop_cart': (130, 92, 60), 'prop_stone': (160, 160, 160), 'prop_car': (70, 90, 120), 'prop_wood': (150, 110, 70),
         'prop_hedge': (60, 120, 50), 'pillar': (230, 214, 170), 'pillar_tun': (110, 104, 100),
         'awn_red': (200, 60, 50), 'awn_blue': (60, 100, 190), 'awn_green': (70, 150, 80), 'awn_yellow': (230, 190, 60)}
-COLS = np.array([(0, 0, 0)] + [BASE.get(n, (255, 0, 255)) for n in NAMES[1:]], dtype=np.float32)
+BASE['lamp'] = (255, 245, 190)
+COLS = np.array([(0, 0, 0)] + [BASE.get('stair' if n.startswith('stair_') else n, (255, 0, 255)) for n in NAMES[1:]], dtype=np.float32)
 
 def shade(c, k): return tuple(int(max(0, min(255, v * k))) for v in c)
 
@@ -198,7 +199,7 @@ def section(axis, at, rng_, title, labels):
             X0 = 60 + i * S; Y0 = 40 + (yh - y) * S
             if v == 0: c = (34, 44, 62) if y > 0 else (26, 30, 40)
             else:
-                n = NAMES[v]; c = BASE.get(n, (255, 0, 255))
+                n = NAMES[v]; c = BASE.get('stair' if n.startswith('stair_') else n, (255, 0, 255))
                 if n.startswith('mass') or n in ('rock',): c = (70, 62, 52)
             d.rectangle([X0, Y0, X0 + S - 1, Y0 + S - 1], fill=c)
     for y in range(yl, yh + 1, 2):

@@ -34,6 +34,7 @@ public final class Universes {
     public static final RegistryKey<World> STANDOFF = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "standoff"));
     /** Тестовая карта «Дюны» для матчей «Противостояния» */
     public static final RegistryKey<World> DUST = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "dust"));
+    public static final RegistryKey<World> MEDINA = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(ComboRush.MOD_ID, "medina"));
 
     /** Откуда игрок вошёл: «мир|x|y|z|yaw|pitch» — туда он вернётся при выходе */
     private static final AttachmentType<String> RETURN = AttachmentRegistry.create(
@@ -55,12 +56,13 @@ public final class Universes {
     public static boolean inCity(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(NIGHT_CITY); }
     public static boolean inLobby(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(LOBBY); }
     public static boolean inStandoff(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(STANDOFF); }
-    public static boolean inDust(ServerPlayerEntity p) { return p.getWorld().getRegistryKey().equals(DUST); }
+    /** На карте матча (любой) */
+    public static boolean inDust(ServerPlayerEntity p) { return GameMaps.isMatchWorld(p.getWorld().getRegistryKey()); }
     /** В любой вселенной: Ночной город, Лобби, комната «Противостояния» или карта матча */
     public static boolean inUniverse(ServerPlayerEntity p) { return inCity(p) || inLobby(p) || inStandoff(p) || inDust(p); }
     /** Мир режима «Противостояние» (меню или карта матча): сюда не приходят события, разломы и их полоски */
     public static boolean standoffWorld(net.minecraft.world.World w) {
-        return w != null && (w.getRegistryKey().equals(STANDOFF) || w.getRegistryKey().equals(DUST));
+        return w != null && (w.getRegistryKey().equals(STANDOFF) || GameMaps.isMatchWorld(w.getRegistryKey()));
     }
     public static boolean lobbyWorld(net.minecraft.world.World w) { return w.getRegistryKey().equals(LOBBY) || w.getRegistryKey().equals(STANDOFF); }
 

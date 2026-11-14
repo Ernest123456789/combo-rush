@@ -33,7 +33,7 @@ public final class AgentClient {
     public static boolean inMode(World w) {
         if (w == null) return false;
         RegistryKey<World> k = w.getRegistryKey();
-        return k.equals(Universes.STANDOFF) || k.equals(Universes.DUST);
+        return k.equals(Universes.STANDOFF) || com.derevna230.comborush.universe.GameMaps.isMatchWorld(k);
     }
 
     /** null — обычный игрок; true — спецназ (КТ); false — боевик (Т) */

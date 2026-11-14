@@ -38,6 +38,7 @@ public final class WeaponClient {
     private static int shotIdx = 0, lastShotTick = -100;
     private static int hitTicks = 0;
     private static boolean hitHead = false;
+    private static String hitPart = "";
     private static int grenadeBusyUntil = 0;
     private static int flashLeft = 0, flashTotal = 1;
 
@@ -57,6 +58,7 @@ public final class WeaponClient {
     public static void onHit(JsonObject o) {
         hitTicks = 8;
         hitHead = o.has("h") && o.get("h").getAsInt() == 1;
+        hitPart = o.has("p") ? o.get("p").getAsString() : "";
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player != null) mc.player.playSoundToPlayer(hitHead ? SoundEvents.ENTITY_PLAYER_LEVELUP : SoundEvents.ENTITY_ARROW_HIT_PLAYER,
             net.minecraft.sound.SoundCategory.PLAYERS, hitHead ? 0.35f : 0.5f, hitHead ? 2.0f : 1.4f);
@@ -233,6 +235,10 @@ public final class WeaponClient {
                 c.fill(cx + i, cy - i - 1, cx + i + 1, cy - i, col);
                 c.fill(cx - i - 1, cy + i, cx - i, cy + i + 1, col);
                 c.fill(cx + i, cy + i, cx + i + 1, cy + i + 1, col);
+            }
+            if (!hitPart.isEmpty()) {                       // куда попали: голова / грудь / живот / рука / нога
+                var tr0 = mc.textRenderer;
+                c.drawText(tr0, hitPart, cx - tr0.getWidth(hitPart) / 2, cy + 12, col, true);
             }
         }
         if (g == null) return;

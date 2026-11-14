@@ -51,7 +51,8 @@ def put(cl, y0, y1, name):
     for x, z in cl: M[x, z, Y(y0):Y(y1) + 1] = i
 
 STAIR = set()
-def stairs(x0, x1, z0, z1, d, base, n, mat='stair'):
+def stairs(x0, x1, z0, z1, d, base, n, mat=None):
+    mat = mat or 'stair_' + d
     """n ступеней вверх в сторону d; нижняя ступень на уровне base+1. Под ступенями — сплошное, над ними — 3 блока воздуха"""
     for i in range(n):
         if d == 'e': cl = rect(x0 + i, x0 + i, z0, z1)
@@ -104,8 +105,14 @@ for bx in range(0, GW, 9):
 M[:, :, :Y(-6) + 1] = mid('rock')
 
 ZONES = {}   # имя → (клетки, уровень пола)
+ZPOLY = {}
 def Z(name, poly, floor, top, fl='sand'):
-    cl = cells(poly) if isinstance(poly[0], tuple) and len(poly) > 2 and not isinstance(poly, range) else poly
+    is_poly = len(poly) <= 12 and all(isinstance(p, tuple) for p in poly) and name not in ('Колодец', 'Переход')
+    cl = cells(poly) if is_poly else poly
+    if is_poly: ZPOLY[name] = poly
+    else:
+        xs = [c[0] for c in cl]; zs = [c[1] for c in cl]
+        ZPOLY[name] = [(min(xs), min(zs)), (max(xs) + 1, min(zs)), (max(xs) + 1, max(zs) + 1), (min(xs), max(zs) + 1)]
     carve(cl, floor, top, fl); ZONES[name] = (cl, floor); return cl
 
 OPEN = YMAX
@@ -181,6 +188,11 @@ air(rect(117, 119, 100, 104), 4, 5)
 air(rect(117, 120, 98, 102), -1, 0)
 # окно из Лестницы на площадку А не нужно: Лестница сама выходит на А
 
+# ------------------------------------------------------------- свет под крышами: фонари в потолке
+for n, (y0, y1) in (('Тоннели', (-4, -1)), ('Нижние тоннели', (-4, -1)), ('Колодец', (-4, -1)), ('Переулок', (0, 4)), ('Кухня', (0, 3)),
+                     ('Склад Б', (-2, 2)), ('Склад Б (2 этаж)', (3, 7)), ('Переход', (0, 4))):
+    for x, z in ZONES[n][0]:
+        if x % 5 == 2 and z % 5 == 2 and M[x, z, Y(y1) + 1] != 0: M[x, z, Y(y1) + 1] = mid('lamp')
 # ------------------------------------------------------------- бортики и перила
 parapet(BAL, 8, every=3)
 parapet(GAL, 4, every=3)

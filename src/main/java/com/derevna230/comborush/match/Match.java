@@ -8,7 +8,8 @@ import com.derevna230.comborush.lobby.Loadout;
 import com.derevna230.comborush.lobby.Party;
 import com.derevna230.comborush.lobby.Standoff;
 import com.derevna230.comborush.pet.ModEntities;
-import com.derevna230.comborush.universe.DustMap;
+import com.derevna230.comborush.universe.GameMap;
+import com.derevna230.comborush.universe.GameMaps;
 import com.derevna230.comborush.universe.Universes;
 import com.mojang.serialization.Codec;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -60,8 +61,8 @@ public final class Match {
 
     public static final int TEAM_SIZE = 5, WIN_ROUNDS = 13, HALF = 10, DRAW_AT = 12;
     private static final int FREEZE_TICKS = 12 * 20, ROUND_TICKS = 115 * 20, END_TICKS = 5 * 20, HALF_TICKS = 8 * 20, OVER_TICKS = 8 * 20;
-    /** Закупка: вся заморозка + столько тиков после начала боя, и только у своей базы */
-    private static final int BUY_TICKS = 20 * 20;
+    /** Закупка: 30 с от начала раунда (заморозка + остаток после старта), и только у своей базы */
+    private static final int BUY_TICKS = 30 * 20 - FREEZE_TICKS;
     private static final double BUY_RADIUS = 13;
     /** Урон ботов относительно «человеческого» урона ствола */
     public static final float BOT_DAMAGE = 0.9f;
@@ -69,7 +70,7 @@ public final class Match {
     private enum Phase { IDLE, FREEZE, LIVE, END }
 
     private static final class Human {
-        Team team; GameMode prev; double sx, sz; float yaw;
+        Team team; GameMode prev; double sx, sy, sz; float yaw;
         Human(Team t, GameMode prev) { this.team = t; this.prev = prev; }
     }
 
@@ -94,6 +95,47 @@ public final class Match {
     private static ServerBossBar bar;
     private static final Random RND = new Random();
     private static int botSerial;
+    /** Карта текущего (или последнего) матча */
+    private static GameMap map = GameMaps.dust();
+    public static GameMap map() { return map; }
+
+    // ---- координация ботов: занятые позиции, разведданные, сбор Т перед заходом
+    private static final Map<String, UUID> CLAIMS = new HashMap<>();
+    private static final char[] ALERT = new char[2];
+    private static final int[] ALERT_AT = {-9999, -9999};
+    private static final Set<UUID> T_READY = new HashSet<>();
+    private static boolean tGo;
+    private static int aliveTBots;
+
+    /** Занять точку (false — её уже держит другой бот) */
+    public static boolean claim(String key, UUID who) {
+        UUID c = CLAIMS.get(key);
+        if (c != null && !c.equals(who)) return false;
+        CLAIMS.values().removeIf(who::equals);
+        CLAIMS.put(key, who);
+        return true;
+    }
+    public static boolean claimedByOther(String key, UUID who) { UUID c = CLAIMS.get(key); return c != null && !c.equals(who); }
+    public static void release(UUID who) { CLAIMS.values().removeIf(who::equals); }
+
+    /** Кто-то из стороны {@code by} заметил противника в точке pos: если рядом площадка — сторона знает, куда идут */
+    public static void spotted(Team by, net.minecraft.util.math.Vec3d pos) {
+        for (char c : new char[]{'A', 'B'}) {
+            double[] sc = map.siteCenter(c);
+            double dx = pos.x - sc[0], dz = pos.z - sc[1];
+            if (dx * dx + dz * dz < 30 * 30) { ALERT[by.ordinal()] = c; ALERT_AT[by.ordinal()] = liveTicks; return; }
+        }
+    }
+    /** Площадка, у которой недавно (20 с) видели противника, или 0 */
+    public static char alert(Team t) { return liveTicks - ALERT_AT[t.ordinal()] < 20 * 20 ? ALERT[t.ordinal()] : 0; }
+    public static int liveTicks() { return liveTicks; }
+
+    /** Бот Т дошёл до места сбора; заход начинается, когда собрались почти все (или прошло 35 с) */
+    public static void tReady(UUID id) { T_READY.add(id); }
+    public static boolean tGo() {
+        if (!tGo && (planted || liveTicks > 35 * 20 || T_READY.size() >= Math.max(1, aliveTBots - 1))) tGo = true;
+        return tGo;
+    }
 
     // ---------------------------------------------------------------- состояние для ботов и событий
     public static boolean active() { return phase != Phase.IDLE; }
@@ -116,7 +158,7 @@ public final class Match {
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register(Match::tick);
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((e, src, amount) -> {
-            if (phase == Phase.IDLE || !e.getWorld().getRegistryKey().equals(Universes.DUST)) return true;
+            if (phase == Phase.IDLE || !GameMaps.isMatchWorld(e.getWorld())) return true;
             if (src.isOf(DamageTypes.GENERIC_KILL) || src.isOf(DamageTypes.OUT_OF_WORLD)) return true;
             if (!(e instanceof ServerPlayerEntity || e instanceof BotEntity)) return true;
             if (phase != Phase.LIVE) return false;                                  // заморозка и пауза: урона нет
@@ -127,7 +169,7 @@ public final class Match {
         });
         ServerLivingEntityEvents.ALLOW_DEATH.register((e, src, amount) -> {
             if (phase != Phase.IDLE && e instanceof ServerPlayerEntity p && HUMANS.containsKey(p.getUuid())
-                    && p.getWorld().getRegistryKey().equals(Universes.DUST)) {
+                    && GameMaps.isMatchWorld(p.getWorld())) {
                 onHumanDeath(p, src);
                 return false;
             }
@@ -149,10 +191,13 @@ public final class Match {
 
     // ---------------------------------------------------------------- старт и остановка
     /** Начать матч за команду team: игрок и его группа (из меню) попадают на карту, остальные места занимают боты. @return null или причина отказа */
-    public static String start(ServerPlayerEntity host, Team team) {
+    public static String start(ServerPlayerEntity host, Team team) { return start(host, team, "dust"); }
+
+    public static String start(ServerPlayerEntity host, Team team, String mapId) {
         MinecraftServer server = host.getServer();
         if (phase != Phase.IDLE) return "Матч уже идёт.";
-        ServerWorld w = server == null ? null : server.getWorld(Universes.DUST);
+        map = GameMaps.get(mapId);
+        ServerWorld w = server == null ? null : server.getWorld(map.world);
         if (w == null) return "Карта ещё не загрузилась.";
         if (!host.isAlive() || host.isSpectator()) return "Сейчас войти нельзя.";
         if (!Universes.inStandoff(host) && !host.hasPermissionLevel(2)) return "Матч запускается из меню «Противостояния».";
@@ -180,7 +225,7 @@ public final class Match {
         BombEntity.LISTENER = LISTENER;
         bar = new ServerBossBar(Text.literal("Матч"), BossBar.Color.YELLOW, BossBar.Style.PROGRESS);
         for (ServerPlayerEntity p : group) bar.addPlayer(p);
-        broadcast("§6§lСоревновательный матч! §fКарта «Дюны», до §e" + WIN_ROUNDS + "§f побед (12:12 — ничья), смена сторон после " + HALF
+        broadcast("§6§lСоревновательный матч! §fКарта «" + map.title + "», до §e" + WIN_ROUNDS + "§f побед (12:12 — ничья), смена сторон после " + HALF
             + "-го раунда. Вы играете за " + team.coloredTag() + "§f. §eE §f— закупка.");
         startRound(server, w);
         return null;
@@ -203,7 +248,7 @@ public final class Match {
         p.removeStatusEffect(StatusEffects.SLOWNESS);
         p.changeGameMode(h.prev);
         restore(p);
-        if (toMenu && p.getWorld().getRegistryKey().equals(Universes.DUST)) Standoff.toMenu(p);
+        if (toMenu && GameMaps.isMatchWorld(p.getWorld())) Standoff.toMenu(p);
         if (HUMANS.isEmpty() && phase != Phase.IDLE && p.getServer() != null) finish(p.getServer(), null, false);
     }
 
@@ -228,8 +273,8 @@ public final class Match {
     }
 
     private static void loadMapChunks(ServerWorld w) {
-        for (int cx = (DustMap.X0 - 1) >> 4; cx <= (DustMap.X1 + 1) >> 4; cx++)
-            for (int cz = (DustMap.Z0 - 1) >> 4; cz <= (DustMap.Z1 + 1) >> 4; cz++) w.getChunk(cx, cz);
+        for (int cx = (map.x0 - 1) >> 4; cx <= (map.x1 + 1) >> 4; cx++)
+            for (int cz = (map.z0 - 1) >> 4; cz <= (map.z1 + 1) >> 4; cz++) w.getChunk(cx, cz);
     }
 
     // ---------------------------------------------------------------- раунд
@@ -239,6 +284,8 @@ public final class Match {
         phase = Phase.FREEZE;
         timer = FREEZE_TICKS;
         planted = false; bombId = null; pendingWinner = null; liveTicks = 0;
+        CLAIMS.clear(); T_READY.clear(); tGo = false; ALERT_AT[0] = ALERT_AT[1] = -9999;
+        boolean lurk = RND.nextInt(3) > 0;
         targetSite = RND.nextBoolean() ? 'A' : 'B';
         cleanMap(w);
 
@@ -260,8 +307,8 @@ public final class Match {
             int idx = 0;
             for (ServerPlayerEntity p : humans.get(t)) {
                 Human h = HUMANS.get(p.getUuid());
-                DustMap.Pt sp = DustMap.spawn(t == Team.CT, idx);
-                h.sx = sp.cx(); h.sz = sp.cz(); h.yaw = yaw;
+                GameMap.Pt sp = map.spawn(t == Team.CT, idx);
+                h.sx = sp.cx(); h.sy = sp.y(); h.sz = sp.cz(); h.yaw = yaw;
                 setupHuman(p, h, w, t == Team.T && idx == carrier, SURVIVED.contains(p.getUuid()));
                 idx++;
             }
@@ -269,10 +316,10 @@ public final class Match {
             for (; idx < TEAM_SIZE; idx++) {
                 BotEntity b = ModEntities.BOT.create(w);
                 if (b == null) continue;
-                DustMap.Pt sp = DustMap.spawn(t == Team.CT, idx);
+                GameMap.Pt sp = map.spawn(t == Team.CT, idx);
                 b.refreshPositionAndAngles(sp.cx(), sp.y(), sp.cz(), yaw, 0f);
                 b.setHeadYaw(yaw); b.setBodyYaw(yaw);
-                b.setup(t, buy.gun(RND), t == Team.CT && buy.kit && RND.nextInt(3) > 0, t == Team.T ? 'A' : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
+                b.setup(t, buy.gun(RND), t == Team.CT && buy.kit && RND.nextInt(3) > 0, t == Team.T ? (lurk && idx == TEAM_SIZE - 1 ? 'L' : 'A') : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
                 b.setCustomName(Text.literal(t.color + "[" + t.tag + "] §fБот " + BOT_NAMES[(botSerial++) % BOT_NAMES.length]));
                 b.setCustomNameVisible(false);
                 if (t == Team.T && idx == carrier) b.giveBomb();
@@ -365,7 +412,7 @@ public final class Match {
         p.getAbilities().flying = false;
         p.getHungerManager().setFoodLevel(10);
         p.fallDistance = 0;
-        p.teleport(w, h.sx, DustMap.FLOOR + 1, h.sz, h.yaw, 0f);
+        p.teleport(w, h.sx, h.sy, h.sz, h.yaw, 0f);
         inv.selectedSlot = inv.getStack(BuyDefs.SLOT_PRIMARY).isEmpty() ? BuyDefs.SLOT_PISTOL : BuyDefs.SLOT_PRIMARY;
         p.playerScreenHandler.sendContentUpdates();
     }
@@ -391,7 +438,7 @@ public final class Match {
     // ---------------------------------------------------------------- тик матча
     private static void tick(MinecraftServer server) {
         if (phase == Phase.IDLE) return;
-        ServerWorld w = server.getWorld(Universes.DUST);
+        ServerWorld w = server.getWorld(map.world);
         if (w == null) { finish(server, null, false); return; }
 
         // вышедших с карты (например, кнопка «Вселенные») убираем из матча
@@ -412,7 +459,7 @@ public final class Match {
                     Human h = en.getValue();
                     p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 10, 6, false, false, false));
                     double dx = p.getX() - h.sx, dz = p.getZ() - h.sz;
-                    if (dx * dx + dz * dz > 0.5) p.teleport(w, h.sx, DustMap.FLOOR + 1, h.sz, p.getYaw(), p.getPitch());
+                    if (dx * dx + dz * dz > 0.5) p.teleport(w, h.sx, h.sy, h.sz, p.getYaw(), p.getPitch());
                 }
                 if (timer <= 0) {
                     phase = Phase.LIVE;
@@ -426,6 +473,11 @@ public final class Match {
             }
             case LIVE -> {
                 liveTicks++;
+                if (liveTicks % 20 == 1) {
+                    int n = 0;
+                    for (UUID id : BOTS) if (w.getEntity(id) instanceof BotEntity b && b.isAlive() && b.team() == Team.T) n++;
+                    aliveTBots = n;
+                }
                 if (timer % 5 == 0) checkRound(server, w);
                 if (phase == Phase.LIVE && timer <= 0 && !planted) endRound(server, Team.CT, "Время вышло");
             }
@@ -473,7 +525,7 @@ public final class Match {
 
     private static void endRound(MinecraftServer server, Team winner, String reason) {
         if (phase != Phase.LIVE) return;
-        ServerWorld w = server.getWorld(Universes.DUST);
+        ServerWorld w = server.getWorld(map.world);
         phase = Phase.END;
         if (winner == Team.T) winsT++; else winsCT++;
         Team loser = winner.opposite();
@@ -578,7 +630,7 @@ public final class Match {
 
     private static boolean inBuyZone(ServerPlayerEntity p, Human h) {
         for (int i = 0; i < TEAM_SIZE; i++) {
-            DustMap.Pt sp = DustMap.spawn(h.team == Team.CT, i);
+            GameMap.Pt sp = map.spawn(h.team == Team.CT, i);
             double dx = p.getX() - sp.cx(), dz = p.getZ() - sp.cz();
             if (dx * dx + dz * dz <= BUY_RADIUS * BUY_RADIUS) return true;
         }
@@ -654,14 +706,14 @@ public final class Match {
         o.addProperty("round", round);
         o.addProperty("wt", winsT);
         o.addProperty("wct", winsCT);
-        o.addProperty("place", DustMap.zoneAt(p.getX(), p.getZ()));
+        o.addProperty("place", map.zoneAt(p.getX(), p.getZ()));
         o.addProperty("phase", phase.name());
         net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mstate", o.toString()));
     }
 
     /** Конец матча: награда, возврат инвентаря, все в меню */
     private static void finish(MinecraftServer server, Team winner, boolean wasDraw) {
-        ServerWorld w = server.getWorld(Universes.DUST);
+        ServerWorld w = server.getWorld(map.world);
         BombEntity.LISTENER = null;
         List<ServerPlayerEntity> list = players(server);
         Map<UUID, Team> teams = new HashMap<>();
@@ -681,7 +733,7 @@ public final class Match {
             p.changeGameMode(modes.getOrDefault(p.getUuid(), GameMode.SURVIVAL));
             restore(p);
             if (winner != null || wasDraw) Standoff.finishMatch(p, winner != null && teams.get(p.getUuid()) == winner);
-            if (p.getWorld().getRegistryKey().equals(Universes.DUST)) Standoff.toMenu(p);
+            if (GameMaps.isMatchWorld(p.getWorld())) Standoff.toMenu(p);
         }
     }
 
@@ -692,8 +744,8 @@ public final class Match {
             planted = true;
             bombId = bomb.getUuid();
             if (owner instanceof ServerPlayerEntity sp) addMoney(sp, 300);
-            char site = DustMap.siteAt(bomb.getX(), bomb.getZ());
-            broadcast("§c§lБомба заложена" + (site == 0 ? "" : " на точке §e" + site + " §7(" + DustMap.zoneAt(bomb.getX(), bomb.getZ()) + ")§c") + "§c! §fСпецназ, обезвреживайте.");
+            char site = map.siteAt(bomb.getX(), bomb.getZ());
+            broadcast("§c§lБомба заложена" + (site == 0 ? "" : " на точке §e" + site + " §7(" + map.zoneAt(bomb.getX(), bomb.getZ()) + ")§c") + "§c! §fСпецназ, обезвреживайте.");
         }
         @Override public void exploded(ServerWorld w) {
             if (phase == Phase.LIVE) { pendingWinner = Team.T; pendingReason = "Бомба взорвалась"; }

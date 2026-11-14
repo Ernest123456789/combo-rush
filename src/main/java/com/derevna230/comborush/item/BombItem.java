@@ -28,8 +28,8 @@ public class BombItem extends Item {
 
     /** На карте матча бомбу можно закладывать только на площадках A и B; в остальных мирах ограничений нет */
     private static boolean onSite(World world, LivingEntity user) {
-        return !world.getRegistryKey().equals(com.derevna230.comborush.universe.Universes.DUST)
-            || com.derevna230.comborush.universe.DustMap.siteAt(user.getX(), user.getZ()) != 0;
+        com.derevna230.comborush.universe.GameMap m = com.derevna230.comborush.universe.GameMaps.of(world.getRegistryKey());
+        return m == null || m.siteAt(user.getX(), user.getZ()) != 0;
     }
 
     private static final String NOT_SITE = "§cБомбу можно закладывать только на точках §eA§c и §eB§c.";

@@ -387,9 +387,10 @@ public class StandoffScreen extends Screen {
         c.fill(16, 54, 112, 55, 0x40FFFFFF);
         String[] info = {"Соревновательный: до 13 побед,", "12:12 — ничья, смена сторон", "после 10-го раунда. E — закупка.", "5 на 5, недостающих — боты."};
         for (int i = 0; i < info.length; i++) text(c, info[i], 14, 60 + i * 10, 0.72f, 0xFFB8C2D6, 0);
-        button(c, "playT", 14, 102, 100, 16, "ИГРАТЬ ЗА  T", 0xB5651D, () -> { send("so_play", "t"); close(); });
-        button(c, "playCT", 14, 121, 100, 16, "ИГРАТЬ ЗА  CT", 0x2F5FA8, () -> { send("so_play", "ct"); close(); });
-        text(c, "Карта: «Дюны»", 64, 143, 0.72f, 0xFF8A94A8, 1);
+        button(c, "playT", 14, 102, 100, 16, "ИГРАТЬ ЗА  T", 0xB5651D, () -> { send("so_play", "t|" + selMap); close(); });
+        button(c, "playCT", 14, 121, 100, 16, "ИГРАТЬ ЗА  CT", 0x2F5FA8, () -> { send("so_play", "ct|" + selMap); close(); });
+        button(c, "mapCycle", 14, 140, 100, 11, "Карта: «" + mapTitle(selMap) + "»  ▸", 0x2A3242,
+            () -> selMap = selMap.equals("dust") ? "medina" : "dust");
         panel(c, 8, 160, 112, 80);
         text(c, "КЕЙС «АРСЕНАЛ»", 64, 168, 0.85f, 0xFFFFB02E, 1);
         String[] cs = {"Выпадает после матчей.", "Ключ стоит 250 эссенции:", "его покупают при открытии", "кейса из инвентаря."};
@@ -811,36 +812,39 @@ public class StandoffScreen extends Screen {
 
     // ================= КАРТЫ / НАСТРОЙКИ =================
     private static final Identifier MAP_DUST = Identifier.of(ComboRush.MOD_ID, "textures/gui/map_dust.png");
+    private static final Identifier MAP_MEDINA = Identifier.of(ComboRush.MOD_ID, "textures/gui/map_medina.png");
+    /** Выбранная карта матча (кнопки «Играть» на главной) */
+    private static String selMap = "dust";
+    private static String mapTitle(String id) { return id.equals("medina") ? "Медина" : "Дюны"; }
 
     private void drawMaps(DrawContext c, long now) {
         text(c, "КАРТЫ", 210, 38, 1.2f, 0xFFFFFFFF, 1);
-        text(c, "Карты соревновательного режима", 210, 52, 0.72f, 0xFF8A94A8, 1);
-        // «Дюны» — доступна
-        panel(c, 14, 64, 250, 176);
-        c.fill(20, 70, 258, 74, 0xFF000000 | GOLD);
-        c.fill(39, 77, 239, 223, 0xFF000000);
-        c.drawTexture(MAP_DUST, 40, 78, 198, 144, 0f, 0f, 256, 189, 256, 189);
-        text(c, "ДЮНЫ", 22, 227, 1.0f, 0xFFFFFFFF, 0);
-        text(c, "§aдоступна", 256, 228, 0.7f, 0xFFFFFFFF, 2);
-        panel(c, 270, 64, 142, 176);
-        text(c, "ДЮНЫ", 341, 72, 1.0f, 0xFF000000 | GOLD, 1);
-        String[] info = {
-            "§7Режим: §fсоревновательный 5×5",
-            "§7Размер: §f120 × 88 блоков",
-            "§7Матч: §fдо 13 побед, 12:12 — ничья",
-            "§7Смена сторон: §fпосле 10-го раунда",
-            "",
-            "§e● A §7— приподнята на 2 блока:",
-            "§f   балкон, яма, пирамида ящиков",
-            "§e● B §7— утоплена на 2 блока:",
-            "§f   склад, мостик, ящики-ступени",
-            "",
-            "§7Пути: §fЛонг → A, Нижний → B,",
-            "§f   Мид → Развязка → Центр с мостом,",
-            "§f   Склад и Тоннели — крытые"};
-        for (int i = 0; i < info.length; i++) text(c, info[i], 276, 86 + i * 9.5f, 0.6f, 0xFFFFFFFF, 0);
-        button(c, "mapT", 276, 214, 64, 16, "ЗА  T", 0xB5651D, () -> { send("so_play", "t"); close(); });
-        button(c, "mapCT", 342, 214, 64, 16, "ЗА  CT", 0x2F5FA8, () -> { send("so_play", "ct"); close(); });
+        text(c, "Соревновательный режим 5×5 · клик по карте — выбрать для «Играть»", 210, 52, 0.68f, 0xFF8A94A8, 1);
+        String[][] info = {
+            {"dust", "ДЮНЫ", "Классика: 120×88 блоков", "A приподнята (балкон, яма),", "B утоплена (склад, мостик)", "Лонг, Мид, Склад, Тоннели"},
+            {"medina", "МЕДИНА", "Старый город, уровни −4…+8", "Мост над Мидом, Крыши,", "Тоннели к Б, Колодец,", "Балкон А, Склад Б в 2 этажа"}};
+        for (int i = 0; i < 2; i++) {
+            String id = info[i][0];
+            float x = 14 + i * 202, y = 64, w = 194, h = 176;
+            boolean sel = selMap.equals(id);
+            boolean over = hitOver(x, y, w, 150);
+            panel(c, (int) x, (int) y, (int) w, (int) h);
+            if (sel) {
+                c.fill((int) x - 2, (int) y - 2, (int) (x + w) + 2, (int) y, 0xFF000000 | GOLD);
+                c.fill((int) x - 2, (int) (y + h), (int) (x + w) + 2, (int) (y + h) + 2, 0xFF000000 | GOLD);
+                c.fill((int) x - 2, (int) y, (int) x, (int) (y + h), 0xFF000000 | GOLD);
+                c.fill((int) (x + w), (int) y, (int) (x + w) + 2, (int) (y + h), 0xFF000000 | GOLD);
+            }
+            c.fill((int) x + 8, (int) y + 7, (int) (x + w) - 8, (int) y + 133, over ? 0xFF3A4458 : 0xFF000000);
+            c.drawTexture(i == 0 ? MAP_DUST : MAP_MEDINA, (int) x + 9, (int) y + 8, (int) w - 18, 124, 0f, 0f, 256, i == 0 ? 189 : 179, 256, i == 0 ? 189 : 179);
+            text(c, info[i][1], x + 9, y + 137, 0.95f, sel ? 0xFF000000 | GOLD : 0xFFFFFFFF, 0);
+            text(c, sel ? "§aвыбрана" : "§7выбрать", x + w - 9, y + 138, 0.62f, 0xFFFFFFFF, 2);
+            for (int k = 2; k < 6; k++) text(c, info[i][k], x + 9, y + 148 + (k - 2) * 7f, 0.55f, 0xFFB8C2D6, 0);
+            final String fid = id;
+            hit(x, y, w, 134, () -> { selMap = fid; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.5f); });
+            button(c, "map" + i + "T", x + w - 82, y + h - 20, 36, 14, "T", 0xB5651D, () -> { send("so_play", "t|" + fid); close(); });
+            button(c, "map" + i + "CT", x + w - 42, y + h - 20, 36, 14, "CT", 0x2F5FA8, () -> { send("so_play", "ct|" + fid); close(); });
+        }
     }
 
     /** Замок из прямоугольников (в шрифте Minecraft нет значка) */

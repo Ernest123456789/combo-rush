@@ -66,7 +66,7 @@ public final class MatchClient {
     /** Игрок сейчас в матче (E открывает закупку вместо инвентаря) */
     public static boolean inMatch() {
         MinecraftClient mc = MinecraftClient.getInstance();
-        return active && mc.world != null && mc.world.getRegistryKey().equals(Universes.DUST)
+        return active && mc.world != null && com.derevna230.comborush.universe.GameMaps.isMatchWorld(mc.world)
             && System.currentTimeMillis() - stateAt < 4000;
     }
 
