@@ -6,7 +6,9 @@
   "client": [
     "GameRendererMixin",
     "PlayerArmPoseMixin",
-    "LivingSwingMixin"
+    "LivingSwingMixin",
+    "AgentRendererMixin",
+    "LivingRendererAccess"
   ],
   "injectors": {
     "defaultRequire": 0

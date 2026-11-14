@@ -398,7 +398,12 @@ public class StandoffScreen extends Screen {
 
         drawParty(c, now);
         // подпись под моделью
-        text(c, "Скины и осмотр оружия — вкладка «Снаряжение»", 210, 234, 0.62f, 0xFF6F7A90, 1);
+        boolean ct = com.derevna230.comborush.client.agent.AgentClient.menuCT();
+        button(c, "agentCT", 156, 40, 52, 12, (ct ? "● " : "") + "СПЕЦНАЗ", ct ? 0x2F5FA8 : 0x2A3242,
+            () -> com.derevna230.comborush.client.agent.AgentClient.setMenuCT(true));
+        button(c, "agentT", 212, 40, 52, 12, (!ct ? "● " : "") + "БОЕВИК", !ct ? 0xB5651D : 0x2A3242,
+            () -> com.derevna230.comborush.client.agent.AgentClient.setMenuCT(false));
+        text(c, "Облик в меню · в матче — по стороне. Скины — «Снаряжение»", 210, 234, 0.6f, 0xFF6F7A90, 1);
     }
 
     private void drawParty(DrawContext c, long now) {

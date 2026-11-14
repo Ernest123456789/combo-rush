@@ -127,6 +127,7 @@ public final class Match {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity p = handler.getPlayer();
             if (HUMANS.containsKey(p.getUuid())) return;
+            clearSide(p);
             if (p.hasAttached(STASH)) restore(p);
             if (Universes.inDust(p)) {
                 p.changeGameMode(GameMode.ADVENTURE);
@@ -160,6 +161,7 @@ public final class Match {
             if (!Universes.inUniverse(p)) Universes.enterLobby(p, true);        // запомнить, откуда вернуть домой
             HUMANS.put(p.getUuid(), new Human(team, p.interactionManager.getGameMode()));
             stash(p);
+            setSide(p, team);
         }
         round = 0; winsT = 0; winsCT = 0; over = false; planted = false; bombId = null; pendingWinner = null;
         BombEntity.LISTENER = LISTENER;
@@ -182,11 +184,32 @@ public final class Match {
         Human h = HUMANS.remove(p.getUuid());
         if (h == null) return;
         if (bar != null) bar.removePlayer(p);
+        clearSide(p);
         p.removeStatusEffect(StatusEffects.SLOWNESS);
         p.changeGameMode(h.prev);
         restore(p);
         if (toMenu && p.getWorld().getRegistryKey().equals(Universes.DUST)) Standoff.toMenu(p);
         if (HUMANS.isEmpty() && phase != Phase.IDLE && p.getServer() != null) finish(p.getServer(), null);
+    }
+
+    // ---- сторона игрока видна клиентам через scoreboard-команды: по ней рисуется модель бойца и цвет ника
+    private static void setSide(ServerPlayerEntity p, Team t) {
+        if (p.getServer() == null) return;
+        net.minecraft.scoreboard.Scoreboard sb = p.getServer().getScoreboard();
+        String name = t == Team.T ? "cr_t" : "cr_ct";
+        net.minecraft.scoreboard.Team st = sb.getTeam(name);
+        if (st == null) {
+            st = sb.addTeam(name);
+            st.setColor(t == Team.T ? net.minecraft.util.Formatting.GOLD : net.minecraft.util.Formatting.BLUE);
+        }
+        sb.addScoreHolderToTeam(p.getNameForScoreboard(), st);
+    }
+
+    private static void clearSide(ServerPlayerEntity p) {
+        if (p.getServer() == null) return;
+        net.minecraft.scoreboard.Scoreboard sb = p.getServer().getScoreboard();
+        net.minecraft.scoreboard.Team cur = sb.getScoreHolderTeam(p.getNameForScoreboard());
+        if (cur != null && cur.getName().startsWith("cr_")) sb.removeScoreHolderFromTeam(p.getNameForScoreboard(), cur);
     }
 
     private static void loadMapChunks(ServerWorld w) {
@@ -420,6 +443,7 @@ public final class Match {
         if (w != null) cleanMap(w);
         if (bar != null) { bar.clearPlayers(); bar = null; }
         for (ServerPlayerEntity p : list) {
+            clearSide(p);
             p.removeStatusEffect(StatusEffects.SLOWNESS);
             p.changeGameMode(modes.getOrDefault(p.getUuid(), GameMode.SURVIVAL));
             restore(p);
