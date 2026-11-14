@@ -80,7 +80,7 @@ public final class FpHands {
         Cap grip = caps.get("pistol_grip");
         if (mode == Mode.KNIFE) grip = caps.containsKey("handle") && caps.get("handle").b() != null ? caps.get("handle") : caps.get("weapon");
         if (grip == null || grip.b() == null) return;
-        VertexConsumer gv = vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(glove()));
+        Identifier gt = glove();
         // ---- правая рука
         float[] g = grip.b();
         MatrixStack ms = stack(grip);
@@ -91,14 +91,14 @@ public final class FpHands {
         if (mode == Mode.KNIFE || mode == Mode.GRENADE) {
             top = mode == Mode.GRENADE ? (gy0 + gy1) / 2 + 0.5f : gy1 + 0.6f;
             h = top - gy0 + 0.7f;
-            box(gv, ms, gx0 - 0.8f, gx1 + 0.8f, top - h, top, gz0 - 0.4f, gz1 + 0.4f, BACK, FING, light, 64);
-            box(gv, ms, gx1 + 0.3f, gx1 + 1.4f, top - 1.8f, top + 0.3f, gz0 + 0.4f, gz1 + 1.4f, FING, FING, light, 64);   // большой палец
+            box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx0 - 0.8f, gx1 + 0.8f, top - h, top, gz0 - 0.4f, gz1 + 0.4f, BACK, FING, light, 64);
+            box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx1 + 0.3f, gx1 + 1.4f, top - 1.8f, top + 0.3f, gz0 + 0.4f, gz1 + 1.4f, FING, FING, light, 64);   // большой палец
             wy = top - h * 0.5f;
         } else {
             top = gy1 + 0.4f;
             h = Math.min(gy1 - gy0, 5f) + 0.4f;
-            box(gv, ms, gx0 - 0.7f, gx1 + 0.7f, top - h, top, gz0 - 0.8f, gz1 + 0.6f, BACK, FING, light, 64);
-            box(gv, ms, gx1 + 0.4f, gx1 + 1.5f, top - 1.7f, top + 0.2f, gz0 + 0.2f, gz1 + 1.6f, FING, FING, light, 64);
+            box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx0 - 0.7f, gx1 + 0.7f, top - h, top, gz0 - 0.8f, gz1 + 0.6f, BACK, FING, light, 64);
+            box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx1 + 0.4f, gx1 + 1.5f, top - 1.7f, top + 0.2f, gz0 + 0.2f, gz1 + 1.6f, FING, FING, light, 64);
             wy = top - h * 0.55f;
         }
         forearm(vcp, ms, cx, wy, gz0 - 0.6f, 0.18f, -0.32f, light);
@@ -111,22 +111,22 @@ public final class FpHands {
                 float[] m = mag.b();
                 MatrixStack mm = stack(mag);
                 float mx = (m[0] + m[1]) / 2;
-                box(gv, mm, m[0] - 0.8f, m[1] + 0.8f, m[2] - 1.2f, m[2] + 2.4f, m[4] - 0.6f, m[5] + 0.6f, BACK, FING, light, 64);
+                box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), mm, m[0] - 0.8f, m[1] + 0.8f, m[2] - 1.2f, m[2] + 2.4f, m[4] - 0.6f, m[5] + 0.6f, BACK, FING, light, 64);
                 forearm(vcp, mm, mx + 0.5f, m[2] - 0.8f, m[4], -0.45f, -0.7f, light);
             } else if (fore != null && fore.b() != null) {
                 float[] f = fore.b();
                 MatrixStack fm = stack(fore);
                 float fx = (f[0] + f[1]) / 2, fh = f[3] - f[2], len = f[5] - f[4];
                 float zc = f[4] + Math.min(len * 0.35f, 5f);
-                box(gv, fm, f[0] - 0.8f, f[1] + 0.8f, f[2] - 1.6f, f[2] + Math.min(2.2f, fh * 0.6f), zc - 2.2f, zc + 2.2f, PALM, FING, light, 64);
-                box(gv, fm, f[0] - 1.3f, f[0] - 0.4f, f[2] - 0.5f, f[2] + fh * 0.8f, zc - 2.0f, zc + 1.8f, FING, FING, light, 64);   // пальцы сбоку
-                box(gv, fm, f[1] + 0.4f, f[1] + 1.3f, f[2], f[2] + fh * 0.7f, zc - 1.5f, zc + 2.0f, FING, FING, light, 64);         // большой палец
+                box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), fm, f[0] - 0.8f, f[1] + 0.8f, f[2] - 1.6f, f[2] + Math.min(2.2f, fh * 0.6f), zc - 2.2f, zc + 2.2f, PALM, FING, light, 64);
+                box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), fm, f[0] - 1.3f, f[0] - 0.4f, f[2] - 0.5f, f[2] + fh * 0.8f, zc - 2.0f, zc + 1.8f, FING, FING, light, 64);   // пальцы сбоку
+                box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), fm, f[1] + 0.4f, f[1] + 1.3f, f[2], f[2] + fh * 0.7f, zc - 1.5f, zc + 2.0f, FING, FING, light, 64);         // большой палец
                 forearm(vcp, fm, fx + 0.6f, f[2] - 1.2f, zc - 1.8f, -0.5f, -0.55f, light);
             }
         } else if (mode == Mode.PISTOL) {
             // вторая рука обхватывает первую снизу и слева
-            box(gv, ms, gx1 - 0.2f, gx1 + 2.8f, top - h - 0.6f, top - 1.0f, gz0 - 0.4f, gz1 + 1.2f, BACK, FING, light, 64);
-            box(gv, ms, gx0 - 0.6f, gx1 + 2.6f, top - h - 0.4f, top - 1.4f, gz1 + 0.4f, gz1 + 1.3f, FING, FING, light, 64);
+            box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx1 - 0.2f, gx1 + 2.8f, top - h - 0.6f, top - 1.0f, gz0 - 0.4f, gz1 + 1.2f, BACK, FING, light, 64);
+            box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx0 - 0.6f, gx1 + 2.6f, top - h - 0.4f, top - 1.4f, gz1 + 0.4f, gz1 + 1.3f, FING, FING, light, 64);
             forearm(vcp, ms, gx1 + 1.6f, top - h * 0.7f, gz0 - 0.4f, -0.55f, -0.35f, light);
         }
     }
@@ -144,14 +144,15 @@ public final class FpHands {
         base.translate(x / 16f, y / 16f, z / 16f);
         base.multiply(RotationAxis.POSITIVE_Y.rotation(yaw));
         base.multiply(RotationAxis.POSITIVE_X.rotation(pitch));
-        VertexConsumer gv = vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(glove()));
-        box(gv, base, -2.0f, 2.0f, -2.0f, 2.0f, -4.5f, 0.6f, CUFF, CUFF, light, 64);
-        VertexConsumer sv = vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(sleeve()));
-        box(sv, base, -2.25f, 2.25f, -2.25f, 2.25f, -30f, -4.5f, SLV, SLV, light, 32);
+        box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(glove())), base, -2.0f, 2.0f, -2.0f, 2.0f, -4.5f, 0.6f, CUFF, CUFF, light, 64);
+        box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(sleeve())), base, -2.25f, 2.25f, -2.25f, 2.25f, -30f, -4.5f, SLV, SLV, light, 32);
         base.pop();
     }
 
-    /** Коробка (единицы модели): боковые грани и низ — область side, перед (+z) и верх — область front */
+    /**
+     * Коробка (единицы модели): боковые грани и низ — область side, перед (+z) и верх — область front.
+     * Буфер берётся заново перед каждой коробкой: смена текстуры (перчатка ↔ рукав) закрывает прежний буфер.
+     */
     private static void box(VertexConsumer vc, MatrixStack ms, float x0, float x1, float y0, float y1, float z0, float z1,
                             float[] side, float[] front, int light, int tex) {
         MatrixStack.Entry e = ms.peek();
