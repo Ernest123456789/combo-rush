@@ -165,6 +165,7 @@ public final class Match {
             Team vt = teamOf(e);
             Entity at = src.getAttacker();
             if (at != null && at != e && vt != null && teamOf(at) == vt) return false;   // по своим не бьём
+            if (at != null && at != e) MatchStats.damage(e, at, amount);
             return true;
         });
         ServerLivingEntityEvents.ALLOW_DEATH.register((e, src, amount) -> {
@@ -213,6 +214,10 @@ public final class Match {
         }
         HUMANS.clear();
         BOTS.clear();
+        MatchStats.reset();
+        List<String> names = new ArrayList<>(List.of(BOT_NAMES));
+        Collections.shuffle(names, RND);
+        for (int i = 0; i < 2 * TEAM_SIZE; i++) BOTNAME[i / TEAM_SIZE][i % TEAM_SIZE] = names.get(i % names.size());
         for (ServerPlayerEntity p : group) {
             if (!Universes.inUniverse(p)) Universes.enterLobby(p, true);        // запомнить, откуда вернуть домой
             HUMANS.put(p.getUuid(), new Human(team, p.interactionManager.getGameMode()));
@@ -284,6 +289,7 @@ public final class Match {
         phase = Phase.FREEZE;
         timer = FREEZE_TICKS;
         planted = false; bombId = null; pendingWinner = null; liveTicks = 0;
+        MatchStats.roundStart();
         CLAIMS.clear(); T_READY.clear(); tGo = false; ALERT_AT[0] = ALERT_AT[1] = -9999;
         boolean lurk = RND.nextInt(3) > 0;
         targetSite = RND.nextBoolean() ? 'A' : 'B';
@@ -310,6 +316,7 @@ public final class Match {
                 GameMap.Pt sp = map.spawn(t == Team.CT, idx);
                 h.sx = sp.cx(); h.sy = sp.y(); h.sz = sp.cz(); h.yaw = yaw;
                 setupHuman(p, h, w, t == Team.T && idx == carrier, SURVIVED.contains(p.getUuid()));
+                MatchStats.join(p);
                 idx++;
             }
             BotBuy buy = botBuy(t);
@@ -320,11 +327,14 @@ public final class Match {
                 b.refreshPositionAndAngles(sp.cx(), sp.y(), sp.cz(), yaw, 0f);
                 b.setHeadYaw(yaw); b.setBodyYaw(yaw);
                 b.setup(t, buy.gun(RND), t == Team.CT && buy.kit && RND.nextInt(3) > 0, t == Team.T ? (lurk && idx == TEAM_SIZE - 1 ? 'L' : 'A') : (idx % 3 == 0 ? 'A' : idx % 3 == 1 ? 'B' : 'M'));
-                b.setCustomName(Text.literal(t.color + "[" + t.tag + "] §fБот " + BOT_NAMES[(botSerial++) % BOT_NAMES.length]));
+                String bn = BOTNAME[t.ordinal()][idx];
+                b.setIdentity(bn);
+                b.setCustomName(Text.literal(t.color + "[" + t.tag + "] §fБот " + bn));
                 b.setCustomNameVisible(false);
                 if (t == Team.T && idx == carrier) b.giveBomb();
                 w.spawnEntity(b);
                 BOTS.add(b.getUuid());
+                MatchStats.join(b);
             }
         }
         SURVIVED.clear();
@@ -333,6 +343,8 @@ public final class Match {
         title("§eРаунд " + round, "§7Т " + winsT + " : " + winsCT + " КТ");
     }
 
+    /** Имена ботов по сторонам и слотам — постоянные на весь матч (по ним ведётся статистика) */
+    private static final String[][] BOTNAME = new String[2][TEAM_SIZE];
     private static final String[] BOT_NAMES = {"Алекс", "Дима", "Макс", "Витя", "Кирилл", "Серёга", "Тимур", "Артём", "Влад", "Егор", "Рома", "Паша"};
 
     /** Закупка ботов: у каждой стороны общий «средний кошелёк», боты закупаются вместе (раунд экономии, форс, полная закупка) */
@@ -493,8 +505,10 @@ public final class Match {
             default -> { }
         }
         if (phase != Phase.IDLE && server.getTicks() % 10 == 0) updateBar(w);
-        if (phase != Phase.IDLE && server.getTicks() % 10 == 0)
+        if (phase != Phase.IDLE && server.getTicks() % 10 == 0) {
             for (ServerPlayerEntity p : players(server)) sendState(p);
+            sendTable(server, w);
+        }
         if (phase != Phase.IDLE && server.getTicks() % 100 == 0)
             for (ServerPlayerEntity p : players(server)) p.getHungerManager().setFoodLevel(10);
     }
@@ -548,6 +562,8 @@ public final class Match {
         BOT_MONEY[winner.ordinal()] = Math.min(BuyDefs.MAX_MONEY, BOT_MONEY[winner.ordinal()] + winPay);
         BOT_MONEY[loser.ordinal()] = Math.min(BuyDefs.MAX_MONEY, BOT_MONEY[loser.ordinal()] + lossPay);
 
+        String mvp = MatchStats.mvp(winner, bombWin);
+        if (mvp != null) broadcast("§6★ MVP раунда: §f" + mvp);
         draw = winsT == DRAW_AT && winsCT == DRAW_AT;
         over = winsT >= WIN_ROUNDS || winsCT >= WIN_ROUNDS || draw;
         halftime = !over && round == HALF;
@@ -572,6 +588,7 @@ public final class Match {
             o.addProperty("round", round);
             o.addProperty("pay", LAST_PAY.getOrDefault(p.getUuid(), 0));
             o.addProperty("kind", draw ? "draw" : over ? "match" : halftime ? "half" : "round");
+            if (mvp != null) o.addProperty("mvp", mvp);
             o.addProperty("ticks", timer);
             net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mround", o.toString()));
         }
@@ -581,6 +598,8 @@ public final class Match {
     /** Смена сторон после {@link #HALF}-го раунда: счёт и команды меняются местами, деньги и оружие — с нуля */
     private static void swapSides(MinecraftServer server) {
         int t = winsT; winsT = winsCT; winsCT = t;
+        MatchStats.swapSides();
+        String[] tmp = BOTNAME[0]; BOTNAME[0] = BOTNAME[1]; BOTNAME[1] = tmp;
         LOSS[0] = LOSS[1] = 0;
         BOT_MONEY[0] = BOT_MONEY[1] = BuyDefs.START_MONEY;
         SURVIVED.clear();
@@ -732,7 +751,7 @@ public final class Match {
             p.removeStatusEffect(StatusEffects.SLOWNESS);
             p.changeGameMode(modes.getOrDefault(p.getUuid(), GameMode.SURVIVAL));
             restore(p);
-            if (winner != null || wasDraw) Standoff.finishMatch(p, winner != null && teams.get(p.getUuid()) == winner);
+            if (winner != null || wasDraw) reward(p, teams.get(p.getUuid()), winner, wasDraw);
             if (GameMaps.isMatchWorld(p.getWorld())) Standoff.toMenu(p);
         }
     }
@@ -744,6 +763,8 @@ public final class Match {
             planted = true;
             bombId = bomb.getUuid();
             if (owner instanceof ServerPlayerEntity sp) addMoney(sp, 300);
+            MatchStats.Row pr = MatchStats.row(owner);
+            if (pr != null) { pr.plants++; MatchStats.planter = pr.key; }
             char site = map.siteAt(bomb.getX(), bomb.getZ());
             broadcast("§c§lБомба заложена" + (site == 0 ? "" : " на точке §e" + site + " §7(" + map.zoneAt(bomb.getX(), bomb.getZ()) + ")§c") + "§c! §fСпецназ, обезвреживайте.");
         }
@@ -753,6 +774,8 @@ public final class Match {
         @Override public void defused(ServerWorld w, LivingEntity by) {
             if (phase == Phase.LIVE) { pendingWinner = Team.CT; pendingReason = "Бомба обезврежена"; }
             if (by instanceof ServerPlayerEntity sp) addMoney(sp, 300);
+            MatchStats.Row dr = MatchStats.row(by);
+            if (dr != null) { dr.defuses++; MatchStats.defuser = dr.key; }
         }
     };
 
@@ -769,15 +792,98 @@ public final class Match {
         Team t = teamOf(p);
         Entity at = src.getAttacker();
         killReward(at, t);
-        String killer = at == null ? "§7случай" : at.getDisplayName().getString();
-        broadcast((t == null ? "" : t.color) + p.getName().getString() + " §7погиб от §f" + killer);
+        feed(p, at, src);
     }
 
     static void onBotKilled(BotEntity bot, DamageSource src) {
         Entity at = src.getAttacker();
         killReward(at, bot.team());
-        String killer = at == null ? "§7случай" : at.getDisplayName().getString();
-        broadcast(bot.getDisplayName().getString() + " §7погиб от §f" + killer);
+        feed(bot, at, src);
+    }
+
+    /** Лента убийств: всем участникам — кто, чем, хедшот; «me» — если это ты убил или тебя */
+    private static void feed(LivingEntity victim, Entity killer, DamageSource src) {
+        if (phase == Phase.IDLE) return;
+        com.google.gson.JsonObject o = MatchStats.kill(victim, killer);
+        String w = o.get("w").getAsString();
+        if (killer == null || killer == victim) {
+            if (src.isOf(DamageTypes.EXPLOSION) || src.isOf(DamageTypes.PLAYER_EXPLOSION)) w = "bomb";
+            else if (src.isOf(DamageTypes.FALL)) w = "fall";
+            else w = "world";
+            o.addProperty("w", w);
+        }
+        Team vt = teamOf(victim), kt = killer == null ? null : teamOf(killer);
+        o.addProperty("v", victim instanceof BotEntity b ? b.botName() : victim.getName().getString());
+        o.addProperty("vt", vt == null ? "" : vt == Team.T ? "t" : "ct");
+        if (killer != null && killer != victim) {
+            o.addProperty("k", killer instanceof BotEntity b ? b.botName() : killer.getName().getString());
+            o.addProperty("kt", kt == null ? "" : kt == Team.T ? "t" : "ct");
+        }
+        MinecraftServer server = victim.getServer();
+        if (server == null) return;
+        for (ServerPlayerEntity p : players(server)) {
+            com.google.gson.JsonObject c = o.deepCopy();
+            c.addProperty("me", p == killer || p == victim);
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mkill", c.toString()));
+        }
+    }
+
+    /** Таблица Tab: всем участникам раз в полсекунды */
+    private static void sendTable(MinecraftServer server, ServerWorld w) {
+        Map<String, Boolean> alive = new HashMap<>();
+        Map<String, Integer> money = new HashMap<>();
+        for (var en : HUMANS.entrySet()) {
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(en.getKey());
+            if (p == null) continue;
+            alive.put(p.getUuidAsString(), p.isAlive() && !p.isSpectator());
+            money.put(p.getUuidAsString(), money(p));
+        }
+        for (UUID id : BOTS) if (w.getEntity(id) instanceof BotEntity b && b.isAlive()) alive.put(b.statKey(), true);
+        for (ServerPlayerEntity p : players(server)) {
+            com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+            o.add("rows", MatchStats.table(alive, money, p.getUuidAsString()));
+            o.addProperty("wt", winsT); o.addProperty("wct", winsCT); o.addProperty("round", round);
+            o.addProperty("map", map.title);
+            net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mtab", o.toString()));
+        }
+    }
+
+    /** Награда за матч: эссенция и шанс кейса — тем больше, чем лучше сыграл */
+    private static void reward(ServerPlayerEntity p, Team team, Team winner, boolean wasDraw) {
+        MatchStats.Row r = MatchStats.ROWS.get(p.getUuidAsString());
+        if (r == null) return;
+        boolean won = winner != null && team == winner;
+        int top = 0;
+        for (MatchStats.Row x : MatchStats.ROWS.values()) top = Math.max(top, x.score());
+        boolean best = r.score() > 0 && r.score() >= top;
+        com.google.gson.JsonArray lines = new com.google.gson.JsonArray();
+        int total = 0;
+        int[][] parts = {{25}, {r.kills * 6}, {r.assists * 3}, {r.mvps * 10}, {(r.plants + r.defuses) * 8}, {Math.round(r.damage * 0.5f)},
+            {won ? 60 : wasDraw ? 30 : 0}, {best ? 25 : 0}};
+        String[] names = {"Участие", "Убийства ×" + r.kills, "Помощь ×" + r.assists, "MVP ×" + r.mvps, "Бомба ×" + (r.plants + r.defuses),
+            "Урон " + Math.round(r.damage * 5), won ? "Победа" : wasDraw ? "Ничья" : "Поражение", "Лучший игрок матча"};
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i][0] <= 0 && i != 6) continue;
+            com.google.gson.JsonObject l = new com.google.gson.JsonObject();
+            l.addProperty("n", names[i]); l.addProperty("v", parts[i][0]);
+            lines.add(l);
+            total += parts[i][0];
+        }
+        p.setAttached(com.derevna230.comborush.data.PlayerProfile.TYPE, com.derevna230.comborush.data.PlayerProfile.of(p).addEssence(total));
+        double chance = Math.min(0.65, 0.12 + 0.015 * r.kills + 0.04 * r.mvps + (won ? 0.12 : wasDraw ? 0.06 : 0) + (best ? 0.05 : 0));
+        String caseName = RND.nextDouble() < chance ? Standoff.giveCaseNamed(p) : null;
+        com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+        o.addProperty("result", wasDraw ? "draw" : won ? "win" : "loss");
+        o.addProperty("score", (team == Team.T ? winsT : winsCT) + " : " + (team == Team.T ? winsCT : winsT));
+        o.addProperty("k", r.kills); o.addProperty("d", r.deaths); o.addProperty("a", r.assists); o.addProperty("mvp", r.mvps);
+        o.addProperty("dmg", Math.round(r.damage * 5)); o.addProperty("hs", r.headshots);
+        o.addProperty("essence", total);
+        o.add("lines", lines);
+        o.addProperty("chance", Math.round(chance * 100));
+        if (caseName != null) o.addProperty("case", caseName);
+        o.addProperty("best", best);
+        p.sendMessage(Text.literal("§6§lИтоги матча: §d+" + total + " ✦ эссенции" + (caseName != null ? " §7и §6кейс «" + caseName + "»" : "")), false);
+        net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, new com.derevna230.comborush.hud.HudPayload("mresult", o.toString()));
     }
 
     // ---------------------------------------------------------------- сообщения

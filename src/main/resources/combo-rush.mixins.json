@@ -3,6 +3,9 @@
   "minVersion": "0.8",
   "package": "com.derevna230.comborush.mixin",
   "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BombPickupMixin"
+  ],
   "client": [
     "GameRendererMixin",
     "PlayerArmPoseMixin",
@@ -11,7 +14,8 @@
     "LivingRendererAccess",
     "BuyScreenMixin",
     "ScopeHideMixin",
-    "BossBarFilterMixin"
+    "BossBarFilterMixin",
+    "PlayerListHideMixin"
   ],
   "injectors": {
     "defaultRequire": 0

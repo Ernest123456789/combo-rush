@@ -80,16 +80,19 @@ public final class Standoff {
         return giveCase(p);
     }
 
-    public static boolean giveCase(ServerPlayerEntity p) {
+    public static boolean giveCase(ServerPlayerEntity p) { return giveCaseNamed(p) != null; }
+
+    /** Выдать случайный кейс; возвращает его название (или null) */
+    public static String giveCaseNamed(ServerPlayerEntity p) {
         String[] ids = {"arsenal", "bayonet", "sidearm", "utility", "shotgun"};
         String[] names = {"Арсенал", "Штык", "Кобура", "Утилиты", "Дробовики"};
         int k = ThreadLocalRandom.current().nextInt(ids.length);
         Item c = ModItems.CASES.get(ids[k]);
-        if (c == null) return false;
+        if (c == null) return null;
         p.getInventory().offerOrDrop(new ItemStack(c));
         p.sendMessage(Text.literal("§6§lНаграда за матч: §fКейс «" + names[k] + "»! §7Ключ к нему — 250 эссенции, покупается при открытии."), false);
         p.getServerWorld().playSound(null, p.getBlockPos(), net.minecraft.sound.SoundEvents.ENTITY_PLAYER_LEVELUP,
             net.minecraft.sound.SoundCategory.PLAYERS, 0.8f, 1.2f);
-        return true;
+        return names[k];
     }
 }

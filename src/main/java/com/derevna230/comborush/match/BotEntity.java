@@ -118,6 +118,11 @@ public class BotEntity extends PathAwareEntity {
         this.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0f);
     }
 
+    private String statKey = "bot:?", botName = "Бот";
+    public void setIdentity(String name) { this.botName = name; this.statKey = "bot:" + name; }
+    public String statKey() { return statKey; }
+    public String botName() { return botName; }
+
     public void giveBomb() { this.hasBomb = true; }
     public boolean hasBomb() { return hasBomb; }
 
@@ -198,6 +203,7 @@ public class BotEntity extends PathAwareEntity {
             goTo(target.getPos(), 1.0);                        // не достаём — подтягиваемся
         } else {
             getNavigation().stop();
+            setSprinting(false);
             // на позиции и со снайперкой стоим, иначе изредка «качаемся»
             if (!onPost && !sniper && dist < 26) {
                 if (age >= strafeUntil) {
@@ -267,6 +273,7 @@ public class BotEntity extends PathAwareEntity {
                 }
             }
             if (eh != null) {
+                MatchStats.noteHit(eh.entity(), this, eh.part());
                 hits.merge(eh.entity(), gun.damage() * Match.BOT_DAMAGE * eh.part().mult, Float::sum);
                 sw.spawnParticles(ParticleTypes.CRIT, hitPos.x, hitPos.y, hitPos.z, 4, 0.1, 0.1, 0.1, 0.2);
             } else if (bh.getType() != HitResult.Type.MISS) {
@@ -315,6 +322,7 @@ public class BotEntity extends PathAwareEntity {
             return false;
         }
         getNavigation().stop();
+        setSprinting(false);
         if (!onPost) { onPost = true; }
         lookFrom(post);
         return true;
@@ -413,9 +421,15 @@ public class BotEntity extends PathAwareEntity {
     }
 
     // ================================================================= движение
+    /** Бег: к цели раунда — бегом (как игрок с Ctrl), в бою — шагом */
+    private static final double RUN = 1.35;
+
     private void goTo(Vec3d p, double speed) {
+        boolean fighting = target != null && target.isAlive() && age - seenAge <= 3;
+        double sp = fighting ? speed : speed * RUN;
+        setSprinting(!fighting);
         if (goal == null || goal.squaredDistanceTo(p) > 4 || getNavigation().isIdle() && age - goalAge > 10) {
-            getNavigation().startMovingTo(p.x, p.y, p.z, speed);
+            getNavigation().startMovingTo(p.x, p.y, p.z, sp);
             goal = p;
             goalAge = age;
         }

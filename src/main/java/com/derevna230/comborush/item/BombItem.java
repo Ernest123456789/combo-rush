@@ -44,6 +44,10 @@ public class BombItem extends Item {
             if (!world.isClient) user.sendMessage(Text.literal("§cБомбу можно закладывать только стоя на земле."), true);
             return TypedActionResult.fail(stack);
         }
+        if (!world.isClient && com.derevna230.comborush.match.Match.teamOf(user) == com.derevna230.comborush.match.Team.CT) {
+            user.sendMessage(Text.literal("§cСпецназ не закладывает бомбу."), true);
+            return TypedActionResult.fail(user.getStackInHand(hand));
+        }
         if (!onSite(world, user)) {
             if (!world.isClient) user.sendMessage(Text.literal(NOT_SITE), true);
             return TypedActionResult.fail(stack);

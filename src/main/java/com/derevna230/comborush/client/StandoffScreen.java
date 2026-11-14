@@ -314,7 +314,7 @@ public class StandoffScreen extends Screen {
 
     private void inspect() {
         if (tab == 1 && selItem != null) play(stackOf(selItem), "inspect");
-        else if (tab == 0) { play(stackOf(equippedOf(featured)), "inspect"); anim = "inspect"; animStart = System.nanoTime(); }
+
         HudModel.play(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.2f, 0.4f);
     }
 
@@ -352,6 +352,7 @@ public class StandoffScreen extends Screen {
         }
         drawTopBar(c, now);
         drawInvite(c, now);
+        drawMatchResult(c);
         m.pop();
     }
 
@@ -394,6 +395,41 @@ public class StandoffScreen extends Screen {
         }
         // эссенция
         text(c, "✦ " + essence, DW - 8, 9, 0.95f, 0xFFD7A8FF, 2);
+    }
+
+    // ---- итоги матча: награды по игре
+    private void drawMatchResult(DrawContext c) {
+        com.google.gson.JsonObject r = com.derevna230.comborush.client.match.MatchClient.result;
+        if (r == null) return;
+        MatrixStack m = c.getMatrices();
+        m.push();
+        m.translate(0, 0, 400);
+        c.fill(-200, -200, DW + 200, DH + 200, 0xB0000000);
+        float x = 110, y = 30, w = 200, h = 196;
+        panel(c, (int) x, (int) y, (int) w, (int) h);
+        String res = r.get("result").getAsString();
+        String title = res.equals("win") ? "§a§lПОБЕДА" : res.equals("draw") ? "§e§lНИЧЬЯ" : "§c§lПОРАЖЕНИЕ";
+        text(c, title, x + w / 2, y + 8, 1.4f, 0xFFFFFFFF, 1);
+        text(c, "Счёт " + r.get("score").getAsString(), x + w / 2, y + 24, 0.8f, 0xFFB8C2D6, 1);
+        text(c, "У " + r.get("k").getAsInt() + "  ·  П " + r.get("a").getAsInt() + "  ·  С " + r.get("d").getAsInt()
+            + "  ·  урон " + r.get("dmg").getAsInt() + "  ·  ★" + r.get("mvp").getAsInt(), x + w / 2, y + 36, 0.7f, 0xFFFFFFFF, 1);
+        if (r.get("best").getAsBoolean()) text(c, "§6★ Лучший игрок матча", x + w / 2, y + 46, 0.7f, 0xFFFFFFFF, 1);
+        float ly = y + 58;
+        for (com.google.gson.JsonElement e : r.getAsJsonArray("lines")) {
+            com.google.gson.JsonObject l = e.getAsJsonObject();
+            text(c, l.get("n").getAsString(), x + 14, ly, 0.68f, 0xFFB8C2D6, 0);
+            text(c, "§d+" + l.get("v").getAsInt() + " ✦", x + w - 14, ly, 0.68f, 0xFFFFFFFF, 2);
+            ly += 10;
+        }
+        c.fill((int) x + 12, (int) ly + 1, (int) (x + w - 12), (int) ly + 2, 0x40FFFFFF);
+        text(c, "Итого", x + 14, ly + 5, 0.85f, 0xFFFFFFFF, 0);
+        text(c, "§d+" + r.get("essence").getAsInt() + " ✦", x + w - 14, ly + 5, 0.85f, 0xFFFFFFFF, 2);
+        String cs = r.has("case") ? "§6Выпал кейс «" + r.get("case").getAsString() + "»!" : "§7Кейс не выпал (шанс был " + r.get("chance").getAsInt() + "%)";
+        text(c, cs, x + w / 2, y + h - 30, 0.75f, 0xFFFFFFFF, 1);
+        text(c, "Чем лучше игра — тем больше эссенции и выше шанс кейса", x + w / 2, y + h - 19, 0.55f, 0xFF6F7A90, 1);
+        text(c, "клик — закрыть", x + w / 2, y + h - 10, 0.55f, 0xFF6F7A90, 1);
+        m.pop();
+        hit(-200, -200, DW + 400, DH + 400, () -> com.derevna230.comborush.client.match.MatchClient.result = null);
     }
 
     // ---- приглашение в группу
@@ -493,7 +529,7 @@ public class StandoffScreen extends Screen {
         // расписание анимаций
         double t = (now - animStart) / 1e9;
         if (now >= nextAnimAt) {
-            String[] pool = {"inspect", "draw", "look", "crouch", "inspect"};
+            String[] pool = {"draw", "look", "crouch", "look"};          // осмотра оружия у персонажа в меню нет
             anim = pool[(int) (Math.random() * pool.length)];
             animStart = now;
             nextAnimAt = now + (long) ((anim.equals("inspect") ? 5.0 : 3.5) * 1e9) + (long) (Math.random() * 3e9);

@@ -211,7 +211,7 @@ public class CRGunItem extends Item implements GeoItem {
                 LivingEntity e = eh.entity();
                 boolean hs = modern && eh.part() == com.derevna230.comborush.match.HitBoxes.Part.HEAD;
                 head |= hs;
-                if (modern) lastPart = eh.part();
+                if (modern) { lastPart = eh.part(); com.derevna230.comborush.match.MatchStats.noteHit(e, p, eh.part()); }
                 hits.merge(e, modern ? damage * eh.part().mult : damage, Float::sum);
                 w.spawnParticles(ParticleTypes.CRIT, hitPos.x, hitPos.y, hitPos.z, 6, 0.1, 0.1, 0.1, 0.2);
             } else if (bh.getType() != HitResult.Type.MISS) {

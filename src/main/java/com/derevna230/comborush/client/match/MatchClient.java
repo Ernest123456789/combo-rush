@@ -30,7 +30,17 @@ public final class MatchClient {
     private static JsonObject banner;
     private static long bannerAt;
 
+    // ---- лента убийств, таблица, итоги
+    private record Kill(JsonObject o, long at) {}
+    private static final List<Kill> FEED = new ArrayList<>();
+    private static JsonObject table;
+    /** Итоги последнего матча — показывает экран меню «Противостояния» */
+    public static JsonObject result;
+
     public static void receive(String kind, JsonObject o) {
+        if (kind.equals("mkill")) { FEED.add(new Kill(o, System.currentTimeMillis())); while (FEED.size() > 6) FEED.remove(0); return; }
+        if (kind.equals("mtab")) { table = o; return; }
+        if (kind.equals("mresult")) { result = o; return; }
         if (kind.equals("mstate")) {
             if (o.has("off")) { active = false; return; }
             int m = o.get("money").getAsInt();
@@ -76,7 +86,11 @@ public final class MatchClient {
     public static void render(DrawContext c) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.options.hudHidden) return;
-        if (inMatch()) hud(c, mc);
+        if (inMatch()) {
+            hud(c, mc);
+            drawFeed(c, mc);
+            if (mc.options.playerListKey.isPressed() && table != null) drawTable(c, mc);
+        }
         if (banner != null) drawBanner(c, mc);
     }
 
@@ -127,6 +141,104 @@ public final class MatchClient {
         String side = ct ? "§9§lСПЕЦНАЗ" : "§6§lТЕРРОРИСТЫ";
         text(c, tr, side, 8, 8, 0.9f, 0xFFFFFFFF, 0);
         text(c, tr, "§7◆ §f" + place, 8, 19, 0.85f, 0xFFFFFFFF, 0);
+    }
+
+    // ================================================================= лента убийств
+    private static int teamCol(String t) { return t.equals("t") ? 0xE0A030 : t.equals("ct") ? 0x6A9CF0 : 0xCCCCCC; }
+
+    private static void drawFeed(DrawContext c, MinecraftClient mc) {
+        TextRenderer tr = mc.textRenderer;
+        int w = c.getScaledWindowWidth();
+        long now = System.currentTimeMillis();
+        FEED.removeIf(k -> now - k.at() > 7000);
+        int y = 6;
+        for (Kill k : FEED) {
+            JsonObject o = k.o();
+            float age = (now - k.at()) / 1000f;
+            float a = Math.min(1f, (7f - age) / 0.6f);
+            String victim = o.get("v").getAsString(), killer = o.has("k") ? o.get("k").getAsString() : null;
+            String wpn = o.get("w").getAsString();
+            boolean hs = o.get("hs").getAsBoolean(), me = o.has("me") && o.get("me").getAsBoolean();
+            int vw = tr.getWidth(victim), kw = killer == null ? 0 : tr.getWidth(killer);
+            int iconW = 18, hsW = hs ? 10 : 0;
+            int total = 6 + kw + (killer == null ? 0 : 5) + iconW + hsW + 5 + vw + 6;
+            int x0 = w - 6 - total;
+            int bg = me ? 0xB0301010 : 0x90000000;
+            c.fill(x0, y, x0 + total, y + 14, ((int) (a * ((bg >>> 24) & 0xFF)) << 24) | (bg & 0xFFFFFF));
+            if (me) {
+                int rc = ((int) (a * 255) << 24) | 0xE04040;
+                c.fill(x0, y, x0 + total, y + 1, rc); c.fill(x0, y + 13, x0 + total, y + 14, rc);
+                c.fill(x0, y, x0 + 1, y + 14, rc); c.fill(x0 + total - 1, y, x0 + total, y + 14, rc);
+            }
+            int x = x0 + 6;
+            int al = Math.max(6, (int) (a * 255)) << 24;
+            if (killer != null) { c.drawText(tr, killer, x, y + 3, al | teamCol(o.get("kt").getAsString()), true); x += kw + 5; }
+            drawWeapon(c, tr, wpn, x, y - 1, al);
+            x += iconW;
+            if (hs) { drawHeadshot(c, x, y + 3, al); x += hsW; }
+            x += 5;
+            c.drawText(tr, victim, x, y + 3, al | teamCol(o.get("vt").getAsString()), true);
+            y += 16;
+        }
+    }
+
+    private static void drawWeapon(DrawContext c, TextRenderer tr, String id, int x, int y, int alpha) {
+        if (id.equals("fall") || id.equals("world") || id.isEmpty()) { c.drawText(tr, "☠", x + 4, y + 4, alpha | 0xDDDDDD, true); return; }
+        net.minecraft.item.Item it = net.minecraft.registry.Registries.ITEM.get(net.minecraft.util.Identifier.of(com.derevna230.comborush.ComboRush.MOD_ID, id));
+        if (it == net.minecraft.item.Items.AIR) { c.drawText(tr, "✦", x + 4, y + 4, alpha | 0xDDDDDD, true); return; }
+        c.getMatrices().push();
+        c.getMatrices().translate(x, y, 0);
+        c.getMatrices().scale(1f, 1f, 1f);
+        c.drawItem(new net.minecraft.item.ItemStack(it), 0, 0);
+        c.getMatrices().pop();
+    }
+
+    /** Значок хедшота: голова с перекрестием, 8×8 */
+    private static void drawHeadshot(DrawContext c, int x, int y, int alpha) {
+        int col = alpha | 0xFF5050;
+        String[] px = {"..####..", ".######.", "##.##.##", "########", "########", ".######.", "..#..#..", "..####.."};
+        for (int r = 0; r < 8; r++) for (int q = 0; q < 8; q++) if (px[r].charAt(q) == '#') c.fill(x + q, y + r, x + q + 1, y + r + 1, col);
+    }
+
+    // ================================================================= таблица (Tab)
+    private static void drawTable(DrawContext c, MinecraftClient mc) {
+        TextRenderer tr = mc.textRenderer;
+        int w = c.getScaledWindowWidth(), h = c.getScaledWindowHeight();
+        com.google.gson.JsonArray rows = table.getAsJsonArray("rows");
+        int pw = Math.min(w - 20, 380), rowH = 12;
+        int ph = 46 + rows.size() * rowH + 26;
+        int x0 = (w - pw) / 2, y0 = Math.max(8, (h - ph) / 2 - 10);
+        c.fill(x0 - 1, y0 - 1, x0 + pw + 1, y0 + ph + 1, 0xFF000000);
+        c.fill(x0, y0, x0 + pw, y0 + ph, 0xE0101420);
+        text(c, tr, "«" + table.get("map").getAsString() + "»  ·  раунд " + table.get("round").getAsInt(), x0 + 8, y0 + 7, 0.9f, 0xFFB8C2D6, 0);
+        text(c, tr, "§6T " + table.get("wt").getAsInt() + " §7: §9" + table.get("wct").getAsInt() + " CT", x0 + pw - 8, y0 + 6, 1.1f, 0xFFFFFFFF, 2);
+        String[] cols = {"У", "П", "С", "УРОН", "ГОЛ", "MVP", "ОЧКИ", "$"};
+        int[] cx = {pw - 238, pw - 214, pw - 190, pw - 160, pw - 128, pw - 100, pw - 70, pw - 30};
+        int y = y0 + 24;
+        String lastTeam = "";
+        for (int i = 0; i < rows.size(); i++) {
+            JsonObject r = rows.get(i).getAsJsonObject();
+            String t = r.get("t").getAsString();
+            if (!t.equals(lastTeam)) {
+                lastTeam = t;
+                y += 4;
+                c.fill(x0 + 4, y, x0 + pw - 4, y + 11, t.equals("ct") ? 0xC0203A66 : 0xC0664A18);
+                text(c, tr, t.equals("ct") ? "СПЕЦНАЗ" : "ТЕРРОРИСТЫ", x0 + 8, y + 2, 0.75f, 0xFFFFFFFF, 0);
+                for (int k = 0; k < cols.length; k++) text(c, tr, cols[k], x0 + cx[k], y + 2, 0.7f, 0xFFD0D6E2, 1);
+                y += 12;
+            }
+            boolean alive = r.get("alive").getAsBoolean(), me = r.get("me").getAsBoolean();
+            if (me) c.fill(x0 + 4, y, x0 + pw - 4, y + rowH, 0x40FFFFFF);
+            int col = alive ? 0xFFFFFFFF : 0xFF7A7F8A;
+            String name = (r.get("bot").getAsBoolean() ? "§8БОТ §r" : "") + r.get("n").getAsString() + (alive ? "" : " §8✝");
+            text(c, tr, name, x0 + 10, y + 2, 0.8f, col, 0);
+            String[] vals = {"" + r.get("k").getAsInt(), "" + r.get("a").getAsInt(), "" + r.get("d").getAsInt(), "" + r.get("dmg").getAsInt(),
+                "" + r.get("hs").getAsInt(), r.get("mvp").getAsInt() > 0 ? "★" + r.get("mvp").getAsInt() : "", "" + r.get("sc").getAsInt(),
+                r.has("$") ? fmtMoney(r.get("$").getAsInt()) : ""};
+            for (int k = 0; k < vals.length; k++) text(c, tr, vals[k], x0 + cx[k], y + 2, 0.8f, k == 7 ? 0xFF7CE07C : k == 5 ? 0xFFFFD27A : col, 1);
+            y += rowH;
+        }
+        text(c, tr, "У — убийства · П — помощь · С — смерти · урон — сумма (100 = одно убийство) · ГОЛ — в голову", x0 + pw / 2f, y0 + ph - 12, 0.6f, 0xFF7A8396, 1);
     }
 
     // ================================================================= анимация конца раунда
@@ -246,6 +358,10 @@ public final class MatchClient {
         text(c, tr, Integer.toString(wT), w / 2f - 18, sy + 1 - (tWon ? (pulse - 1) * 6 : 0), 1.8f * (tWon ? pulse : 1), argb(ka, tWon ? 0xFFFFFF : 0xB0B0B0), 1);
         text(c, tr, Integer.toString(wCT), w / 2f + 18, sy + 1 - (!tWon ? (pulse - 1) * 6 : 0), 1.8f * (!tWon ? pulse : 1), argb(ka, !tWon ? 0xFFFFFF : 0xB0B0B0), 1);
 
+        if (o.has("mvp") && !big) {
+            float ma = clamp((t - 1.1f) / 0.3f) * out;
+            text(c, tr, "★ MVP: " + o.get("mvp").getAsString(), w / 2f, sy + (kind.equals("half") ? 80 : 44), 0.95f, argb(ma, 0xFFD27A), 1);
+        }
         // деньги за раунд
         int pay = o.get("pay").getAsInt();
         float pa = clamp((t - 0.95f) / 0.3f) * out;
