@@ -90,8 +90,37 @@ def _sakura_canvas(z0=-9, z1=36, y0=-10, y1=9, ppu=8):
     return im, (z0, z1, y0, y1, ppu)
 
 
+def _sai_canvas(z0=-9, z1=36, y0=-10, y1=9, ppu=16):
+    """AWP «Sai»: рисунок игрока (art/sai.png) во весь приклад на пастельном фоне с лепестками"""
+    import os
+    W, H = int((z1 - z0) * ppu), int((y1 - y0) * ppu)
+    im = Image.new('RGB', (W, H)); d = ImageDraw.Draw(im)
+    P = lambda z, y: ((z - z0) * ppu, (y1 - y) * ppu)
+    for yy in range(H):
+        t = yy / H
+        d.line([(0, yy), (W, yy)], fill=tuple(int(a + (b - a) * t) for a, b in zip((255, 214, 230), (200, 188, 248))))
+    for i in range(80):
+        z, y = z0 + hsh(i, 1, 3) * (z1 - z0), y0 + hsh(i, 2, 3) * (y1 - y0)
+        x, yp = P(z, y); r = 5 + hsh(i, 3, 3) * 6
+        if i % 3:
+            d.ellipse([x - r, yp - r * .6, x + r, yp + r * .6], fill=(255, 160, 196)); d.ellipse([x - r * .4, yp - r * .3, x + r * .4, yp + r * .3], fill=(255, 228, 240))
+        else:
+            d.line([(x - r, yp), (x + r, yp)], fill=(255, 255, 255), width=3); d.line([(x, yp - r), (x, yp + r)], fill=(255, 255, 255), width=3)
+    art = Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'art', 'sai.png')).convert('RGBA')
+    a = art.split()[3].point(lambda v: 255 if v > 200 else 0)              # без полупрозрачной тени
+    art.putalpha(a); art = art.crop(a.getbbox())
+    fz0, fz1, fy0, fy1 = -7.5, 15.5, -4.0, 1.0                            # приклад: от затыльника до цевья
+    tw, th = int((fz1 - fz0) * ppu), int((fy1 - fy0) * ppu)
+    k = min(tw / art.width, th / art.height)
+    art = art.resize((int(art.width * k), int(art.height * k)), Image.LANCZOS)
+    a = art.split()[3].point(lambda v: 255 if v > 128 else 0); art.putalpha(a)
+    x0, yt = P(fz0, fy1)
+    im.paste(art, (int(x0 + (tw - art.width) / 2), int(yt + (th - art.height) / 2)), art)
+    return im, (z0, z1, y0, y1, ppu)
+
+
 def anime():
-    im, (z0, z1, y0, y1, ppu) = _sakura_canvas()
+    im, (z0, z1, y0, y1, ppu) = _sai_canvas()
     px = im.load(); W, H = im.size
     def f(p, h, ab):
         x = int((ab[2] - z0) * ppu); y = int((y1 - ab[1]) * ppu)
@@ -275,7 +304,7 @@ def lava():
 
 PIC = lambda fn: (fn, fn)
 KALEIDO = {
-    'awp': [('sakura', 'Сакура', 'Sakura', 'legendary', *PIC(anime()))],
+    'awp': [('sakura', 'Sai', 'Sai', 'legendary', *PIC(anime()))],
     'ak47': [('carved', 'Резное золото', 'Carved Gold', 'legendary', SK.solid(C('#18161a')), SK.solid(C('#4a1e14')))],
     'm4a4': [('neon', 'Неоновая ночь', 'Neon Night', 'epic', *PIC(synthwave()))],
     'famas': [('stained', 'Витраж', 'Stained Glass', 'epic', *PIC(stained()))],
@@ -295,6 +324,8 @@ KALEIDO = {
 }
 # скины с собственной геометрией: id → (база, функция рельефа)
 OWN_MODEL = {'ak47_carved'}
+# скины с текстурой выше разрешения модели (рисунок): id → множитель
+HIRES = {'awp_sakura': 2}
 for gid, lst in KALEIDO.items():
     SK.SKINS.setdefault(gid, [])
     have = {s[0] for s in SK.SKINS[gid]}

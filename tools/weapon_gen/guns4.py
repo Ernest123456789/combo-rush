@@ -266,6 +266,30 @@ def build_own(full):
     return g
 
 
+def apply_hi(g, metal, furn, n, sparkle=0.0):
+    """покраска в n раз крупнее текстуры модели (UV в GeckoLib нормированы — подходит та же модель)"""
+    from PIL import Image
+    bx, by, bz = SK.bounds(g)
+    base = g.img; bp = base.load()
+    img = base.resize((base.width * n, base.height * n), Image.NEAREST); px = img.load()
+    for c in g.cubes:
+        pt = metal if c.mat in SK.METAL else furn if c.mat in SK.FURN else None
+        if pt is None: continue
+        M = MATS[c.mat]; bl = .3 * M[0] + .59 * M[1] + .11 * M[2]
+        for face, (u, v, w, h) in c.rects().items():
+            for yy in range(h * n):
+                for xx in range(w * n):
+                    r, gg, b, a = bp[u + xx // n, v + yy // n]
+                    if a == 0: continue
+                    P = SK.face_pos(c, face, xx, yy, w * n, h * n)
+                    col = pt(None, hsh(u * n + xx, v * n + yy, 21), P)
+                    kk = max(.25, min(1.7, (.3 * r + .59 * gg + .11 * b) / bl)) ** .9
+                    out = [col[i] * kk for i in range(3)]
+                    if sparkle and hsh(u * n + xx, v * n + yy, 99) < sparkle: out = [o + (255 - o) * 0.55 for o in out]
+                    px[u * n + xx, v * n + yy] = tuple(max(0, min(255, int(o))) for o in out) + (255,)
+    return img
+
+
 def preview(g, out):
     import texprev as TP
     from PIL import Image
@@ -303,6 +327,10 @@ if __name__ == '__main__':
                 gg = build_own(full)
                 geo = gg.geo(); geo['minecraft:geometry'][0]['description']['identifier'] = 'geometry.combo_rush.' + full
                 json.dump(geo, open(f'{A}/geo/item/weapon/{full}.geo.json', 'w'), indent=1)
-            im = SK.apply(gg, m, fu, sparkle={'epic': .012, 'legendary': .02}.get(tier, 0))
-            g2img = gg.img; gg.img = im; mark(gg); gg.img = g2img       # маркировка поверх покраски
+            sp = {'epic': .012, 'legendary': .02}.get(tier, 0)
+            if full in skins3.HIRES:
+                im = apply_hi(gg, m, fu, skins3.HIRES[full], sp * 0.3)
+            else:
+                im = SK.apply(gg, m, fu, sparkle=sp)
+                g2img = gg.img; gg.img = im; mark(gg); gg.img = g2img       # маркировка поверх покраски
             im.save(f'{A}/textures/item/weapon/skins/{full}.png')
