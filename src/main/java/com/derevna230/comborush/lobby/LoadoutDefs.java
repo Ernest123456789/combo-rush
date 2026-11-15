@@ -35,7 +35,7 @@ public final class LoadoutDefs {
             l.addAll(GunDefs.STD_GLOVES);
             for (GunDefs.Skin s : GunDefs.SKINS) if (GunDefs.isGlovesBase(s.base())) l.add(s.id());
         } else if (slot.equals(KNIFE_SLOT)) {
-            l.add("knife_t"); l.add("knife_ct"); l.add("claw"); l.add("bayonet"); l.add("skeleton"); l.add("gurkha");
+            l.add("knife_t"); l.add("knife_ct"); l.add("claw"); l.add("bayonet"); l.add("skeleton"); l.add("gurkha"); l.add("butterfly");
             for (GunDefs.Skin s : GunDefs.SKINS) if (GunDefs.isSpecialKnife(s.base())) l.add(s.id());
         } else {
             l.add(slot);

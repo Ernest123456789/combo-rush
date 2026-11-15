@@ -51,6 +51,7 @@ public final class BuyDefs {
         g("m4a4", 3100, 3, Team.CT, SLOT_PRIMARY);
 
         g("scar20", 5000, 4, Team.CT, SLOT_PRIMARY);
+        g("g3sg1", 5000, 4, Team.T, SLOT_PRIMARY);
         g("awp", 4750, 4, null, SLOT_PRIMARY);
 
         e("grenade_flash", "Светошумовая", 200, 5, null, SLOT_GREN0);

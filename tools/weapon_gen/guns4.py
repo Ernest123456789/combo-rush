@@ -17,7 +17,9 @@ def _init(s, gid, tw=256, K=2):
 wgen.Gun.__init__ = _init
 
 import hd, hd2  # noqa: E402  (после подмены)
+import guns5  # noqa: E402,F401  (G3SG1)
 import skins as SK
+import skins2  # noqa: F401  (скины кейса «Граффити»)
 
 KNIVES = ('claw', 'knife', 'bayonet', 'skeleton')
 IDS = [k for k in hd.ALLG if k not in KNIVES]
@@ -91,7 +93,7 @@ MARK = {
     'p90': [('receiver', 'P90  5.7X28')], 'usp': [('slide', 'USP-S  .45'), ('silencer', 'SD')],
     'revolver': [('frame', 'R8  .44 MAG')], 'm4a4': [('receiver', 'M4A4  5.56 NATO'), ('magazine', '30')],
     'm4a1s': [('receiver', 'M4A1-S  5.56'), ('silencer', 'SD')], 'famas': [('receiver', 'FAMAS F1')],
-    'mp9': [('receiver', 'MP9  9X19')], 'mp7': [('receiver', 'MP7  4.6X30')], 'scar20': [('receiver', 'SCAR-20  7.62'), ('scope', '8X')],
+    'mp9': [('receiver', 'MP9  9X19')], 'mp7': [('receiver', 'MP7  4.6X30')], 'scar20': [('receiver', 'SCAR-20  7.62'), ('scope', '8X')], 'g3sg1': [('receiver', 'G3SG1  7.62X51'), ('magazine', '20')],
     'taser': [('receiver', 'ZEUS X27')], 'nova': [('receiver', 'NOVA  12 GA')], 'xm1014': [('receiver', 'XM1014  12 GA')],
     'mag7': [('receiver', 'MAG-7  12 GA')], 'sawedoff': [('receiver', '12 GA')], 'mac10': [('receiver', 'MAC-10  .45')],
     'grenade_he': [('pistol_grip', 'HE')], 'grenade_flash': [('pistol_grip', 'FB')], 'grenade_smoke': [('pistol_grip', 'SMOKE')],

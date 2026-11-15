@@ -45,6 +45,12 @@ public final class SkinData {
         Map.entry("skeleton_tiger", new float[]{0.00f, 1.00f}),
         Map.entry("skeleton_crimsonweb", new float[]{0.00f, 1.00f}),
         Map.entry("gurkha", new float[]{0.00f, 0.45f}),
+        Map.entry("butterfly", new float[]{0.00f, 0.45f}),
+        Map.entry("butterfly_fade", new float[]{0.00f, 0.08f}),
+        Map.entry("butterfly_doppler", new float[]{0.00f, 0.08f}),
+        Map.entry("butterfly_heat", new float[]{0.00f, 0.75f}),
+        Map.entry("butterfly_tiger", new float[]{0.00f, 1.00f}),
+        Map.entry("butterfly_crimsonweb", new float[]{0.00f, 1.00f}),
         Map.entry("gurkha_fade", new float[]{0.00f, 0.08f}),
         Map.entry("gurkha_doppler", new float[]{0.00f, 0.08f}),
         Map.entry("gurkha_heat", new float[]{0.00f, 0.75f}),
@@ -59,7 +65,7 @@ public final class SkinData {
     /** Редкость предмета по id ("" — у предмета нет скиновой редкости) */
     public static String rarityOf(String id) {
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(id)) return s.rarity();
-        return id.equals(GunDefs.KNIFE) || id.equals(GunDefs.BAYONET) || id.equals(GunDefs.SKELETON) || id.equals(GunDefs.GURKHA) ? "mythic" : "";
+        return id.equals(GunDefs.KNIFE) || id.equals(GunDefs.BAYONET) || id.equals(GunDefs.SKELETON) || id.equals(GunDefs.GURKHA) || id.equals(GunDefs.BUTTERFLY) ? "mythic" : "";
     }
 
     /** Предметы с износом: скины и Нож-коготь (стандартные стволы и ножи Т/КТ — «без покраски») */

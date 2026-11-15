@@ -507,7 +507,55 @@ def gurkha():
     return g
 
 
-ALL = {'knife': knife, 'bayonet': bayonet, 'skeleton': skeleton, 'claw': claw, 'gurkha': gurkha}
+# =========================================================================================== НОЖ-БАБОЧКА
+MATS['bfly'] = (104, 108, 118); NOISE['bfly'] = 3
+
+
+def butterfly():
+    """Нож-бабочка (балисонг): две рукояти-швеллера со сквозными прорезями вращаются на осях у хвостовика,
+    защёлка на конце рукояти A, клинок с долом, рикассо с «кикером». Закрыт — рукояти накрывают клинок с двух сторон."""
+    g = KGun('butterfly'); B = g.B
+    PV = (0, 1.25, 10.0)
+    g.bone('weapon', 'root', (0, 1.25, 6))
+    g.bone('spin', 'weapon', (0, 1.25, 7))
+    g.bone('blade', 'spin', PV)
+    g.bone('handle_a', 'spin', PV)
+    g.bone('handle_b', 'spin', PV)
+    g.bone('hand', 'weapon', (0, 1.25, 6))
+    for bone, s in (('handle_a', 1), ('handle_b', -1)):
+        xo = (0.28, 0.82) if s > 0 else (-0.82, -0.28)
+        part = 'wall_' + bone[-1]
+        z = 1.0
+        while z < 10.5 - 1e-6:                                   # стенка со скруглёнными концами
+            zm = z + 0.125
+            yb, yt = 0.0, 2.5
+            if zm < 1.6: yb, yt = 0.2 + (1.6 - zm) * 0.5, 2.3 - (1.6 - zm) * 0.5
+            if zm > 9.9: yb, yt = 0.3 + (zm - 9.9) * 0.9, 2.2 - (zm - 9.9) * 0.9
+            B(bone, part, 'bfly', xo, (q(yb, .125), q(yt, .125)), (z, z + 0.25), fx=fx_brushed)
+            z += 0.25
+        xi = (0.22, 0.28) if s > 0 else (-0.28, -0.22)          # полки швеллера
+        B(bone, 'lip', 'bfly', xi, (0.0, 0.3), (1.5, 9.5), 'seam_v')
+        B(bone, 'lip', 'bfly', xi, (2.2, 2.5), (1.5, 9.5), 'seam_v')
+        px = (0.82, 0.97) if s > 0 else (-0.97, -0.82)
+        B(bone, 'pin', 'bright', px, (0.9, 1.6), (9.65, 10.35), 'screw')            # ось
+        B(bone, 'pin', 'bright', px, (0.95, 1.55), (1.7, 2.3), 'screw')              # стопорный штифт
+        for z, r in ((3.0, 0.42), (4.5, 0.5), (6.0, 0.5), (7.5, 0.42)):
+            g.hole([part], 'x', z, 1.25, r)
+        g.hole([part], 'x', 8.9, 1.25, 0.28, 0.6)
+    B('handle_a', 'latch', 'steel', (0.0, 0.28), (1.0, 1.5), (0.6, 1.8), 'rib_h')    # защёлка
+    B('handle_a', 'latch', 'bright', (-0.1, 0.0), (1.0, 1.5), (0.6, 1.0))
+    # клинок: хвостовик с кикером, рикассо, клинок с долом и скосом обуха
+    B('blade', 'tang', 'steel', (-0.21, 0.21), (0.3, 2.3), (9.0, 10.75), 'seam_v')
+    B('blade', 'tang', 'steel', (-0.21, 0.21), (-0.3, 0.3), (9.4, 10.4))
+    sp = lambda z: 2.5 if z < 16.25 else 2.5 - ((z - 16.25) / 3.5) ** 1.2 * 1.25
+    ed = lambda z: (0.75 if z < 11.25 else 0.25) if z < 16.5 else 0.25 + ((z - 16.5) / 3.25) ** 2 * 1.0
+    straight_blade(g, 'blade', 10.75, 19.75, sp, ed, lambda z: 0.21 - 0.06 * max(0, z - 15.5) / 4.25, bev=0.75,
+                   fuller=lambda z: (1.5, 1.75) if 11.5 < z < 15.75 else None)
+    hand(g, (-0.85, 0.85), (0.0, 2.5), (2.5, 9.0))
+    return g
+
+
+ALL = {'knife': knife, 'bayonet': bayonet, 'skeleton': skeleton, 'claw': claw, 'gurkha': gurkha, 'butterfly': butterfly}
 
 
 # --------------------------------------------------------------------------------------- превью

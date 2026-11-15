@@ -32,6 +32,8 @@ public final class GunDefs {
         new Gun("mp9",       "MP9",         4.0f, 1, 0.0058, 1.3,   36,  46, false, 30, true,  false, 0.58f, 0.031),
         new Gun("mp7",       "MP7",         4.7f, 1, 0.0046, 1.6,   44,  52, false, 30, true,  false, 0.72f, 0.029),
         new Gun("scar20",    "SCAR-20",    13.0f, 1, 0.0008, 5.0,  140, 66, false, 20, false, true,  1.70f, 0.0),
+        // G3SG1 — автоснайперка стороны Т (аналог SCAR-20): чуть сильнее отдача и дольше перезарядка
+        new Gun("g3sg1",     "G3SG1",      13.0f, 1, 0.0009, 5.0,  140, 70, false, 20, false, true,  1.80f, 0.0),
         // дробовики: урон — за одну дробинку (урон × pellets при попадании всей картечью), разброс — конус картечи
         new Gun("nova",      "Nova",        2.1f, 9, 0.045,  18.0,  26,  72, false,  8, false, false, 3.0f,  0.0),
         new Gun("xm1014",    "XM1014",      1.7f, 6, 0.050,   7.0,  24,  68, false,  7, false, false, 2.0f,  0.0),
@@ -132,6 +134,23 @@ new Skin("famas_tundra", "famas", "uncommon"),
         new Skin("skeleton_tiger", "skeleton", "mythic"),
         new Skin("skeleton_crimsonweb", "skeleton", "mythic"),
         new Skin("skeleton_heat", "skeleton", "mythic"),
+        new Skin("ak47_beast", "ak47", "legendary"),
+        new Skin("m4a1s_printstream", "m4a1s", "legendary"),
+        new Skin("awp_azimuth", "awp", "legendary"),
+        new Skin("deagle_wave", "deagle", "epic"),
+        new Skin("usp_noir", "usp", "epic"),
+        new Skin("glock18_graffiti", "glock18", "epic"),
+        new Skin("m4a4_serpent", "m4a4", "epic"),
+        new Skin("mp9_acid", "mp9", "rare"),
+        new Skin("galil_treasure", "galil", "rare"),
+        new Skin("g3sg1_dunes", "g3sg1", "uncommon"),
+        new Skin("g3sg1_crash", "g3sg1", "rare"),
+        new Skin("g3sg1_chalk", "g3sg1", "epic"),
+        new Skin("butterfly_fade", "butterfly", "mythic"),
+        new Skin("butterfly_doppler", "butterfly", "mythic"),
+        new Skin("butterfly_tiger", "butterfly", "mythic"),
+        new Skin("butterfly_crimsonweb", "butterfly", "mythic"),
+        new Skin("butterfly_heat", "butterfly", "mythic"),
         new Skin("gurkha_fade", "gurkha", "mythic"),
         new Skin("gurkha_doppler", "gurkha", "mythic"),
         new Skin("gurkha_tiger", "gurkha", "mythic"),
@@ -164,10 +183,11 @@ new Skin("famas_tundra", "famas", "uncommon"),
     public static final String SKELETON = "skeleton";
     /** Кукри (id «gurkha»: «kukri» уже занят мечом приключений) */
     public static final String GURKHA = "gurkha";
+    public static final String BUTTERFLY = "butterfly";
     /** Базовые модели-ножи (claw — Нож-коготь, bayonet — Штык, knife — стандартный нож Т/КТ) */
-    public static boolean isKnifeBase(String base) { return base.equals("claw") || base.equals("knife") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha"); }
+    public static boolean isKnifeBase(String base) { return base.equals("claw") || base.equals("knife") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha") || base.equals("butterfly"); }
     /** Коллекционные ножи (не стандартные Т/КТ): коготь и штык */
-    public static boolean isSpecialKnife(String base) { return base.equals("claw") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha"); }
+    public static boolean isSpecialKnife(String base) { return base.equals("claw") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha") || base.equals("butterfly"); }
     private static final Map<String, Gun> BY_ID = new HashMap<>();
     private static final Map<String, Skin> SKIN_BY_ID = new HashMap<>();
     static {

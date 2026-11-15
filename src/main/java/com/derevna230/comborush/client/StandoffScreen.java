@@ -203,7 +203,7 @@ public class StandoffScreen extends Screen {
 
     private static String rarityOf(String item) {
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return s.rarity();
-        return item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") || item.equals("gurkha") ? "mythic" : "common";
+        return item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") || item.equals("gurkha") || item.equals("butterfly") ? "mythic" : "common";
     }
 
     private static int rarColor(String r) {
@@ -594,7 +594,7 @@ public class StandoffScreen extends Screen {
 
     // ================= СНАРЯЖЕНИЕ =================
     private static final String[] CATS = {"ВСЕ", "ВИНТОВКИ", "ПП", "ДРОБОВИКИ", "ПИСТОЛЕТЫ", "НОЖИ", "УТИЛИТЫ", "ПЕРЧАТКИ", "АГЕНТЫ"};
-    private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "famas", "scar20");
+    private static final Set<String> RIFLES = Set.of("ak47", "galil", "m4a4", "m4a1s", "awp", "famas", "scar20", "g3sg1");
     private static final Set<String> GEAR = Set.of("taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov");
     private static final Set<String> SMGS = Set.of("p90", "mp9", "mp7", "mac10");
     private static final Set<String> SHOTGUNS = Set.of("nova", "xm1014", "mag7", "sawedoff");
@@ -606,7 +606,7 @@ public class StandoffScreen extends Screen {
 
     private static String slotOf(String item) {
         if (com.derevna230.comborush.lobby.AgentDefs.isAgent(item)) return com.derevna230.comborush.lobby.AgentDefs.slotOf(item);
-        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") || item.equals("gurkha")) return LoadoutDefs.KNIFE_SLOT;
+        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") || item.equals("gurkha") || item.equals("butterfly")) return LoadoutDefs.KNIFE_SLOT;
         if (GunDefs.STD_GLOVES.contains(item)) return LoadoutDefs.GLOVES_SLOT;
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return GunDefs.isSpecialKnife(s.base()) ? LoadoutDefs.KNIFE_SLOT : s.base();
         return item;

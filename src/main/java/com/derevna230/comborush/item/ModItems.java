@@ -127,7 +127,7 @@ public final class ModItems {
     /** Карманные станки из Мастерской: id → предмет */
     public static final Map<String, Item> POCKET = new LinkedHashMap<>();
 
-    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor", "arsenal", "bayonet", "sidearm", "utility", "shotgun");
+    public static final List<String> CASE_IDS = List.of("common", "rare", "epic", "legendary", "mythic", "dark", "decor", "arsenal", "bayonet", "sidearm", "utility", "shotgun", "graffiti");
     public static final List<String> PIECES = List.of("helmet", "chestplate", "leggings", "boots");
 
     /** комплект → его предметы (у шляп один предмет) */
@@ -247,6 +247,7 @@ public final class ModItems {
         addKnife(GunDefs.BAYONET, "mythic");
         addKnife(GunDefs.SKELETON, "mythic");
         addKnife(GunDefs.GURKHA, "mythic");
+        addKnife(GunDefs.BUTTERFLY, "mythic");
         for (CRGrenadeItem.Kind k : CRGrenadeItem.Kind.values())
             GRENADES.put(k, register(k.id, new CRGrenadeItem(k, new Item.Settings().maxCount(4).rarity(Rarity.UNCOMMON).fireproof(), k.id)));
         for (String g : GunDefs.STD_GLOVES) register(g, new GlovesItem(g, settings("common")));

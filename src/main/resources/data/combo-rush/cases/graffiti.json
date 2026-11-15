@@ -1,0 +1,83 @@
+{
+  "name": "Кейс «Граффити»",
+  "description": "12 скинов-рисунков: Неоновый зверь, Оттиск, Азимут, Великая волна и другие, три скина на новую G3SG1. И крошечный шанс на ★ нож-бабочку (6 отделок).",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 10,
+  "keyPrice": 250,
+  "noShop": true,
+  "drops": [
+    {
+      "set": "ak47_beast",
+      "weight": 16
+    },
+    {
+      "set": "m4a1s_printstream",
+      "weight": 16
+    },
+    {
+      "set": "awp_azimuth",
+      "weight": 16
+    },
+    {
+      "set": "deagle_wave",
+      "weight": 45
+    },
+    {
+      "set": "usp_noir",
+      "weight": 45
+    },
+    {
+      "set": "glock18_graffiti",
+      "weight": 45
+    },
+    {
+      "set": "m4a4_serpent",
+      "weight": 45
+    },
+    {
+      "set": "mp9_acid",
+      "weight": 145
+    },
+    {
+      "set": "galil_treasure",
+      "weight": 145
+    },
+    {
+      "set": "g3sg1_dunes",
+      "weight": 726
+    },
+    {
+      "set": "g3sg1_crash",
+      "weight": 145
+    },
+    {
+      "set": "g3sg1_chalk",
+      "weight": 45
+    },
+    {
+      "set": "butterfly",
+      "weight": 4
+    },
+    {
+      "set": "butterfly_fade",
+      "weight": 4
+    },
+    {
+      "set": "butterfly_doppler",
+      "weight": 4
+    },
+    {
+      "set": "butterfly_tiger",
+      "weight": 4
+    },
+    {
+      "set": "butterfly_crimsonweb",
+      "weight": 4
+    },
+    {
+      "set": "butterfly_heat",
+      "weight": 4
+    }
+  ]
+}

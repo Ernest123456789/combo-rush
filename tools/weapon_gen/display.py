@@ -22,8 +22,8 @@ def euler_xyz(R):
     a = np.arctan2(-R[1, 2], R[2, 2]); c = np.arctan2(-R[0, 1], R[0, 0])
     return np.degrees([a, b, c])
 
-GUNS = ["ak47", "awp", "glock18", "galil", "deagle", "fiveseven", "p90", "usp", "revolver", "m4a4", "m4a1s", "famas", "mp9", "mp7", "scar20", "nova", "xm1014", "mag7", "sawedoff", "mac10", "taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov"]
-KNIVES = ["claw", "knife", "bayonet", "skeleton", "gurkha"]
+GUNS = ["ak47", "awp", "glock18", "galil", "deagle", "fiveseven", "p90", "usp", "revolver", "m4a4", "m4a1s", "famas", "mp9", "mp7", "scar20", "g3sg1", "nova", "xm1014", "mag7", "sawedoff", "mac10", "taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov"]
+KNIVES = ["claw", "knife", "bayonet", "skeleton", "gurkha", "butterfly"]
 ALL = GUNS + KNIVES
 # где рука: (pistol_grip y,z центр) и передняя рука (z, y); для ножей рукоять
 HOLD = {}
@@ -191,7 +191,7 @@ FP_POSE = {
 }
 KIND = {"ak47": "rifle", "galil": "rifle", "m4a4": "rifle", "m4a1s": "long", "awp": "long", "p90": "smg", "famas": "rifle", "mp9": "smg", "mp7": "smg", "scar20": "long", "mac10": "smg", "nova": "long", "xm1014": "long", "mag7": "rifle", "sawedoff": "rifle", "grenade_he": "grenade", "grenade_flash": "grenade", "grenade_smoke": "grenade", "grenade_molotov": "grenade",
         "glock18": "pistol", "usp": "pistol", "deagle": "pistol", "fiveseven": "pistol", "revolver": "pistol", "taser": "pistol",
-        "claw": "knife", "knife": "knife", "bayonet": "knife", "skeleton": "knife", "gurkha": "knife"}
+        "claw": "knife", "knife": "knife", "bayonet": "knife", "skeleton": "knife", "gurkha": "knife", "butterfly": "knife", "g3sg1": "long"}
 
 def compute_all():
     out = {}
