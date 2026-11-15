@@ -35,7 +35,7 @@ public final class FpHands {
     public record Cap(Matrix4f pose, Matrix3f normal, float[] b, float moved) {}
 
     public static boolean wants(String bone) {
-        return bone.equals("pistol_grip") || bone.equals("foregrip") || bone.equals("magazine") || bone.equals("handle") || bone.equals("weapon");
+        return bone.equals("pistol_grip") || bone.equals("foregrip") || bone.equals("magazine") || bone.equals("handle") || bone.equals("weapon") || bone.equals("hand");
     }
 
     private static final Map<GeoBone, float[]> BOUNDS = new IdentityHashMap<>();
@@ -78,18 +78,19 @@ public final class FpHands {
     // ---------------------------------------------------------------- отрисовка
     public static void draw(Map<String, Cap> caps, Mode mode, VertexConsumerProvider vcp, int light) {
         Cap grip = caps.get("pistol_grip");
-        if (mode == Mode.KNIFE) grip = caps.containsKey("handle") && caps.get("handle").b() != null ? caps.get("handle") : caps.get("weapon");
+        boolean proxy = mode == Mode.KNIFE && caps.containsKey("hand") && caps.get("hand").b() != null;
+        if (mode == Mode.KNIFE) grip = proxy ? caps.get("hand") : caps.containsKey("handle") && caps.get("handle").b() != null ? caps.get("handle") : caps.get("weapon");
         if (grip == null || grip.b() == null) return;
         Identifier gt = glove();
         // ---- правая рука
         float[] g = grip.b();
         MatrixStack ms = stack(grip);
         float gx0 = g[0], gx1 = g[1], gy0 = g[2], gy1 = g[3], gz0 = g[4], gz1 = g[5];
-        if (mode == Mode.KNIFE && !caps.containsKey("handle")) gz1 = gz0 + Math.min(5f, (gz1 - gz0) * 0.4f);     // рукоять — задняя часть ножа
+        if (mode == Mode.KNIFE && !proxy && !caps.containsKey("handle")) gz1 = gz0 + Math.min(5f, (gz1 - gz0) * 0.4f);     // рукоять — задняя часть ножа
         float cx = (gx0 + gx1) / 2;
         float top, h, wy;
         if (mode == Mode.KNIFE || mode == Mode.GRENADE) {
-            top = mode == Mode.GRENADE ? (gy0 + gy1) / 2 + 0.5f : gy1 + 0.6f;
+            top = mode == Mode.GRENADE ? (gy0 + gy1) / 2 + 0.5f : gy1 + (proxy ? 0.35f : 0.6f);
             h = top - gy0 + 0.7f;
             box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx0 - 0.8f, gx1 + 0.8f, top - h, top, gz0 - 0.4f, gz1 + 0.4f, BACK, FING, light, 64);
             box(vcp.getBuffer(RenderLayer.getEntityCutoutNoCull(gt)), ms, gx1 + 0.3f, gx1 + 1.4f, top - 1.8f, top + 0.3f, gz0 + 0.4f, gz1 + 1.4f, FING, FING, light, 64);   // большой палец

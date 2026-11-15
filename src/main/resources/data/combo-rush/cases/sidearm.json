@@ -1,6 +1,6 @@
 {
   "name": "Кейс «Кобура»",
-  "description": "15 скинов на пистолеты и револьвер — от армейских до тайных. И крошечный шанс на ★ перчатки (5 видов).",
+  "description": "15 скинов на пистолеты и револьвер — от армейских до тайных. И крошечный шанс на ★ перчатки (5 видов) или ★ Кукри (6 отделок).",
   "rarity": "legendary",
   "price": 35,
   "order": 9,
@@ -86,6 +86,30 @@
     {
       "set": "gloves_wraps_desert",
       "weight": 5
+    },
+    {
+      "set": "gurkha",
+      "weight": 4
+    },
+    {
+      "set": "gurkha_fade",
+      "weight": 4
+    },
+    {
+      "set": "gurkha_doppler",
+      "weight": 4
+    },
+    {
+      "set": "gurkha_tiger",
+      "weight": 4
+    },
+    {
+      "set": "gurkha_crimsonweb",
+      "weight": 4
+    },
+    {
+      "set": "gurkha_heat",
+      "weight": 4
     }
   ]
 }

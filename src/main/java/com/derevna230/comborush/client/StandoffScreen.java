@@ -202,7 +202,7 @@ public class StandoffScreen extends Screen {
 
     private static String rarityOf(String item) {
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return s.rarity();
-        return item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") ? "mythic" : "common";
+        return item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") || item.equals("gurkha") ? "mythic" : "common";
     }
 
     private static int rarColor(String r) {
@@ -586,7 +586,7 @@ public class StandoffScreen extends Screen {
 
     private static String slotOf(String item) {
         if (com.derevna230.comborush.lobby.AgentDefs.isAgent(item)) return com.derevna230.comborush.lobby.AgentDefs.slotOf(item);
-        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton")) return LoadoutDefs.KNIFE_SLOT;
+        if (item.equals("knife_t") || item.equals("knife_ct") || item.equals("claw") || item.equals("bayonet") || item.equals("skeleton") || item.equals("gurkha")) return LoadoutDefs.KNIFE_SLOT;
         if (GunDefs.STD_GLOVES.contains(item)) return LoadoutDefs.GLOVES_SLOT;
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(item)) return GunDefs.isSpecialKnife(s.base()) ? LoadoutDefs.KNIFE_SLOT : s.base();
         return item;

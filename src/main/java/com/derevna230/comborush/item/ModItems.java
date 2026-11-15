@@ -246,6 +246,7 @@ public final class ModItems {
         addKnife(GunDefs.KNIFE, "mythic");
         addKnife(GunDefs.BAYONET, "mythic");
         addKnife(GunDefs.SKELETON, "mythic");
+        addKnife(GunDefs.GURKHA, "mythic");
         for (CRGrenadeItem.Kind k : CRGrenadeItem.Kind.values())
             GRENADES.put(k, register(k.id, new CRGrenadeItem(k, new Item.Settings().maxCount(4).rarity(Rarity.UNCOMMON).fireproof(), k.id)));
         for (String g : GunDefs.STD_GLOVES) register(g, new GlovesItem(g, settings("common")));

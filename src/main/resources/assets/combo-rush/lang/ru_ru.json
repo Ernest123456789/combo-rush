@@ -279,5 +279,11 @@
   "item.combo-rush.gloves_tactical_camo": "Тактические перчатки | Мультикам",
   "item.combo-rush.gloves_wraps_desert": "Обмотки | Пустыня",
   "item.combo-rush.gloves_t": "Перчатки (Т)",
-  "item.combo-rush.gloves_ct": "Перчатки (КТ)"
+  "item.combo-rush.gloves_ct": "Перчатки (КТ)",
+  "item.combo-rush.gurkha": "Кукри",
+  "item.combo-rush.gurkha_fade": "Кукри | Градиент",
+  "item.combo-rush.gurkha_doppler": "Кукри | Допплер",
+  "item.combo-rush.gurkha_tiger": "Кукри | Тигровый зуб",
+  "item.combo-rush.gurkha_crimsonweb": "Кукри | Багровая паутина",
+  "item.combo-rush.gurkha_heat": "Кукри | Закалка"
 }

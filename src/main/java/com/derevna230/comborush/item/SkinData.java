@@ -43,7 +43,13 @@ public final class SkinData {
         Map.entry("skeleton_doppler", new float[]{0.00f, 0.08f}),
         Map.entry("skeleton_heat", new float[]{0.00f, 0.75f}),
         Map.entry("skeleton_tiger", new float[]{0.00f, 1.00f}),
-        Map.entry("skeleton_crimsonweb", new float[]{0.00f, 1.00f}));
+        Map.entry("skeleton_crimsonweb", new float[]{0.00f, 1.00f}),
+        Map.entry("gurkha", new float[]{0.00f, 0.45f}),
+        Map.entry("gurkha_fade", new float[]{0.00f, 0.08f}),
+        Map.entry("gurkha_doppler", new float[]{0.00f, 0.08f}),
+        Map.entry("gurkha_heat", new float[]{0.00f, 0.75f}),
+        Map.entry("gurkha_tiger", new float[]{0.00f, 1.00f}),
+        Map.entry("gurkha_crimsonweb", new float[]{0.00f, 1.00f}));
 
     public static String idOf(ItemStack st) {
         Identifier id = Registries.ITEM.getId(st.getItem());
@@ -53,7 +59,7 @@ public final class SkinData {
     /** Редкость предмета по id ("" — у предмета нет скиновой редкости) */
     public static String rarityOf(String id) {
         for (GunDefs.Skin s : GunDefs.SKINS) if (s.id().equals(id)) return s.rarity();
-        return id.equals(GunDefs.KNIFE) || id.equals(GunDefs.BAYONET) || id.equals(GunDefs.SKELETON) ? "mythic" : "";
+        return id.equals(GunDefs.KNIFE) || id.equals(GunDefs.BAYONET) || id.equals(GunDefs.SKELETON) || id.equals(GunDefs.GURKHA) ? "mythic" : "";
     }
 
     /** Предметы с износом: скины и Нож-коготь (стандартные стволы и ножи Т/КТ — «без покраски») */

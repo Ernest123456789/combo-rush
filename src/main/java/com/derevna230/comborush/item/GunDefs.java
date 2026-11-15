@@ -132,6 +132,11 @@ new Skin("famas_tundra", "famas", "uncommon"),
         new Skin("skeleton_tiger", "skeleton", "mythic"),
         new Skin("skeleton_crimsonweb", "skeleton", "mythic"),
         new Skin("skeleton_heat", "skeleton", "mythic"),
+        new Skin("gurkha_fade", "gurkha", "mythic"),
+        new Skin("gurkha_doppler", "gurkha", "mythic"),
+        new Skin("gurkha_tiger", "gurkha", "mythic"),
+        new Skin("gurkha_crimsonweb", "gurkha", "mythic"),
+        new Skin("gurkha_heat", "gurkha", "mythic"),
         new Skin("knife_t", "knife", "common"),
         new Skin("gloves_sport_neon", "gloves", "mythic"),
         new Skin("gloves_driver_leather", "gloves", "mythic"),
@@ -157,10 +162,12 @@ new Skin("famas_tundra", "famas", "uncommon"),
     public static final String KNIFE = "claw";
     public static final String BAYONET = "bayonet";
     public static final String SKELETON = "skeleton";
+    /** Кукри (id «gurkha»: «kukri» уже занят мечом приключений) */
+    public static final String GURKHA = "gurkha";
     /** Базовые модели-ножи (claw — Нож-коготь, bayonet — Штык, knife — стандартный нож Т/КТ) */
-    public static boolean isKnifeBase(String base) { return base.equals("claw") || base.equals("knife") || base.equals("bayonet") || base.equals("skeleton"); }
+    public static boolean isKnifeBase(String base) { return base.equals("claw") || base.equals("knife") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha"); }
     /** Коллекционные ножи (не стандартные Т/КТ): коготь и штык */
-    public static boolean isSpecialKnife(String base) { return base.equals("claw") || base.equals("bayonet") || base.equals("skeleton"); }
+    public static boolean isSpecialKnife(String base) { return base.equals("claw") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha"); }
     private static final Map<String, Gun> BY_ID = new HashMap<>();
     private static final Map<String, Skin> SKIN_BY_ID = new HashMap<>();
     static {

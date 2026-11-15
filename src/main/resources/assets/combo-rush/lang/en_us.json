@@ -279,5 +279,11 @@
   "item.combo-rush.gloves_tactical_camo": "Tactical Gloves | Multicam",
   "item.combo-rush.gloves_wraps_desert": "Hand Wraps | Desert",
   "item.combo-rush.gloves_t": "Gloves (T)",
-  "item.combo-rush.gloves_ct": "Gloves (CT)"
+  "item.combo-rush.gloves_ct": "Gloves (CT)",
+  "item.combo-rush.gurkha": "Kukri",
+  "item.combo-rush.gurkha_fade": "Kukri | Fade",
+  "item.combo-rush.gurkha_doppler": "Kukri | Doppler",
+  "item.combo-rush.gurkha_tiger": "Kukri | Tiger Tooth",
+  "item.combo-rush.gurkha_crimsonweb": "Kukri | Crimson Web",
+  "item.combo-rush.gurkha_heat": "Kukri | Case Hardened"
 }

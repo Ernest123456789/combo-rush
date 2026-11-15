@@ -32,6 +32,7 @@ public class HandsItemRenderer<T extends Item & GeoAnimatable> extends GeoItemRe
     @Override
     public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource,
                                   VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
+        boolean proxy = bone.getName().equals("hand");          // невидимая «рука» ножа: только место хвата, не рисуется
         if (!isReRender && firstPerson() && FpHands.wants(bone.getName())) {
             poseStack.push();
             RenderUtil.prepMatrixForBone(poseStack, bone);
@@ -39,6 +40,7 @@ public class HandsItemRenderer<T extends Item & GeoAnimatable> extends GeoItemRe
                 FpHands.bounds(bone), Math.abs(bone.getPosX()) + Math.abs(bone.getPosY()) + Math.abs(bone.getPosZ())));
             poseStack.pop();
         }
+        if (proxy) return;
         super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
     }
 

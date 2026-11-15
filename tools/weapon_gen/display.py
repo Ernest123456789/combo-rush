@@ -23,16 +23,16 @@ def euler_xyz(R):
     return np.degrees([a, b, c])
 
 GUNS = ["ak47", "awp", "glock18", "galil", "deagle", "fiveseven", "p90", "usp", "revolver", "m4a4", "m4a1s", "famas", "mp9", "mp7", "scar20", "nova", "xm1014", "mag7", "sawedoff", "mac10", "taser", "grenade_he", "grenade_flash", "grenade_smoke", "grenade_molotov"]
-KNIVES = ["claw", "knife", "bayonet", "skeleton"]
+KNIVES = ["claw", "knife", "bayonet", "skeleton", "gurkha"]
 ALL = GUNS + KNIVES
 # где рука: (pistol_grip y,z центр) и передняя рука (z, y); для ножей рукоять
 HOLD = {}
 
-def cubes(name):
+def cubes(name, with_hand=False):
     g = json.load(open(GEO.format(name), encoding="utf-8"))["minecraft:geometry"][0]
     out = []
     for b in g["bones"]:
-        if b["name"].startswith("FX_"): continue
+        if b["name"].startswith("FX_") or (b["name"] == "hand" and not with_hand): continue
         for c in b.get("cubes", []):
             o, s = np.array(c["origin"], float), np.array(c["size"], float)
             # в модель: x -> -(x+sx)
@@ -51,10 +51,8 @@ def bbox(cs):
 def anchors(name):
     cs = cubes(name); lo, hi = bbox(cs)
     if name in KNIVES:
-        h = bone_box(cs, "handle") or bone_box(cs, "weapon")
-        hz = (h[0][2] + min(h[1][2], h[0][2] + 8 / 16)) / 2 if name in ("knife", "bayonet", "skeleton") else (h[0][2] + h[1][2]) / 2
-        gy = h[0][1] + 5 / 16 if name == "bayonet" else (h[0][1] + h[1][1]) / 2     # у штыка кольцо под клинком: рука на рукояти
-        grip = np.array([(lo[0] + hi[0]) / 2, gy, hz])
+        h = bone_box(cubes(name, True), "hand")        # невидимая «рука» — ровно область хвата
+        grip = (h[0] + h[1]) / 2
         return dict(cs=cs, lo=lo, hi=hi, grip=grip, fore=None, ctr=(lo + hi) / 2)
     if name.startswith("grenade"):
         gb = bone_box(cs, "pistol_grip")
@@ -193,7 +191,7 @@ FP_POSE = {
 }
 KIND = {"ak47": "rifle", "galil": "rifle", "m4a4": "rifle", "m4a1s": "long", "awp": "long", "p90": "smg", "famas": "rifle", "mp9": "smg", "mp7": "smg", "scar20": "long", "mac10": "smg", "nova": "long", "xm1014": "long", "mag7": "rifle", "sawedoff": "rifle", "grenade_he": "grenade", "grenade_flash": "grenade", "grenade_smoke": "grenade", "grenade_molotov": "grenade",
         "glock18": "pistol", "usp": "pistol", "deagle": "pistol", "fiveseven": "pistol", "revolver": "pistol", "taser": "pistol",
-        "claw": "knife", "knife": "knife", "bayonet": "knife", "skeleton": "knife"}
+        "claw": "knife", "knife": "knife", "bayonet": "knife", "skeleton": "knife", "gurkha": "knife"}
 
 def compute_all():
     out = {}
