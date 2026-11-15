@@ -24,39 +24,69 @@ def _sakura_canvas(z0=-9, z1=36, y0=-10, y1=9, ppu=8):
             d.ellipse([x - r, yp - r * .6, x + r, yp + r * .6], fill=(255, 150, 190)); d.ellipse([x - r * .4, yp - r * .3, x + r * .4, yp + r * .3], fill=(255, 225, 238))
         else:
             d.line([(x - r, yp), (x + r, yp)], fill=(255, 255, 255), width=2); d.line([(x, yp - r), (x, yp + r)], fill=(255, 255, 255), width=2)
-    cz, cy = 3.9, -1.2                                   # лицо — на прикладе, левее окна ствольной коробки
+    # ---- героиня в полный рост, «летит» вдоль приклада к дулу: голова — у цевья, ноги — у затыльника
     def E(z, y, rz, ry, col):
         a, b = P(z - rz, y + ry); c, e = P(z + rz, y - ry); d.ellipse([a, b, c, e], fill=col)
-    HAIR, HAIR2, SKIN = (255, 118, 172), (214, 74, 136), (255, 226, 210)
-    E(cz - 3.9, cy + 1.6, 1.4, 1.4, HAIR2); E(cz + 3.9, cy + 1.6, 1.4, 1.4, HAIR2)           # пучки-«оданго»
-    for s in (-1, 1):                                                                     # хвостики
-        d.polygon([P(cz + s * 3.6, cy + 1.2), P(cz + s * 5.6, cy - 2.5), P(cz + s * 4.8, cy - 6.5), P(cz + s * 3.2, cy - 2.0)], fill=HAIR)
-    E(cz, cy + 0.6, 3.6, 3.5, HAIR)                                                       # волосы сзади
-    E(cz, cy - 0.5, 2.75, 2.6, SKIN)                                                      # лицо
-    bang = [P(cz - 3.2, cy + 0.2)]                                                        # чёлка зубцами
-    for i in range(9):
-        z = cz - 3.0 + i * 0.75
-        bang += [P(z, cy + (0.1 if i % 2 else 1.0)), P(z + 0.38, cy + (1.0 if i % 2 else 0.1))]
-    bang += [P(cz + 3.2, cy + 0.2), P(cz + 3.0, cy + 3.6), P(cz - 3.0, cy + 3.6)]
+    def PL(pts, col, outline=None):
+        d.polygon([P(z, y) for z, y in pts], fill=col, outline=outline)
+    def LN(pts, col, w):
+        d.line([P(z, y) for z, y in pts], fill=col, width=w)
+    HAIR, HAIR2, SKIN, SKIN2 = (255, 118, 172), (214, 74, 136), (255, 226, 210), (236, 190, 176)
+    NAVY, WHITE, RED, SOCK, SHOE = (52, 58, 120), (250, 250, 255), (226, 50, 80), (246, 244, 252), (190, 40, 70)
+    hz, hy = 12.6, -1.0                                                                    # голова
+    # хвостики — длинные, развеваются назад над и под телом
+    PL([(hz - 1.4, hy + 1.6), (hz - 5, hy + 2.0), (hz - 10, hy + 1.6), (hz - 14.5, hy + 2.1), (hz - 11, hy + 1.0), (hz - 6, hy + 0.9), (hz - 1.6, hy + 0.6)], HAIR)
+    PL([(hz - 1.4, hy - 1.7), (hz - 5, hy - 2.2), (hz - 9.5, hy - 2.0), (hz - 13.5, hy - 2.7), (hz - 10.5, hy - 1.4), (hz - 6, hy - 1.3), (hz - 1.6, hy - 1.0)], HAIR)
+    LN([(hz - 3, hy + 1.6), (hz - 9, hy + 1.5)], HAIR2, 2); LN([(hz - 3, hy - 1.75), (hz - 9, hy - 1.9)], HAIR2, 2)
+    # ноги: бёдра, гольфы, туфли
+    for ly, lz0 in ((-1.95, 3.6), (-0.75, 3.9)):
+        PL([(lz0, ly + 0.45), (lz0 - 1.6, ly + 0.42), (lz0 - 1.6, ly - 0.42), (lz0, ly - 0.45)], SKIN)
+        PL([(lz0 - 1.6, ly + 0.42), (lz0 - 6.4, ly + 0.36), (lz0 - 6.4, ly - 0.36), (lz0 - 1.6, ly - 0.42)], SOCK)
+        LN([(lz0 - 1.75, ly + 0.4), (lz0 - 1.75, ly - 0.4)], (170, 170, 200), 2)
+        PL([(lz0 - 6.4, ly + 0.45), (lz0 - 7.6, ly + 0.25), (lz0 - 7.7, ly - 0.45), (lz0 - 6.3, ly - 0.45)], SHOE)
+    # юбка в складку
+    PL([(7.0, 0.35), (4.2, 0.85), (3.4, -1.0), (4.2, -3.25), (7.0, -2.75)], NAVY)
+    for k in range(5): LN([(6.8, -2.6 + k * 0.7), (3.9, -3.0 + k * 0.95)], (34, 38, 86), 2)
+    # туловище: матроска, воротник, бант
+    E(8.9, -1.2, 2.0, 1.45, WHITE)
+    PL([(10.6, 0.2), (8.3, 0.25), (9.4, -1.2), (10.9, -1.2)], NAVY)
+    LN([(10.4, 0.05), (8.6, 0.1)], WHITE, 2)
+    E(10.6, -1.35, 0.42, 0.42, RED); PL([(10.5, -1.3), (9.6, -0.6), (9.6, -2.0)], RED); PL([(10.6, -1.35), (9.8, -2.6), (10.3, -2.6)], RED)
+    # рука вперёд со звёздной палочкой
+    PL([(10.6, -0.6), (12.6, -0.25), (12.6, -1.15), (10.6, -1.4)], WHITE)
+    PL([(12.6, -0.3), (15.3, -0.2), (15.3, -0.95), (12.6, -1.1)], SKIN)
+    E(15.6, -0.6, 0.45, 0.45, SKIN)
+    LN([(15.9, -0.6), (21.0, -0.6)], (255, 214, 90), 3)
+    sx, sy = P(21.6, -0.6)
+    pts = [(sx + math.cos(a) * (13 if k % 2 == 0 else 6), sy - math.sin(a) * (13 if k % 2 == 0 else 6)) for k, a in enumerate([math.pi / 2 + i * math.pi / 5 for i in range(10)])]
+    d.polygon(pts, fill=(255, 214, 60), outline=(220, 140, 20))
+    for k in range(6):                                                                     # искры от палочки
+        zz, yy = 23 + k * 1.4, -0.6 + math.sin(k * 1.7) * 1.2
+        x, yp = P(zz, yy); r = 4 - k * 0.4
+        d.line([(x - r, yp), (x + r, yp)], fill=(255, 255, 255), width=2); d.line([(x, yp - r), (x, yp + r)], fill=(255, 255, 255), width=2)
+    # голова (3/4 к зрителю)
+    E(hz + 2.0, hy + 1.6, 0.85, 0.85, HAIR2); E(hz - 0.6, hy + 2.0, 0.9, 0.9, HAIR2)       # пучки
+    E(hz, hy + 0.2, 2.3, 2.2, HAIR)
+    E(hz + 0.35, hy - 0.45, 1.85, 1.75, SKIN)
+    bang = [P(hz - 1.8, hy + 0.3)]
+    for k in range(7):
+        z = hz - 1.6 + k * 0.6
+        bang += [P(z, hy + (0.1 if k % 2 else 0.85)), P(z + 0.3, hy + (0.85 if k % 2 else 0.1))]
+    bang += [P(hz + 2.3, hy + 0.3), P(hz + 2.0, hy + 2.4), P(hz - 1.8, hy + 2.4)]
     d.polygon(bang, fill=HAIR)
-    for i in range(5): d.line([P(cz - 2.2 + i * 1.1, cy + 3.0), P(cz - 2.0 + i * 1.1, cy + 1.2)], fill=HAIR2, width=2)
-    for s in (-1, 1):                                                                     # глаза
-        ez = cz + s * 1.15
-        E(ez, cy - 0.8, 0.62, 0.86, (255, 255, 255))
-        E(ez, cy - 0.85, 0.5, 0.74, (126, 74, 214))
-        E(ez, cy - 1.0, 0.3, 0.42, (64, 30, 120))
-        E(ez - 0.18, cy - 0.45, 0.17, 0.2, (255, 255, 255)); E(ez + 0.2, cy - 1.25, 0.09, 0.1, (255, 255, 255))
-        d.line([P(ez - 0.7, cy - 0.05), P(ez + 0.7, cy - 0.1)], fill=(40, 20, 40), width=4)   # ресницы
-        d.line([P(ez + s * 0.7, cy - 0.1), P(ez + s * 0.95, cy + 0.15)], fill=(40, 20, 40), width=3)
-        E(ez + s * 0.35, cy - 1.95, 0.5, 0.2, (255, 170, 190))                             # румянец
-    d.line([P(cz - 0.35, cy - 2.25), P(cz, cy - 2.45), P(cz + 0.35, cy - 2.25)], fill=(190, 60, 80), width=3)   # «ω»-улыбка
-    # звёздочка-заколка
-    sx, sy = P(cz + 2.6, cy + 2.6)
-    pts = [(sx + math.cos(a) * (9 if k % 2 == 0 else 4), sy - math.sin(a) * (9 if k % 2 == 0 else 4)) for k, a in enumerate([math.pi / 2 + i * math.pi / 5 for i in range(10)])]
+    for s_, ez in ((-1, hz - 0.35), (1, hz + 1.15)):                                       # глаза
+        E(ez, hy - 0.65, 0.42, 0.6, (255, 255, 255))
+        E(ez, hy - 0.7, 0.34, 0.52, (126, 74, 214))
+        E(ez, hy - 0.82, 0.2, 0.28, (64, 30, 120))
+        E(ez - 0.12, hy - 0.42, 0.12, 0.14, (255, 255, 255))
+        LN([(ez - 0.48, hy - 0.08), (ez + 0.48, hy - 0.12)], (40, 20, 40), 3)
+        E(ez + 0.1, hy - 1.45, 0.34, 0.14, (255, 170, 190))
+    LN([(hz + 0.15, hy - 1.75), (hz + 0.4, hy - 1.9), (hz + 0.65, hy - 1.75)], (190, 60, 80), 2)
+    sx, sy = P(hz + 1.7, hy + 2.0)
+    pts = [(sx + math.cos(a) * (7 if k % 2 == 0 else 3), sy - math.sin(a) * (7 if k % 2 == 0 else 3)) for k, a in enumerate([math.pi / 2 + i * math.pi / 5 for i in range(10)])]
     d.polygon(pts, fill=(255, 214, 60), outline=(200, 140, 20))
-    # надпись катаканой-«подписью» заменена простым сердечком
-    hx, hy = P(cz - 6.5, cy + 1.6)
-    d.ellipse([hx - 6, hy - 5, hx, hy + 1], fill=(240, 60, 110)); d.ellipse([hx, hy - 5, hx + 6, hy + 1], fill=(240, 60, 110)); d.polygon([(hx - 6, hy - 1), (hx + 6, hy - 1), (hx, hy + 7)], fill=(240, 60, 110))
+    hx, hy2 = P(-6.5, 1.8)                                                                  # сердечко на затыльнике
+    d.ellipse([hx - 6, hy2 - 5, hx, hy2 + 1], fill=(240, 60, 110)); d.ellipse([hx, hy2 - 5, hx + 6, hy2 + 1], fill=(240, 60, 110)); d.polygon([(hx - 6, hy2 - 1), (hx + 6, hy2 - 1), (hx, hy2 + 7)], fill=(240, 60, 110))
     return im, (z0, z1, y0, y1, ppu)
 
 
