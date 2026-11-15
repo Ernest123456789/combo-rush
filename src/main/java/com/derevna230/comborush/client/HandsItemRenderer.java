@@ -21,6 +21,7 @@ import java.util.Map;
 public class HandsItemRenderer<T extends Item & GeoAnimatable> extends GeoItemRenderer<T> {
     private final FpHands.Mode mode;
     private final Map<String, FpHands.Cap> caps = new HashMap<>();
+    private FpHands.Cap stCap;          // место модуля StatTrak™ (невидимая кость «stattrak»)
 
     public HandsItemRenderer(GeoModel<T> model, FpHands.Mode mode) {
         super(model);
@@ -33,6 +34,15 @@ public class HandsItemRenderer<T extends Item & GeoAnimatable> extends GeoItemRe
     public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource,
                                   VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
         boolean proxy = bone.getName().equals("hand");          // невидимая «рука» ножа: только место хвата, не рисуется
+        if (bone.getName().equals("stattrak")) {
+            if (!isReRender) {
+                poseStack.push();
+                RenderUtil.prepMatrixForBone(poseStack, bone);
+                stCap = new FpHands.Cap(new Matrix4f(poseStack.peek().getPositionMatrix()), new Matrix3f(poseStack.peek().getNormalMatrix()), FpHands.bounds(bone), 0);
+                poseStack.pop();
+            }
+            return;
+        }
         if (!isReRender && firstPerson() && FpHands.wants(bone.getName())) {
             poseStack.push();
             RenderUtil.prepMatrixForBone(poseStack, bone);
@@ -50,5 +60,10 @@ public class HandsItemRenderer<T extends Item & GeoAnimatable> extends GeoItemRe
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
         if (!isReRender && firstPerson() && !caps.isEmpty() && bufferSource != null) FpHands.draw(caps, mode, bufferSource, packedLight);
         caps.clear();
+        if (!isReRender && stCap != null && stCap.b() != null && bufferSource != null) {
+            int k = com.derevna230.comborush.item.SkinData.kills(getCurrentItemStack());
+            if (k >= 0) StatTrakModule.draw(stCap.pose(), stCap.normal(), stCap.b(), k, bufferSource, packedLight);
+        }
+        stCap = null;
     }
 }

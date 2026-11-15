@@ -121,6 +121,11 @@ public final class SkinData {
         if (rollable(st) && wear(st) < 0) roll(st, new Random());
     }
 
+    /** Для показа (меню): записать счётчик StatTrak™; k < 0 — обычный предмет */
+    public static void setKills(ItemStack st, int k) {
+        NbtComponent.set(DataComponentTypes.CUSTOM_DATA, st, n -> { if (k >= 0) n.putInt(ST, k); else n.remove(ST); });
+    }
+
     public static void addKill(ItemStack st) {
         NbtComponent.set(DataComponentTypes.CUSTOM_DATA, st, n -> { if (n.contains(ST)) n.putInt(ST, n.getInt(ST) + 1); });
     }

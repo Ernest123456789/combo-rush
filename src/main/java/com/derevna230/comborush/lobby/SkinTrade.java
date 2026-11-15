@@ -59,6 +59,8 @@ public final class SkinTrade {
             o.addProperty("loc", r.loc);
             o.addProperty("wf", SkinData.wear(r.st));
             o.addProperty("st", SkinData.statTrak(r.st) ? 1 : 0);
+            o.addProperty("k", SkinData.kills(r.st));
+            o.addProperty("ps", SkinData.pattern(r.st));
             a.add(o);
         }
         return a;

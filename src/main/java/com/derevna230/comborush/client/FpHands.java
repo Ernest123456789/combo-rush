@@ -73,7 +73,7 @@ public final class FpHands {
     }
 
     // области текстуры перчатки 64×64
-    private static final float[] BACK = {0, 0, 32, 32}, FING = {32, 0, 64, 16}, PALM = {32, 16, 64, 32}, CUFF = {0, 32, 32, 48}, SLV = {0, 0, 32, 32};
+    static final float[] BACK = {0, 0, 32, 32}, FING = {32, 0, 64, 16}, PALM = {32, 16, 64, 32}, CUFF = {0, 32, 32, 48}, SLV = {0, 0, 32, 32};
 
     // ---------------------------------------------------------------- отрисовка
     public static void draw(Map<String, Cap> caps, Mode mode, VertexConsumerProvider vcp, int light) {
@@ -154,7 +154,7 @@ public final class FpHands {
      * Коробка (единицы модели): боковые грани и низ — область side, перед (+z) и верх — область front.
      * Буфер берётся заново перед каждой коробкой: смена текстуры (перчатка ↔ рукав) закрывает прежний буфер.
      */
-    private static void box(VertexConsumer vc, MatrixStack ms, float x0, float x1, float y0, float y1, float z0, float z1,
+    static void box(VertexConsumer vc, MatrixStack ms, float x0, float x1, float y0, float y1, float z0, float z1,
                             float[] side, float[] front, int light, int tex) {
         MatrixStack.Entry e = ms.peek();
         float a = x0 / 16f, b = x1 / 16f, c = y0 / 16f, d = y1 / 16f, f = z0 / 16f, g = z1 / 16f;

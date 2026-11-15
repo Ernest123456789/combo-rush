@@ -54,7 +54,7 @@ public class StandoffScreen extends Screen {
     private static volatile Set<String> owned = Set.of();
     private static volatile Map<String, Integer> counts = Map.of();         // повторы скинов: показываем ×N
     private static volatile int essence = 0, partyMax = 5;
-    private record TStack(String id, String loc, float wf, boolean st) {}
+    private record TStack(String id, String loc, float wf, boolean st, int k, int ps) {}
     private record MLot(int id, String item, float wf, boolean st, int price, String seller, boolean mine) {}
     private record MMine(String loc, String item, float wf, boolean st, int n, int q) {}
     private static volatile List<MLot> mLots = List.of();
@@ -100,7 +100,8 @@ public class StandoffScreen extends Screen {
         List<TStack> ts = new ArrayList<>();
         if (o.has("stacks")) for (JsonElement e : o.getAsJsonArray("stacks")) {
             JsonObject t = e.getAsJsonObject();
-            ts.add(new TStack(t.get("id").getAsString(), t.get("loc").getAsString(), t.get("wf").getAsFloat(), t.get("st").getAsInt() == 1));
+            ts.add(new TStack(t.get("id").getAsString(), t.get("loc").getAsString(), t.get("wf").getAsFloat(), t.get("st").getAsInt() == 1,
+                t.has("k") ? t.get("k").getAsInt() : -1, t.has("ps") ? t.get("ps").getAsInt() : -1));
         }
         tstacks = ts;
         if (o.has("market")) {
@@ -275,11 +276,12 @@ public class StandoffScreen extends Screen {
     // ================= ввод =================
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (insp != null && keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) { closeInspect(); return true; }
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {                  // Esc — обычное меню паузы; закроется — меню вернётся
             MinecraftClient.getInstance().setScreen(new GameMenuScreen(true));
             return true;
         }
-        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_V) { inspect(); return true; }
+        if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_V) { if (insp != null) play(inspStack(), "inspect"); else inspect(); return true; }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
@@ -287,6 +289,14 @@ public class StandoffScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         float px = (float) ((mouseX - ox) / u), py = (float) ((mouseY - oy) / u);
         if (tradedRes != null && System.currentTimeMillis() - tradedAt > 300) { tradedRes = null; return true; }
+        if (insp != null) {                                                    // окно осмотра перехватывает ввод
+            if (button == 0) for (int i = hits.size() - 1; i >= inspHits; i--) {
+                Hit h = hits.get(i);
+                if (h.contains(px, py)) { if (h.click != null) h.click.run(); return true; }
+            }
+            if (button == 0 || button == 1) { iDrag = true; iLX = mouseX; iLY = mouseY; }
+            return true;
+        }
         if (button == 1 && tab == 1 && inViewer(px, py)) { dragging = true; lastMouseX = mouseX; return true; }
         if (button != 0) return true;
         for (int i = hits.size() - 1; i >= 0; i--) {
@@ -298,6 +308,13 @@ public class StandoffScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dx, double dy) {
+        if (insp != null && iDrag) {
+            iYaw += (float) (mouseX - iLX) * 0.012f;
+            iPitch = Math.max(-1.3f, Math.min(1.3f, iPitch + (float) (mouseY - iLY) * 0.01f));
+            iSpin = (float) (mouseX - iLX) * 0.012f;
+            iLX = mouseX; iLY = mouseY;
+            return true;
+        }
         if (dragging && button == 1) {
             rotY += (float) (mouseX - lastMouseX) * 0.012f;
             spin = (float) (mouseX - lastMouseX) * 0.012f;
@@ -310,11 +327,13 @@ public class StandoffScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 1) dragging = false;
+        iDrag = false;
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+        if (insp != null) { iZoom = Math.max(0.5f, Math.min(2.6f, iZoom * (vertical > 0 ? 1.12f : 0.89f))); return true; }
         float px = (float) ((mouseX - ox) / u);
         int d = vertical > 0 ? -1 : 1;
         if (tab == 1 && px < 298) gridScroll += d;
@@ -366,6 +385,7 @@ public class StandoffScreen extends Screen {
         }
         drawTopBar(c, now);
         drawInvite(c, now);
+        if (insp != null) drawInspect(c, now, dt);
         drawMatchResult(c);
         m.pop();
     }
@@ -706,12 +726,7 @@ public class StandoffScreen extends Screen {
             if (worn) { c.fill((int) x + cw - 12, (int) y + 2, (int) x + cw - 2, (int) y + 12, 0xFF2F7D4A); text(c, "✔", x + cw - 7, y + 3, 0.7f, 0xFFFFFFFF, 1); }
             m.pop();
             final String pick = id;
-            hit(x, y, cw, ch, () -> {
-                long nowMs = System.currentTimeMillis();
-                if (pick.equals(lastCardId) && nowMs - lastCardClick < 350 && has(slotOf(pick), pick) && !pick.equals(equippedOf(slotOf(pick)))) wear(pick);
-                else select(pick);
-                lastCardId = pick; lastCardClick = nowMs;
-            });
+            hit(x, y, cw, ch, () -> { select(pick); openInspect(pick); });
         }
         if (items.isEmpty()) text(c, "Здесь пока пусто", gx + 143, gy + 80, 0.9f, 0xFF6F7A90, 1);
         if (totalRows > vrows) {
@@ -764,6 +779,7 @@ public class StandoffScreen extends Screen {
             com.derevna230.comborush.client.agent.AgentClient.preview = null;
             return;
         }
+        if (slotOf(item).equals(LoadoutDefs.GLOVES_SLOT)) { drawGloves(c, item, VX + VW / 2f, VY + 72, 70, rotY, -0.15f); return; }
         ItemStack st = stackOf(item);
         MatrixStack m = c.getMatrices();
         m.push();
@@ -772,6 +788,144 @@ public class StandoffScreen extends Screen {
         m.multiply(new Quaternionf().rotationY(rotY));
         m.translate(0, 0, -150);
         c.drawItem(st, -8, -8);
+        m.pop();
+    }
+
+    /** Пара перчаток 3D: центр (cx, cy), k — масштаб (пикселей на блок), поворот yaw/pitch */
+    private void drawGloves(DrawContext c, String id, float cx, float cy, float k, float yaw, float pitch) {
+        MatrixStack m = c.getMatrices();
+        m.push();
+        m.translate(cx, cy, 220);
+        m.scale(k, -k, k);
+        m.multiply(new Quaternionf().rotationX(pitch));
+        m.multiply(new Quaternionf().rotationY(yaw));
+        m.translate(0, -2.2f / 16f, 0);
+        net.minecraft.client.render.DiffuseLighting.enableGuiDepthLighting();
+        GloveModel.drawPair(m, c.getVertexConsumers(), id, net.minecraft.client.render.LightmapTextureManager.MAX_LIGHT_COORDINATE);
+        c.draw();
+        m.pop();
+    }
+
+    // ================= ОКНО ОСМОТРА =================
+    private String insp = null;
+    private ItemStack inspSt = ItemStack.EMPTY;
+    private TStack inspInfo = null;
+    private float iYaw = 0.6f, iPitch = -0.25f, iZoom = 1f, iSpin = 0f;
+    private boolean iDrag = false;
+    private double iLX, iLY;
+    private int inspHits = 0;
+    private long inspAt = 0;
+
+    private void openInspect(String id) {
+        insp = id; iYaw = 0.6f; iPitch = -0.2f; iZoom = 1f; iSpin = 0f; iDrag = false; inspAt = System.nanoTime();
+        inspInfo = null;
+        for (TStack t : tstacks) if (t.id().equals(id) && (inspInfo == null || t.st() && !inspInfo.st())) inspInfo = t;
+        inspSt = stackOf(id).copy();
+        if (inspInfo != null) {
+            com.derevna230.comborush.item.SkinData.apply(inspSt, inspInfo.wf(), Math.max(0, inspInfo.ps()), inspInfo.st());
+            if (inspInfo.st()) com.derevna230.comborush.item.SkinData.setKills(inspSt, Math.max(0, inspInfo.k()));
+        }
+        HudModel.play(SoundEvents.ITEM_ARMOR_EQUIP_LEATHER.value(), 1.2f, 0.5f);
+    }
+
+    private void closeInspect() { insp = null; iDrag = false; HudModel.play(SoundEvents.UI_BUTTON_CLICK.value(), 1.2f, 0.35f); }
+
+    private ItemStack inspStack() { return inspSt.isEmpty() && insp != null ? stackOf(insp) : inspSt; }
+
+    private void drawInspect(DrawContext c, long now, float dt) {
+        String id = insp;
+        MatrixStack m = c.getMatrices();
+        float ap = Math.min(1f, (now - inspAt) / 1e6f / 220f);
+        m.push();
+        m.translate(0, 0, 300);
+        c.fill(-400, -400, DW + 400, DH + 400, ((int) (0xE8 * ap) << 24) | 0x05070B);
+        String rar = rarityOf(id);
+        int rc = rarColor(rar);
+        // сцена
+        float sx = 12, sy = 14, sw = 276, sh = 224;
+        c.fillGradient((int) sx, (int) sy, (int) (sx + sw), (int) (sy + sh), 0xFF151B26, 0xFF0A0D13);
+        for (int i = 0; i < 16; i++) c.fill((int) sx, (int) (sy + sh - 60 + i * 4), (int) (sx + sw), (int) (sy + sh - 56 + i * 4), ((int) (3 + i * 1.5f) << 24) | rc);
+        c.fill((int) sx, (int) sy, (int) (sx + sw), (int) sy + 1, 0x30FFFFFF);
+        text(c, "ЛКМ + мышь — вращать  ·  колесо — приблизить  ·  V — анимация  ·  Esc — закрыть", sx + sw / 2f, sy + sh - 10, 0.55f, 0xFF7C879D, 1);
+        if (!iDrag) { iYaw += iSpin; iSpin *= (float) Math.pow(0.05, dt); if (Math.abs(iSpin) < 0.002f) iSpin = 0; }
+        m.pop();
+        // модель
+        float cx = sx + sw / 2f, cy = sy + sh / 2f - 6;
+        String slot = slotOf(id);
+        if (com.derevna230.comborush.lobby.AgentDefs.isAgent(id)) {
+            PreviewPlayer p = dummy();
+            if (p != null) {
+                m.push(); m.translate(0, 0, 300);
+                com.derevna230.comborush.client.agent.AgentClient.preview = id;
+                p.bodyYaw = 180; p.prevBodyYaw = 180; p.headYaw = 180; p.prevHeadYaw = 180; p.setYaw(180); p.setPitch(0);
+                InventoryScreen.drawEntity(c, cx, cy + 92 * iZoom, 88 * iZoom, new org.joml.Vector3f(),
+                    new Quaternionf().rotateZ((float) Math.PI).rotateX(-iPitch * 0.5f).rotateY(iYaw), null, p);
+                com.derevna230.comborush.client.agent.AgentClient.preview = null;
+                m.pop();
+            }
+        } else if (slot.equals(LoadoutDefs.GLOVES_SLOT)) {
+            m.push(); m.translate(0, 0, 300);
+            drawGloves(c, id, cx, cy + 6, 150 * iZoom, iYaw, iPitch);
+            m.pop();
+        } else {
+            m.push();
+            m.translate(cx, cy, 300);
+            float sc = 12.5f * iZoom;
+            m.scale(sc, sc, sc);
+            m.multiply(new Quaternionf().rotationX(iPitch));
+            m.multiply(new Quaternionf().rotationY(iYaw));
+            m.translate(0, 0, -150);
+            c.drawItem(inspStack(), -8, -8);
+            m.pop();
+        }
+        // справка справа
+        m.push();
+        m.translate(0, 0, 700);
+        inspHits = hits.size();
+        float ix = 296, iy = 14, iw = 112;
+        panel(c, (int) ix, (int) iy, (int) iw, 224);
+        c.fill((int) ix, (int) iy, (int) (ix + iw), (int) iy + 3, 0xFF000000 | rc);
+        String[] nm = splitName(itemName(id));
+        boolean stt = inspInfo != null && inspInfo.st();
+        float ty = iy + 10;
+        if (stt) { text(c, "StatTrak™", ix + 8, ty, 0.62f, 0xFFFF9A2A, 0); ty += 9; }
+        text(c, trim(nm[0], 20), ix + 8, ty, 0.9f, 0xFFFFFFFF, 0); ty += 11;
+        if (!nm[1].isEmpty()) { text(c, trim(nm[1], 20), ix + 8, ty, 0.85f, 0xFF000000 | rc, 0); ty += 11; }
+        text(c, rarLabel(rar), ix + 8, ty, 0.62f, 0xFF000000 | rc, 0); ty += 14;
+        c.fill((int) ix + 8, (int) ty, (int) (ix + iw - 8), (int) ty + 1, 0x30FFFFFF); ty += 6;
+        if (inspInfo != null && inspInfo.wf() >= 0) {
+            float wf = inspInfo.wf();
+            text(c, "§7Состояние", ix + 8, ty, 0.6f, 0xFFFFFFFF, 0); ty += 8;
+            text(c, com.derevna230.comborush.item.SkinData.condition(wf), ix + 8, ty, 0.68f, 0xFFE6EAF2, 0); ty += 10;
+            // шкала износа
+            int bx = (int) ix + 8, bw = (int) iw - 16;
+            int[] seg = {0x3FB950, 0x8BC34A, 0xE0C341, 0xE08A3A, 0xD84B3A};
+            float[] edges = {0, 0.07f, 0.15f, 0.38f, 0.45f, 1f};
+            for (int i = 0; i < 5; i++) c.fill(bx + (int) (bw * edges[i]), (int) ty, bx + (int) (bw * edges[i + 1]), (int) ty + 3, 0xFF000000 | seg[i]);
+            int mk = bx + (int) (bw * Math.min(1f, wf));
+            c.fill(mk - 1, (int) ty - 2, mk + 1, (int) ty + 5, 0xFFFFFFFF);
+            ty += 8;
+            text(c, "§8Float §f" + com.derevna230.comborush.item.SkinData.floatText(wf), ix + 8, ty, 0.6f, 0xFFFFFFFF, 0); ty += 9;
+            if (inspInfo.ps() >= 0) { text(c, "§8Паттерн §f#" + inspInfo.ps(), ix + 8, ty, 0.6f, 0xFFFFFFFF, 0); ty += 9; }
+        }
+        if (stt) {
+            ty += 2;
+            c.fill((int) ix + 8, (int) ty, (int) (ix + iw - 8), (int) ty + 16, 0xFF1A0E06);
+            text(c, "§6StatTrak™ §7убийств", ix + 11, ty + 2, 0.55f, 0xFFFFFFFF, 0);
+            text(c, String.format("%06d", Math.max(0, inspInfo.k())), ix + iw - 11, ty + 7, 0.75f, 0xFFFF9A2A, 2);
+            ty += 20;
+        }
+        Integer cnt = counts.get(id);
+        boolean ownedNow = has(slot, id), worn = id.equals(equippedOf(slot));
+        text(c, worn ? "§a● надето" : ownedNow ? "§7в инвентаре" + (cnt != null && cnt > 1 ? "  §e×" + cnt : "") : "§cнет в инвентаре", ix + 8, ty + 2, 0.66f, 0xFFFFFFFF, 0);
+        // кнопки
+        boolean can = ownedNow && !worn;
+        final String wearItem = id;
+        if (stackOf(id).getItem() instanceof GeoItem)
+            button(c, "i_anim", ix + 8, iy + 160, iw - 16, 14, "Анимация  [V]", 0x3A5A8C, () -> play(inspStack(), "inspect"));
+        button(c, "i_wear", ix + 8, iy + 180, iw - 16, 14, worn ? "Надето" : ownedNow ? "Надеть" : "Нет предмета",
+            can ? 0x2F7D4A : 0x3A4050, can ? () -> wear(wearItem) : null);
+        button(c, "i_close", ix + 8, iy + 200, iw - 16, 14, "Закрыть  [Esc]", 0x4A3A44, this::closeInspect);
         m.pop();
     }
 

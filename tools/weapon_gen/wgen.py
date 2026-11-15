@@ -98,7 +98,7 @@ class Gun:
     # ---------------- painting ----------------
     def px(s, c, face, x, y, w, h):
         base = MATS[c.mat]
-        n = NOISE.get(c.mat, 3)
+        n = NOISE.get(c.mat, 3) * (1.0 if c.K <= 2 else 0.55)
         k = FACE_K[face]
         r, g, b = [base[i] * k for i in range(3)]
         nz = (hsh(x + c.u, y + c.v, 7) - 0.5) * 1.0 * n + (hsh((x + c.u) // 3, (y + c.v) // 3, 19) - 0.5) * 1.4 * n
@@ -121,7 +121,7 @@ class Gun:
         if w >= 4 and h >= 4 and (x in (0, w - 1) or y in (0, h - 1)):
             r *= .86; g *= .86; b *= .86
         # light edge wear on metals
-        if metal and (x in (0, w - 1) or y in (0, h - 1)) and hsh(x + c.u, y + c.v, 41) > 0.82:
+        if metal and (x in (0, w - 1) or y in (0, h - 1)) and hsh(x + c.u, y + c.v, 41) > (0.82 if c.K <= 2 else 0.9):
             r += 34; g += 34; b += 34
         if pat == 'grain' and side:
             long_h = max(c.fw, c.fd) >= c.fh
@@ -169,8 +169,12 @@ class Gun:
         elif pat == 'knurl' and side:
             if (x + y) % 3 == 0: r *= .7; g *= .7; b *= .7
         elif pat == 'scratch' and side:
-            if hsh(x, y, 11) > 0.93: r += 40; g += 40; b += 40
-            if hsh(x // 4, y, 13) > 0.97: r *= .6; g *= .6; b *= .6
+            if c.K <= 2:
+                if hsh(x, y, 11) > 0.93: r += 40; g += 40; b += 40
+                if hsh(x // 4, y, 13) > 0.97: r *= .6; g *= .6; b *= .6
+            else:                                      # тонкие длинные царапины вместо крапа
+                if hsh((x + y) // 1, (x - y) // 7, 11) > 0.993: r += 30; g += 30; b += 30
+                if hsh(x // 6, y, 13) > 0.99: r *= .7; g *= .7; b *= .7
         elif pat == 'rounds' and side and h >= 3:
             if y == h // 2 and x % 3 == 1: r, g, b = 224, 140, 40
             elif y == h // 2 - 1 and x % 3 == 1: r, g, b = 150, 90, 30
