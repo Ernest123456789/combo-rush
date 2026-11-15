@@ -1,0 +1,79 @@
+{
+  "name": "Кейс «Калейдоскоп»",
+  "description": "17 скинов без ножей: аниме «Сакура» на AWP, рельефное «Резное золото» на AK-47, «Неоновая ночь», «Витраж», «Космос», «Хохлома», «Гравюра», «Акварель», «Северное сияние», «Лава» и другие.",
+  "rarity": "legendary",
+  "price": 35,
+  "order": 11,
+  "keyPrice": 250,
+  "noShop": true,
+  "drops": [
+    {
+      "set": "awp_sakura",
+      "weight": 16
+    },
+    {
+      "set": "ak47_carved",
+      "weight": 16
+    },
+    {
+      "set": "m4a4_neon",
+      "weight": 45
+    },
+    {
+      "set": "famas_stained",
+      "weight": 45
+    },
+    {
+      "set": "usp_galaxy",
+      "weight": 45
+    },
+    {
+      "set": "nova_khokhloma",
+      "weight": 45
+    },
+    {
+      "set": "revolver_engraved",
+      "weight": 45
+    },
+    {
+      "set": "mp7_watercolor",
+      "weight": 145
+    },
+    {
+      "set": "mac10_candy",
+      "weight": 145
+    },
+    {
+      "set": "xm1014_aurora",
+      "weight": 145
+    },
+    {
+      "set": "fiveseven_marble",
+      "weight": 145
+    },
+    {
+      "set": "scar20_holo",
+      "weight": 145
+    },
+    {
+      "set": "glock18_lava",
+      "weight": 145
+    },
+    {
+      "set": "mag7_pixels",
+      "weight": 726
+    },
+    {
+      "set": "sawedoff_rust",
+      "weight": 726
+    },
+    {
+      "set": "g3sg1_digital",
+      "weight": 726
+    },
+    {
+      "set": "deagle_cobalt",
+      "weight": 726
+    }
+  ]
+}

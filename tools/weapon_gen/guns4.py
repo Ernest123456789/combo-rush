@@ -20,6 +20,7 @@ import hd, hd2  # noqa: E402  (после подмены)
 import guns5  # noqa: E402,F401  (G3SG1)
 import skins as SK
 import skins2  # noqa: F401  (скины кейса «Граффити»)
+import skins3  # noqa: E402  (кейс «Калейдоскоп»)
 
 KNIVES = ('claw', 'knife', 'bayonet', 'skeleton')
 IDS = [k for k in hd.ALLG if k not in KNIVES]
@@ -190,6 +191,81 @@ def build(gid):
     return g
 
 
+# ------------------------------------------------------------------------------- рельеф (скин с собственной геометрией)
+def carve_motif(z, y, z0, z1, y0, y1):
+    """барочный орнамент: рамка, вьюн по середине, завитки по очереди вверх/вниз"""
+    if z - z0 < 0.5 or z1 - z < 0.5 or y - y0 < 0.5 or y1 - y < 0.5:
+        return z - z0 < 0.75 or z1 - z < 0.75 or y - y0 < 0.75 or y1 - y < 0.75
+    yc = (y0 + y1) / 2; A = min(0.6, (y1 - y0) * 0.18)
+    vine = yc + A * math.sin((z - z0) * 1.2)
+    if abs(y - vine) < 0.2: return True
+    k = math.floor((z - z0) / 2.6)
+    cz = z0 + k * 2.6 + 1.3; up = 1 if k % 2 else -1
+    cy = yc + up * min(0.9, (y1 - y0) * 0.25)
+    r = min(0.7, (y1 - y0) * 0.22); d = math.hypot(z - cz, y - cy)
+    if abs(d - r) < 0.17 and (z - cz) * up > -r * 0.6: return True
+    return d < 0.22
+
+
+def add_relief(g, parts=('receiver', 'handguard', 'stock', 'grip', 'magazine', 'dustcover'), mat='gold', motif=carve_motif, step=0.25, t=0.2):
+    """выпуклый орнамент на наружных боковых гранях: узор считается по общему прямоугольнику детали,
+    ячейки шагом step ставятся там, где есть наружная грань, и сливаются в полосы вдоль z"""
+    add = []
+    for part in parts:
+        cs = [c for c in g.cubes if c.part == part and not c.rot]
+        if not cs: continue
+        for side in (1, -1):
+            xf = max(c.x[1] for c in cs) if side > 0 else min(c.x[0] for c in cs)
+            face = [c for c in cs if abs((c.x[1] if side > 0 else c.x[0]) - xf) < 1e-6 and c.sy >= 1 and c.sz >= 1]
+            if not face: continue
+            Z0, Z1 = min(c.z[0] for c in face), max(c.z[1] for c in face)
+            Y0, Y1 = min(c.y[0] for c in face), max(c.y[1] for c in face)
+            if Z1 - Z0 < 2.5 or Y1 - Y0 < 1.5: continue
+            cells = {}
+            for c in face:                                   # общая сетка от (Z0, Y0): ячейки разных кубов не пересекаются
+                y = Y0 + math.ceil((c.y[0] - Y0) / step - 1e-6) * step
+                while y + step <= c.y[1] + 1e-6:
+                    z = Z0 + math.ceil((c.z[0] - Z0) / step - 1e-6) * step
+                    while z + step <= c.z[1] + 1e-6:
+                        if motif(z + step / 2, y + step / 2, Z0, Z1, Y0, Y1): cells.setdefault((round(y, 3), round(z, 3)), c.bone)
+                        z += step
+                    y += step
+            rows = {}
+            for (y, z), b in cells.items(): rows.setdefault((y, b), []).append(z)
+            xr = (xf - 0.03, xf + t) if side > 0 else (xf - t, xf + 0.03)
+            for (y, b), zs in rows.items():
+                zs.sort(); i = 0
+                while i < len(zs):
+                    j = i
+                    while j + 1 < len(zs) and abs(zs[j + 1] - zs[j] - step) < 1e-6: j += 1
+                    add.append(wgen.Cube(b, 'relief', mat, xr, (y, y + step), (zs[i], zs[j] + step), None, None, None, None, K=g.K))
+                    i = j + 1
+    g.cubes += add
+    if 'relief' not in g.parts: g.parts.append('relief')
+    # совпадения граней рельефа с деталями — только в 0.03 «врезки» внутрь детали (не видны), их не трогаем;
+    # проверяем лишь рельеф с рельефом
+    rel = [c for c in g.cubes if c.part == 'relief']; keep = g.cubes; g.cubes = rel
+    assert not g.coplanar(), 'рельеф перекрывается сам с собой'
+    g.cubes = keep
+    return g
+
+
+def build_own(full):
+    """модель скина с собственной геометрией (сейчас — рельеф)"""
+    gid = full.split('_')[0]
+    for tw in (512, 1024, 2048):
+        TW[0] = tw
+        g = hd.ALLG[gid]()
+        apply_chamfer(g)
+        add_relief(g)
+        stattrak(g)
+        g.id = gid
+        g.pack()
+        if max(b['x'] + b['w'] for b in g.blocks.values()) <= g.tw: break
+    g.paint(); mark(g)
+    return g
+
+
 def preview(g, out):
     import texprev as TP
     from PIL import Image
@@ -221,6 +297,12 @@ if __name__ == '__main__':
         g.template().convert('RGB').save(f'{DOC}/{gid}_template.png')
         json.dump(g.uv_layout(), open(f'{DOC}/{gid}_uv_layout.json', 'w'), indent=1)
         for sid, ru, en, tier, m, fu in SK.SKINS.get(gid, []):
-            im = SK.apply(g, m, fu, sparkle={'epic': .012, 'legendary': .02}.get(tier, 0))
-            g2img = g.img; g.img = im; mark(g); g.img = g2img       # маркировка поверх покраски
-            im.save(f'{A}/textures/item/weapon/skins/{gid}_{sid}.png')
+            full = f'{gid}_{sid}'
+            gg = g
+            if full in skins3.OWN_MODEL:
+                gg = build_own(full)
+                geo = gg.geo(); geo['minecraft:geometry'][0]['description']['identifier'] = 'geometry.combo_rush.' + full
+                json.dump(geo, open(f'{A}/geo/item/weapon/{full}.geo.json', 'w'), indent=1)
+            im = SK.apply(gg, m, fu, sparkle={'epic': .012, 'legendary': .02}.get(tier, 0))
+            g2img = gg.img; gg.img = im; mark(gg); gg.img = g2img       # маркировка поверх покраски
+            im.save(f'{A}/textures/item/weapon/skins/{full}.png')

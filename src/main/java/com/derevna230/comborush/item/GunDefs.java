@@ -151,6 +151,23 @@ new Skin("famas_tundra", "famas", "uncommon"),
         new Skin("butterfly_tiger", "butterfly", "mythic"),
         new Skin("butterfly_crimsonweb", "butterfly", "mythic"),
         new Skin("butterfly_heat", "butterfly", "mythic"),
+        new Skin("awp_sakura", "awp", "legendary"),
+        new Skin("ak47_carved", "ak47", "legendary"),
+        new Skin("m4a4_neon", "m4a4", "epic"),
+        new Skin("famas_stained", "famas", "epic"),
+        new Skin("usp_galaxy", "usp", "epic"),
+        new Skin("nova_khokhloma", "nova", "epic"),
+        new Skin("revolver_engraved", "revolver", "epic"),
+        new Skin("mp7_watercolor", "mp7", "rare"),
+        new Skin("mac10_candy", "mac10", "rare"),
+        new Skin("xm1014_aurora", "xm1014", "rare"),
+        new Skin("fiveseven_marble", "fiveseven", "rare"),
+        new Skin("scar20_holo", "scar20", "rare"),
+        new Skin("glock18_lava", "glock18", "rare"),
+        new Skin("mag7_pixels", "mag7", "uncommon"),
+        new Skin("sawedoff_rust", "sawedoff", "uncommon"),
+        new Skin("g3sg1_digital", "g3sg1", "uncommon"),
+        new Skin("deagle_cobalt", "deagle", "uncommon"),
         new Skin("gurkha_fade", "gurkha", "mythic"),
         new Skin("gurkha_doppler", "gurkha", "mythic"),
         new Skin("gurkha_tiger", "gurkha", "mythic"),
@@ -184,6 +201,8 @@ new Skin("famas_tundra", "famas", "uncommon"),
     /** Кукри (id «gurkha»: «kukri» уже занят мечом приключений) */
     public static final String GURKHA = "gurkha";
     public static final String BUTTERFLY = "butterfly";
+    /** Скины с собственной геометрией (рельеф): geo/item/weapon/&lt;скин&gt;.geo.json вместо модели ствола */
+    public static final java.util.Set<String> OWN_MODEL = java.util.Set.of("ak47_carved");
     /** Базовые модели-ножи (claw — Нож-коготь, bayonet — Штык, knife — стандартный нож Т/КТ) */
     public static boolean isKnifeBase(String base) { return base.equals("claw") || base.equals("knife") || base.equals("bayonet") || base.equals("skeleton") || base.equals("gurkha") || base.equals("butterfly"); }
     /** Коллекционные ножи (не стандартные Т/КТ): коготь и штык */

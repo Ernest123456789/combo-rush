@@ -84,8 +84,8 @@ public final class Standoff {
 
     /** Выдать случайный кейс; возвращает его название (или null) */
     public static String giveCaseNamed(ServerPlayerEntity p) {
-        String[] ids = {"arsenal", "bayonet", "sidearm", "utility", "shotgun", "graffiti"};
-        String[] names = {"Арсенал", "Штык", "Кобура", "Утилиты", "Дробовики", "Граффити"};
+        String[] ids = {"arsenal", "bayonet", "sidearm", "utility", "shotgun", "graffiti", "kaleido"};
+        String[] names = {"Арсенал", "Штык", "Кобура", "Утилиты", "Дробовики", "Граффити", "Калейдоскоп"};
         int k = ThreadLocalRandom.current().nextInt(ids.length);
         Item c = ModItems.CASES.get(ids[k]);
         if (c == null) return null;

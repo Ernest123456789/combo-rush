@@ -15,7 +15,7 @@ public class GunGeoModel<T extends GeoAnimatable> extends GeoModel<T> {
     private final Identifier model, texture, animation;
 
     public GunGeoModel(String base, String itemId) {
-        this.model = Identifier.of(ComboRush.MOD_ID, "geo/item/weapon/" + base + ".geo.json");
+        this.model = Identifier.of(ComboRush.MOD_ID, "geo/item/weapon/" + (GunDefs.OWN_MODEL.contains(itemId) ? itemId : base) + ".geo.json");
         this.animation = Identifier.of(ComboRush.MOD_ID, "animations/item/weapon/" + base + ".animation.json");
         this.texture = Identifier.of(ComboRush.MOD_ID, itemId.equals(base)
             ? "textures/item/weapon/" + base + ".png"
